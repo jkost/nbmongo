@@ -146,7 +146,7 @@ public final class JsonTreeTableCellRenderer extends JPanel implements TreeCellR
 
     private void computeRendererForJsonPropertyNode(JsonPropertyNode node, boolean selected) {
         final JsonProperty property = node.getUserObject();
-        if (node.isLeaf() && (property.getValue() instanceof List) == false) {
+        if (node.isLeaf() && (property.getValue() instanceof List) == false && (property.getValue() instanceof Map) == false) {
             final Object value = property.getValue();
             final LabelCategory valueLabelCategory = LABEL_CATEGORIES.get(value.getClass());
             final LabelFontConf keyFontConf = options.getLabelFontConf((value instanceof ObjectId) ? LabelCategory.ID : LabelCategory.KEY);
