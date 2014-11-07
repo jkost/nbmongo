@@ -32,12 +32,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import javax.swing.text.PlainDocument;
-import org.netbeans.modules.mongodb.native_tools.MongoDumpOptions;
 import org.netbeans.modules.mongodb.native_tools.MongoNativeTool;
 import org.netbeans.modules.mongodb.native_tools.MongoRestoreOptions;
 import org.netbeans.modules.mongodb.options.MongoNativeToolsOptions;
 import org.netbeans.modules.mongodb.ui.util.IntegerDocumentFilter;
-import org.netbeans.modules.mongodb.ui.util.JsonUI;
+import org.netbeans.modules.mongodb.ui.util.JsonEditor;
 import org.netbeans.modules.mongodb.util.Version;
 import org.openide.filesystems.FileChooserBuilder;
 import org.openide.util.NbBundle.Messages;
@@ -501,7 +500,7 @@ public final class MongoRestoreOptionsPanel extends AbstractOptionsAndArgsPanel 
     }//GEN-LAST:event_browseDBPathButtonActionPerformed
 
     private void editFilterButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_editFilterButtonActionPerformed
-        final DBObject dbObject = JsonUI.showEditor(Bundle.filterEditorTitle(), filterField.getText());
+        final DBObject dbObject = JsonEditor.show(Bundle.filterEditorTitle(), filterField.getText());
         if (dbObject != null) {
             filterField.setText(JSON.serialize(dbObject));
         }

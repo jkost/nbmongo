@@ -36,7 +36,7 @@ import org.netbeans.modules.mongodb.native_tools.MongoDumpOptions;
 import org.netbeans.modules.mongodb.native_tools.MongoNativeTool;
 import org.netbeans.modules.mongodb.options.MongoNativeToolsOptions;
 import org.netbeans.modules.mongodb.ui.util.IntegerDocumentFilter;
-import org.netbeans.modules.mongodb.ui.util.JsonUI;
+import org.netbeans.modules.mongodb.ui.util.JsonEditor;
 import org.netbeans.modules.mongodb.util.Version;
 import org.openide.filesystems.FileChooserBuilder;
 import org.openide.util.NbBundle.Messages;
@@ -460,7 +460,7 @@ public final class MongoDumpOptionsPanel extends AbstractOptionsAndArgsPanel imp
     }//GEN-LAST:event_browseDBPathButtonActionPerformed
 
     private void editQueryButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_editQueryButtonActionPerformed
-        final DBObject dbObject = JsonUI.showEditor(Bundle.queryEditorTitle(), queryField.getText());
+        final DBObject dbObject = JsonEditor.show(Bundle.queryEditorTitle(), queryField.getText());
         if (dbObject != null) {
             queryField.setText(JSON.serialize(dbObject));
         }

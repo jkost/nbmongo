@@ -29,7 +29,7 @@ import com.mongodb.MongoException;
 import java.awt.event.ActionEvent;
 import javax.swing.ImageIcon;
 import org.netbeans.modules.mongodb.resources.Images;
-import org.netbeans.modules.mongodb.ui.util.JsonUI;
+import org.netbeans.modules.mongodb.ui.util.JsonEditor;
 import org.netbeans.modules.mongodb.ui.windows.CollectionView;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
@@ -55,7 +55,7 @@ public final class AddDocumentAction extends CollectionViewAction {
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        final DBObject document = JsonUI.showEditor(
+        final DBObject document = JsonEditor.show(
             Bundle.addDocumentTitle(),
             "{}");
         if (document != null) {
