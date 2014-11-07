@@ -31,6 +31,7 @@ import java.util.ResourceBundle;
  */
 public enum LabelCategory {
 
+    COMMENT,
     DOCUMENT,
     KEY,
     ID,

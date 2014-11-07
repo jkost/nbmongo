@@ -23,6 +23,7 @@
  */
 package org.netbeans.modules.mongodb.ui.windows.collectionview.treetable;
 
+import com.mongodb.DBObject;
 import org.netbeans.modules.mongodb.options.JsonCellRenderingOptions;
 import java.awt.Color;
 import java.awt.Component;
@@ -60,6 +61,10 @@ public final class JsonTreeTableCellRenderer extends JPanel implements TreeCellR
         LABEL_CATEGORIES.put(Boolean.class, LabelCategory.BOOLEAN_VALUE);
         LABEL_CATEGORIES.put(ObjectId.class, LabelCategory.ID);
     }
+
+    private static final String ARRAY_COMMENT = "[ ]";
+
+    private static final String OBJECT_COMMENT = "{ }";
 
     private final JsonCellRenderingOptions options = JsonCellRenderingOptions.INSTANCE;
 
@@ -109,53 +114,30 @@ public final class JsonTreeTableCellRenderer extends JPanel implements TreeCellR
 
     @Override
     @SuppressWarnings("unchecked")
-    public Component getTreeCellRendererComponent(JTree tree, Object value, boolean selected, boolean expanded, boolean leaf, int row, boolean hasFocus) {
+    public Component getTreeCellRendererComponent(JTree tree, Object node, boolean selected, boolean expanded, boolean leaf, int row, boolean hasFocus) {
         setBackground(selected ? getBackgroundSelectionColor() : getBackgroundNonSelectionColor());
         setBorder(selected ? selectionBorder : nonSelectionBorder);
-        if (value instanceof DBObjectNode) {
-            final boolean isDocumentNode = value instanceof DocumentNode;
-            final LabelFontConf keyFontConf = options.getLabelFontConf(isDocumentNode 
-                ? LabelCategory.DOCUMENT 
+        if (node instanceof DBObjectNode) {
+            DBObject value = ((DBObjectNode) node).getUserObject();
+            final boolean isDocumentNode = node instanceof DocumentNode;
+            final LabelFontConf keyFontConf = options.getLabelFontConf(isDocumentNode
+                ? LabelCategory.DOCUMENT
                 : LabelCategory.KEY);
+            final LabelFontConf valueFontConf = options.getLabelFontConf(LabelCategory.COMMENT);
             keyLabel.setFont(keyFontConf.getFont());
+            valueLabel.setFont(valueFontConf.getFont());
+            valueLabel.setText("");
             if (isDocumentNode) {
-                final DocumentNode node = (DocumentNode) value;
-                final Object id = node.getUserObject().get("_id");
+                final Object id = value.get("_id");
                 keyLabel.setText(String.valueOf(id));
             } else {
-                keyLabel.setText("-");
-            }
-            valueLabel.setText("");
-            if (selected) {
-                keyLabel.setForeground(getTextSelectionColor());
-                keyLabel.setBackground(getBackgroundSelectionColor());
-            } else {
-                keyLabel.setForeground(keyFontConf.getForeground());
-                keyLabel.setBackground(keyFontConf.getBackground());
-                if (isDocumentNode) {
-                    setBackground(keyFontConf.getBackground());
+                keyLabel.setText("");
+                if (value instanceof List) {
+                    valueLabel.setText(ARRAY_COMMENT);
+                } else if (value instanceof Map) {
+                    valueLabel.setText(OBJECT_COMMENT);
                 }
             }
-        } else if (value instanceof JsonPropertyNode) {
-            computeRendererForJsonPropertyNode((JsonPropertyNode) value, selected);
-        } else if (value instanceof JsonValueNode) {
-            computeRendererForJsonValuePropertyNode((JsonValueNode) value, selected);
-        }
-        return this;
-    }
-
-    private void computeRendererForJsonPropertyNode(JsonPropertyNode node, boolean selected) {
-        final JsonProperty property = node.getUserObject();
-        if (node.isLeaf() && (property.getValue() instanceof List) == false && (property.getValue() instanceof Map) == false) {
-            final Object value = property.getValue();
-            final LabelCategory valueLabelCategory = LABEL_CATEGORIES.get(value.getClass());
-            final LabelFontConf keyFontConf = options.getLabelFontConf((value instanceof ObjectId) ? LabelCategory.ID : LabelCategory.KEY);
-            final LabelFontConf valueFontConf = options.getLabelFontConf(valueLabelCategory);
-
-            keyLabel.setText(buildJsonKey(property.getName()));
-            keyLabel.setFont(keyFontConf.getFont());
-            valueLabel.setText(value instanceof String ? buildJsonString(value) : value.toString());
-            valueLabel.setFont(valueFontConf.getFont());
             if (selected) {
                 keyLabel.setForeground(getTextSelectionColor());
                 keyLabel.setBackground(getBackgroundSelectionColor());
@@ -166,20 +148,56 @@ public final class JsonTreeTableCellRenderer extends JPanel implements TreeCellR
                 keyLabel.setBackground(keyFontConf.getBackground());
                 valueLabel.setForeground(valueFontConf.getForeground());
                 valueLabel.setBackground(valueFontConf.getBackground());
+                if (isDocumentNode) {
+                    setBackground(keyFontConf.getBackground());
+                }
             }
-        } else {
-            final LabelFontConf keyFontConf = options.getLabelFontConf(LabelCategory.KEY);
-            keyLabel.setFont(keyFontConf.getFont());
-            if (selected) {
-                keyLabel.setForeground(getTextSelectionColor());
-                keyLabel.setBackground(getBackgroundSelectionColor());
-            } else {
-                keyLabel.setForeground(keyFontConf.getForeground());
-                keyLabel.setBackground(keyFontConf.getBackground());
-            }
-            keyLabel.setText(property.getName());
-            valueLabel.setText("");
+        } else if (node instanceof JsonPropertyNode) {
+            computeRendererForJsonPropertyNode((JsonPropertyNode) node, selected);
+        } else if (node instanceof JsonValueNode) {
+            computeRendererForJsonValuePropertyNode((JsonValueNode) node, selected);
         }
+        return this;
+    }
+
+    private void computeRendererForJsonPropertyNode(JsonPropertyNode node, boolean selected) {
+        final JsonProperty property = node.getUserObject();
+        final Object value = property.getValue();
+        final LabelFontConf keyFontConf;
+        final LabelFontConf valueFontConf;
+        if (node.isLeaf() && (value instanceof List) == false && (value instanceof Map) == false) {
+            final LabelCategory valueLabelCategory = LABEL_CATEGORIES.get(value.getClass());
+            keyFontConf = options.getLabelFontConf((value instanceof ObjectId) ? LabelCategory.ID : LabelCategory.KEY);
+            valueFontConf = options.getLabelFontConf(valueLabelCategory);
+
+            keyLabel.setText(buildJsonKey(property.getName()));
+            valueLabel.setText(value instanceof String ? buildJsonString(value) : value.toString());
+        } else {
+            keyFontConf = options.getLabelFontConf(LabelCategory.KEY);
+            valueFontConf = options.getLabelFontConf(LabelCategory.COMMENT);
+            keyLabel.setText(property.getName());
+            if (value instanceof List) {
+                valueLabel.setText(ARRAY_COMMENT);
+            } else if (value instanceof Map) {
+                valueLabel.setText(OBJECT_COMMENT);
+            } else {
+                valueLabel.setText("");
+            }
+        }
+        keyLabel.setFont(keyFontConf.getFont());
+        valueLabel.setFont(valueFontConf.getFont());
+        if (selected) {
+            keyLabel.setForeground(getTextSelectionColor());
+            keyLabel.setBackground(getBackgroundSelectionColor());
+            valueLabel.setForeground(getTextSelectionColor());
+            valueLabel.setBackground(getBackgroundSelectionColor());
+        } else {
+            keyLabel.setForeground(keyFontConf.getForeground());
+            keyLabel.setBackground(keyFontConf.getBackground());
+            valueLabel.setForeground(valueFontConf.getForeground());
+            valueLabel.setBackground(valueFontConf.getBackground());
+        }
+
     }
 
     private void computeRendererForJsonValuePropertyNode(JsonValueNode node, boolean selected) {
@@ -187,7 +205,6 @@ public final class JsonTreeTableCellRenderer extends JPanel implements TreeCellR
         final LabelCategory valueLabelCategory = LABEL_CATEGORIES.get(value.getClass());
         final LabelFontConf keyFontConf = options.getLabelFontConf((value instanceof ObjectId) ? LabelCategory.ID : LabelCategory.KEY);
         final LabelFontConf valueFontConf = options.getLabelFontConf(valueLabelCategory);
-
         keyLabel.setText("");
         valueLabel.setText(value instanceof String ? buildJsonString(value) : value.toString());
         valueLabel.setFont(valueFontConf.getFont());

@@ -128,6 +128,10 @@ public enum JsonCellRenderingOptions {
                 font,
                 textForeground,
                 new Color(0xF5ECCE)));
+            map.put(LabelCategory.COMMENT, new LabelFontConf(
+                font.deriveFont(Font.ITALIC),
+                new Color(0xA4A4A4),
+                textBackground));
             map.put(LabelCategory.ID, new LabelFontConf(
                 font,
                 Color.LIGHT_GRAY,
