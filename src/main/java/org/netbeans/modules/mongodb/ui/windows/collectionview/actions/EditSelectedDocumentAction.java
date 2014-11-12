@@ -64,7 +64,7 @@ public final class EditSelectedDocumentAction extends CollectionViewAction {
             try {
                 final DBCollection dbCollection = getView().getLookup().lookup(DBCollection.class);
                 dbCollection.save(modifiedDocument);
-                getView().refreshResults();
+                getView().getCollectionQueryResult().updateDocument(document, modifiedDocument);
             } catch (MongoException ex) {
                 DialogDisplayer.getDefault().notify(
                     new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE));

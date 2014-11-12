@@ -24,11 +24,8 @@
 package org.netbeans.modules.mongodb.ui.windows.collectionview.treetable;
 
 import com.mongodb.DBObject;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import org.jdesktop.swingx.treetable.TreeTableNode;
 import org.netbeans.modules.mongodb.util.JsonProperty;
 
 /**
@@ -37,36 +34,26 @@ import org.netbeans.modules.mongodb.util.JsonProperty;
  */
 public final class JsonPropertyNode extends CollectionViewTreeTableNode<JsonProperty> {
 
-    public JsonPropertyNode(TreeTableNode parent, JsonProperty property) {
-        super(parent, property, new ChildrenFactory<JsonProperty>() {
-
-            @Override
-            @SuppressWarnings("unchecked")
-            public List<TreeTableNode> createChildren(TreeTableNode parent, JsonProperty property) {
-                final Object value = property.getValue();
-                if (value instanceof Map) {
-                    final Map<String, Object> map = (Map<String, Object>) value;
-                    final List<TreeTableNode> children = new ArrayList<>(map.size());
-                    for (Map.Entry<String, Object> entry : map.entrySet()) {
-                        children.add(new JsonPropertyNode(
-                            parent,
-                            new JsonProperty(entry.getKey(), entry.getValue())));
-                    }
-                    return children;
-                } else if (value instanceof List) {
-                    final List<Object> objects = (List<Object>) value;
-                    final List<TreeTableNode> children = new ArrayList<>(objects.size());
-                    for (Object object : objects) {
-                        if(object instanceof DBObject) {
-                            children.add(new DBObjectNode(parent, (DBObject) object));
-                        } else {
-                            children.add(new JsonValueNode(parent, object));
-                        }
-                    }
-                    return children;
-                }
-                return Collections.emptyList();
+    @SuppressWarnings("unchecked")
+    public JsonPropertyNode(JsonProperty property) {
+        super(property);
+        final Object value = property.getValue();
+        if (value instanceof Map) {
+            final Map<String, Object> map = (Map<String, Object>) value;
+            for (Map.Entry<String, Object> entry : map.entrySet()) {
+                add(new JsonPropertyNode(new JsonProperty(entry.getKey(), entry.getValue())));
             }
-        });
+        } else if (value instanceof List) {
+            final List<Object> objects = (List<Object>) value;
+            for (Object object : objects) {
+                if (object instanceof DBObject) {
+                    add(new DBObjectNode((DBObject) object));
+                } else {
+                    add(new JsonValueNode(object));
+                }
+            }
+        } else {
+            setAllowsChildren(false);
+        }
     }
 }

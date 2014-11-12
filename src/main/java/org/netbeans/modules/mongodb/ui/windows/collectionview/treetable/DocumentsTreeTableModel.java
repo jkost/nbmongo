@@ -24,9 +24,8 @@
 package org.netbeans.modules.mongodb.ui.windows.collectionview.treetable;
 
 import com.mongodb.DBObject;
-import java.util.ArrayList;
-import java.util.List;
 import javax.swing.SwingUtilities;
+import javax.swing.tree.TreePath;
 import org.jdesktop.swingx.treetable.DefaultTreeTableModel;
 import org.jdesktop.swingx.treetable.TreeTableNode;
 import org.netbeans.modules.mongodb.ui.windows.collectionview.CollectionQueryResult;
@@ -44,7 +43,7 @@ public final class DocumentsTreeTableModel extends DefaultTreeTableModel impleme
     public DocumentsTreeTableModel(CollectionQueryResult collectionQueryResult) {
         this.collectionQueryResult = collectionQueryResult;
     }
-    
+
     @Override
     public CollectionQueryResult getCollectionQueryResult() {
         return collectionQueryResult;
@@ -59,20 +58,23 @@ public final class DocumentsTreeTableModel extends DefaultTreeTableModel impleme
     }
 
     @Override
-    public void updateFinished(CollectionQueryResult source) {
-        final TreeTableNode rootNode = new CollectionViewTreeTableNode<>(null, collectionQueryResult.getDocuments(),
-            new CollectionViewTreeTableNode.ChildrenFactory<List<DBObject>>() {
+    public void documentUpdated(CollectionQueryResult source, DBObject document, int index) {
+        DocumentNode node = (DocumentNode) getRoot().getChildAt(index);
+        setUserObject(node, document);
+        TreePath path = new TreePath(getPathToRoot(node));
+        modelSupport.fireTreeStructureChanged(path);
+    }
 
-                @Override
-                public List<TreeTableNode> createChildren(TreeTableNode parent, List<DBObject> documents) {
-                    final List<TreeTableNode> children = new ArrayList<>(documents.size());
-                    for (DBObject document : documents) {
-                        children.add(new DocumentNode(parent, document));
-                    }
-                    return children;
+    @Override
+    public void updateFinished(CollectionQueryResult source) {
+        final TreeTableNode rootNode = new CollectionViewTreeTableNode<Object>(null) {
+            {
+                for (DBObject document : collectionQueryResult.getDocuments()) {
+                    add(new DocumentNode(document));
                 }
             }
-        );
+        };
+
         SwingUtilities.invokeLater(new Runnable() {
 
             @Override

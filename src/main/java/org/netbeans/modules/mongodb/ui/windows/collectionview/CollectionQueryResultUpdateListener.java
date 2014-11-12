@@ -49,6 +49,15 @@ public interface CollectionQueryResultUpdateListener {
     void documentAdded(CollectionQueryResult source, DBObject document);
 
     /**
+     * Invoked when a document is updated in the collection query result.
+     *
+     * @param source the collection query result event source
+     * @param document the updated document
+     * @param index the document index in the result list
+     */
+    void documentUpdated(CollectionQueryResult source, DBObject document, int index);
+
+    /**
      * Invoked on collection query result update end.
      *
      * @param source the collection query result event source

@@ -25,7 +25,8 @@
 package org.netbeans.modules.mongodb.ui.windows.collectionview.treetable;
 
 import com.mongodb.DBObject;
-import org.jdesktop.swingx.treetable.TreeTableNode;
+import java.util.Map;
+import org.netbeans.modules.mongodb.util.JsonProperty;
 
 /**
  *
@@ -33,7 +34,18 @@ import org.jdesktop.swingx.treetable.TreeTableNode;
  */
 public final class DocumentNode extends DBObjectNode {
     
-    public DocumentNode(TreeTableNode parent, DBObject userObject) {
-        super(parent, userObject);
+    public DocumentNode(DBObject document) {
+        super(document);
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public void setUserObject(Object object) {
+        super.setUserObject(object);
+        children.clear();
+        final Map<String, Object> map = getUserObject().toMap();
+        for (Map.Entry<String, Object> entry : map.entrySet()) {
+            add(new JsonPropertyNode(new JsonProperty(entry.getKey(), entry.getValue())));
+        }
     }
 }

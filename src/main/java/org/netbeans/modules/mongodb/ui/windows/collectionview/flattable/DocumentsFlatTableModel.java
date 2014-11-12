@@ -62,6 +62,11 @@ public final class DocumentsFlatTableModel extends AbstractTableModel implements
     }
 
     @Override
+    public void documentUpdated(CollectionQueryResult source, DBObject document, int index) {
+        fireTableRowsUpdated(index, index);
+    }
+
+    @Override
     public void updateFinished(CollectionQueryResult source) {
         fireTableStructureChanged();
     }

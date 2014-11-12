@@ -100,6 +100,15 @@ public final class CollectionQueryResult {
         fireUpdateFinished();
         viewRefreshNecessary = true;
     }
+    
+    public void updateDocument(DBObject oldDocument, DBObject newDocument) {
+        int index = documents.indexOf(oldDocument);
+        if(index == -1) {
+            throw new IllegalArgumentException("try to updated unknown document");
+        }
+        documents.set(index, newDocument);
+        fireDocumentUpdated(newDocument, index);
+    }
 
     public void refreshViewIfNecessary() {
         if(viewRefreshNecessary == false) {
@@ -130,6 +139,12 @@ public final class CollectionQueryResult {
     private void fireDocumentAdded(DBObject document) {
         if (view != null) {
             view.documentAdded(this, document);
+        }
+    }
+
+    private void fireDocumentUpdated(DBObject document, int index) {
+        if (view != null) {
+            view.documentUpdated(this, document, index);
         }
     }
 
