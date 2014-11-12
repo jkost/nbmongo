@@ -24,10 +24,7 @@
 package org.netbeans.modules.mongodb.ui.windows.collectionview.treetable;
 
 import com.mongodb.DBObject;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
-import org.jdesktop.swingx.treetable.TreeTableNode;
 import org.netbeans.modules.mongodb.util.JsonProperty;
 
 /**
@@ -36,21 +33,12 @@ import org.netbeans.modules.mongodb.util.JsonProperty;
  */
 public class DBObjectNode extends CollectionViewTreeTableNode<DBObject> {
 
-    public DBObjectNode(TreeTableNode parent, DBObject userObject) {
-        super(parent, userObject, new ChildrenFactory<DBObject>() {
-
-            @Override
-            @SuppressWarnings("unchecked")
-            public List<TreeTableNode> createChildren(TreeTableNode parent, DBObject userObject) {
-                final Map<String, Object> map = userObject.toMap();
-                final List<TreeTableNode> children = new ArrayList<>(map.size());
-                for (Map.Entry<String, Object> entry : map.entrySet()) {
-                    children.add(new JsonPropertyNode(
-                        parent,
-                        new JsonProperty(entry.getKey(), entry.getValue())));
-                }
-                return children;
-            }
-        });
+    @SuppressWarnings("unchecked")
+    public DBObjectNode(DBObject userObject) {
+        super(userObject);
+        final Map<String, Object> map = userObject.toMap();
+        for (Map.Entry<String, Object> entry : map.entrySet()) {
+            add(new JsonPropertyNode(new JsonProperty(entry.getKey(), entry.getValue())));
+        }
     }
 }

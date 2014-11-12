@@ -23,11 +23,8 @@
  */
 package org.netbeans.modules.mongodb.ui.windows.collectionview.treetable;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import org.jdesktop.swingx.treetable.TreeTableNode;
 import org.netbeans.modules.mongodb.util.JsonProperty;
 
 /**
@@ -36,31 +33,21 @@ import org.netbeans.modules.mongodb.util.JsonProperty;
  */
 public final class JsonValueNode extends CollectionViewTreeTableNode<Object> {
 
-    public JsonValueNode(TreeTableNode parent, Object value) {
-        super(parent, value, new ChildrenFactory<Object>() {
-
-            @Override
-            @SuppressWarnings("unchecked")
-            public List<TreeTableNode> createChildren(TreeTableNode parent, Object value) {
-                if (value instanceof Map) {
-                    final Map<String, Object> map = (Map<String, Object>) value;
-                    final List<TreeTableNode> children = new ArrayList<>(map.size());
-                    for (Map.Entry<String, Object> entry : map.entrySet()) {
-                        children.add(new JsonPropertyNode(
-                            parent,
-                            new JsonProperty(entry.getKey(), entry.getValue())));
-                    }
-                    return children;
-                } else if (value instanceof List) {
-                    final List<Object> objects = (List<Object>) value;
-                    final List<TreeTableNode> children = new ArrayList<>(objects.size());
-                    for (Object object : objects) {
-                        children.add(new JsonValueNode(parent, object));
-                    }
-                    return children;
-                }
-                return Collections.emptyList();
+    @SuppressWarnings("unchecked")
+    public JsonValueNode(Object value) {
+        super(value);
+        if (value instanceof Map) {
+            final Map<String, Object> map = (Map<String, Object>) value;
+            for (Map.Entry<String, Object> entry : map.entrySet()) {
+                add(new JsonPropertyNode(new JsonProperty(entry.getKey(), entry.getValue())));
             }
-        });
+        } else if (value instanceof List) {
+            final List<Object> objects = (List<Object>) value;
+            for (Object object : objects) {
+                add(new JsonValueNode(object));
+            }
+        } else {
+            setAllowsChildren(false);
+        }
     }
 }

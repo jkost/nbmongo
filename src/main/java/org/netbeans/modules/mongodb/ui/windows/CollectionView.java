@@ -330,7 +330,7 @@ public final class CollectionView extends TopComponent {
                 throw new AssertionError();
         }
     }
-
+    
     public void changeResultView(ResultView resultView) {
         this.resultView = resultView;
         collectionQueryResult.setView(resultViews.get(resultView));

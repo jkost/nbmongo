@@ -24,125 +24,30 @@
 
 package org.netbeans.modules.mongodb.ui.windows.collectionview.treetable;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Enumeration;
-import java.util.List;
-import javax.swing.tree.TreeNode;
-import org.jdesktop.swingx.treetable.TreeTableNode;
+import org.jdesktop.swingx.treetable.DefaultMutableTreeTableNode;
 
 /**
  *
  * @author Yann D'Isanto
  */
-public class CollectionViewTreeTableNode<T> implements TreeTableNode {
-
-    private final TreeTableNode parent;
+public class CollectionViewTreeTableNode<T> extends DefaultMutableTreeTableNode {
     
-    private final T userObject;
-
-    private final List<TreeTableNode> children;
-
-    public CollectionViewTreeTableNode(TreeTableNode parent, T userObject) {
-        this(parent, userObject, null);
+    public CollectionViewTreeTableNode(T userObject) {
+        super(userObject);
     }
-
-    public CollectionViewTreeTableNode(TreeTableNode parent, T userObject, ChildrenFactory<T> childrenFactory) {
-        this.parent = parent;
-        this.userObject = userObject;
-        this.children = childrenFactory != null 
-            ? childrenFactory.createChildren(this, userObject) 
-            : new ArrayList<TreeTableNode>();
-    }
-
     
-    @Override
-    public Enumeration<? extends TreeTableNode> children() {
-        return Collections.enumeration(children);
+    public CollectionViewTreeTableNode(T userObject, boolean allowsChildren) {
+        super(userObject, allowsChildren);
     }
 
     @Override
-    public T getValueAt(int column) {
-        return getUserObject();
+    @SuppressWarnings("unchecked")
+    public T getUserObject() {
+        return (T) super.getUserObject();
     }
-
-    @Override
-    public TreeTableNode getChildAt(int childIndex) {
-        return children.get(childIndex);
-    }
-
-    @Override
-    public int getColumnCount() {
-        return 1;
-    }
-
-    @Override
-    public TreeTableNode getParent() {
-        return parent;
-    }
-
+    
     @Override
     public boolean isEditable(int column) {
         return false;
-    }
-
-    @Override
-    public void setValueAt(Object aValue, int column) {
-        throw new UnsupportedOperationException("this node is immutable");
-    }
-
-    @Override
-    public T getUserObject() {
-        return userObject;
-    }
-
-    @Override
-    public void setUserObject(Object userObject) {
-        throw new UnsupportedOperationException("this node is immutable");
-    }
-
-    @Override
-    public int getChildCount() {
-        return children.size();
-    }
-
-    @Override
-    public int getIndex(TreeNode node) {
-        return children.indexOf(node);
-    }
-
-    @Override
-    public boolean getAllowsChildren() {
-        return children.isEmpty() == false;
-    }
-
-    @Override
-    public boolean isLeaf() {
-        return children.isEmpty();
-    }
-    
-    public static interface ChildrenFactory<T> {
-        List<TreeTableNode> createChildren(TreeTableNode parent, T userObject);
-    }
-    
-    public static final class SimpleChildrenFactory<T> implements ChildrenFactory<T> {
-
-        private final Collection<TreeTableNode> children;
-
-        public SimpleChildrenFactory(TreeTableNode... children) {
-            this(Arrays.asList(children));
-        }
-        
-        public SimpleChildrenFactory(Collection<TreeTableNode> children) {
-            this.children = children;
-        }
-        
-        @Override
-        public List<TreeTableNode> createChildren(TreeTableNode parent, T userObject) {
-            return new ArrayList<>(children);
-        }
-    }
-    
+    }    
 }
