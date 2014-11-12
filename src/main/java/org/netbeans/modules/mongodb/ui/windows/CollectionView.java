@@ -26,17 +26,22 @@ package org.netbeans.modules.mongodb.ui.windows;
 import org.netbeans.modules.mongodb.ui.windows.collectionview.actions.AddDocumentAction;
 import com.mongodb.DBCollection;
 import com.mongodb.DBObject;
+import com.mongodb.MongoException;
 import com.mongodb.util.JSON;
 import java.awt.CardLayout;
 import org.netbeans.modules.mongodb.CollectionInfo;
 import java.awt.Font;
+import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.math.BigDecimal;
 import java.util.EnumMap;
+import java.util.List;
 import java.util.Map;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 import javax.swing.Action;
+import javax.swing.ImageIcon;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.JTable;
@@ -53,7 +58,7 @@ import javax.swing.table.TableColumnModel;
 import javax.swing.text.PlainDocument;
 import javax.swing.tree.TreePath;
 import lombok.Getter;
-import org.jdesktop.swingx.JXTreeTable;
+import org.bson.types.ObjectId;
 import org.jdesktop.swingx.treetable.TreeTableNode;
 import org.netbeans.modules.mongodb.ConnectionInfo;
 import org.netbeans.modules.mongodb.DbInfo;
@@ -62,6 +67,7 @@ import org.netbeans.modules.mongodb.options.JsonCellRenderingOptions;
 import org.netbeans.modules.mongodb.options.LabelCategory;
 import org.netbeans.modules.mongodb.ui.components.QueryEditor;
 import org.netbeans.modules.mongodb.ui.util.IntegerDocumentFilter;
+import org.netbeans.modules.mongodb.ui.util.JsonPropertyEditor;
 import org.netbeans.modules.mongodb.ui.windows.collectionview.CollectionQueryResult;
 import org.netbeans.modules.mongodb.ui.windows.collectionview.CollectionQueryResultView;
 import org.netbeans.modules.mongodb.ui.windows.collectionview.CollectionQueryResultUpdateListener;
@@ -69,6 +75,7 @@ import org.netbeans.modules.mongodb.ui.windows.collectionview.flattable.JsonFlat
 import org.netbeans.modules.mongodb.ui.windows.collectionview.actions.ChangeResultViewAction;
 import org.netbeans.modules.mongodb.ui.windows.collectionview.actions.ClearQueryAction;
 import org.netbeans.modules.mongodb.ui.windows.collectionview.actions.CollapseAllDocumentsAction;
+import org.netbeans.modules.mongodb.ui.windows.collectionview.actions.CollectionViewAction;
 import org.netbeans.modules.mongodb.ui.windows.collectionview.actions.CopyDocumentToClipboardAction;
 import org.netbeans.modules.mongodb.ui.windows.collectionview.actions.CopyKeyToClipboardAction;
 import org.netbeans.modules.mongodb.ui.windows.collectionview.actions.CopyValueToClipboardAction;
@@ -91,6 +98,8 @@ import org.netbeans.modules.mongodb.ui.windows.collectionview.treetable.JsonTree
 import org.netbeans.modules.mongodb.ui.windows.collectionview.treetable.DocumentsTreeTableModel;
 import org.netbeans.modules.mongodb.util.JsonProperty;
 import org.netbeans.modules.mongodb.util.SystemCollectionPredicate;
+import org.openide.DialogDisplayer;
+import org.openide.NotifyDescriptor;
 import org.openide.util.Exceptions;
 import org.openide.util.Lookup;
 import org.openide.util.NbBundle.Messages;
@@ -135,8 +144,12 @@ public final class CollectionView extends TopComponent {
 
     private final Map<ResultView, CollectionQueryResultUpdateListener> resultViews = new EnumMap<>(ResultView.class);
 
+    private final DocumentsTreeTableModel treeTableModel;
+
+    private final DocumentsFlatTableModel flatTableModel;
+
     private Lookup lookup;
-    
+
     public CollectionView(CollectionInfo collectionInfo, Lookup lookup) {
         super(lookup);
         this.lookup = lookup;
@@ -153,8 +166,8 @@ public final class CollectionView extends TopComponent {
 
         final DBCollection dbCollection = lookup.lookup(DBCollection.class);
         collectionQueryResult = new CollectionQueryResult(dbCollection);
-        final DocumentsTreeTableModel treeTableModel = new DocumentsTreeTableModel(collectionQueryResult);
-        final DocumentsFlatTableModel flatTableModel = new DocumentsFlatTableModel(collectionQueryResult);
+        treeTableModel = new DocumentsTreeTableModel(collectionQueryResult);
+        flatTableModel = new DocumentsFlatTableModel(collectionQueryResult);
         resultViews.put(ResultView.TREE_TABLE, treeTableModel);
         resultViews.put(ResultView.FLAT_TABLE, flatTableModel);
 
@@ -281,7 +294,7 @@ public final class CollectionView extends TopComponent {
         final DBCollection dbCollection = lookup.lookup(DBCollection.class);
         collectionQueryResult.setDbCollection(dbCollection);
     }
-    
+
     public void updateTitle() {
         final ConnectionInfo connectionInfo = lookup.lookup(ConnectionInfo.class);
         final DbInfo dbInfo = lookup.lookup(DbInfo.class);
@@ -805,7 +818,7 @@ public final class CollectionView extends TopComponent {
 
     @Getter
     private final Action expandTreeAction = new ExpandAllDocumentsAction(this);
-    
+
     public enum ResultView {
 
         FLAT_TABLE, TREE_TABLE
@@ -823,6 +836,16 @@ public final class CollectionView extends TopComponent {
                     final JsonProperty property = ((JsonPropertyNode) node).getUserObject();
                     menu.add(new JMenuItem(new CopyKeyToClipboardAction(property)));
                     menu.add(new JMenuItem(new CopyValueToClipboardAction(property.getValue())));
+
+                    Object value = property.getValue();
+                    if (value instanceof Map || value instanceof List || value instanceof DBObject) {
+                        // nothing
+                    } else {
+                        JsonPropertyNode propertyNode = (JsonPropertyNode) node;
+                        if((propertyNode.getUserObject().getValue() instanceof ObjectId) == false) {
+                            menu.add(new JMenuItem(new EditSelectedDocumentPropertyAction(this, propertyNode)));
+                        }
+                    }
                 } else {
                     menu.add(new JMenuItem(new CopyValueToClipboardAction(node.getUserObject())));
                 }
@@ -853,4 +876,48 @@ public final class CollectionView extends TopComponent {
         return menu;
     }
 
+    private class EditSelectedDocumentPropertyAction extends CollectionViewAction {
+
+        private final JsonPropertyNode propertyNode;
+
+        public EditSelectedDocumentPropertyAction(CollectionView view, JsonPropertyNode propertyNode) {
+            super(view,
+                "edit property value",
+                new ImageIcon(Images.EDIT_DOCUMENT_ICON),
+                "edit selected property value");
+            this.propertyNode = propertyNode;
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            JsonProperty property = propertyNode.getUserObject();
+            
+            Object newValue = JsonPropertyEditor.show(property);
+            if(newValue instanceof BigDecimal) {
+                BigDecimal numberValue = (BigDecimal) newValue;
+                if(numberValue.signum() == 0 || numberValue.scale() <= 0 || numberValue.stripTrailingZeros().scale() <= 0) {
+                    newValue = numberValue.intValue();
+                } else {
+                    newValue = numberValue.doubleValue();
+                }
+            }
+            if (newValue != null && newValue != property.getValue()) {
+                treeTableModel.setUserObject(propertyNode, new JsonProperty(property.getName(), newValue));
+                TreeTableNode parentNode = propertyNode.getParent();
+                DBObject parent = (DBObject) parentNode.getUserObject();
+                parent.put(property.getName(), newValue);
+                while ((parentNode instanceof DocumentNode) == false) {
+                    parentNode = parentNode.getParent();
+                }
+                try {
+                    final DBCollection dbCollection = getView().getLookup().lookup(DBCollection.class);
+                    dbCollection.save((DBObject) parentNode.getUserObject());
+                } catch (MongoException ex) {
+                    DialogDisplayer.getDefault().notify(
+                        new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE));
+                }
+            }
+        }
+
+    }
 }
