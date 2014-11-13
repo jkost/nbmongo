@@ -24,15 +24,20 @@
 package org.netbeans.modules.mongodb.ui.util;
 
 import java.awt.Component;
+import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.beans.PropertyEditor;
 import java.beans.PropertyEditorSupport;
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 import javax.swing.JComponent;
 import javax.swing.JSpinner;
 import javax.swing.KeyStroke;
 import javax.swing.SpinnerModel;
 import javax.swing.SpinnerNumberModel;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import lombok.Getter;
 import lombok.Setter;
 import org.openide.explorer.propertysheet.ExPropertyEditor;
@@ -45,7 +50,7 @@ import org.openide.explorer.propertysheet.PropertyModel;
  * @author Yann D'Isanto
  */
 public class BigDecimalPropertyEditor extends PropertyEditorSupport implements ExPropertyEditor, InplaceEditor.Factory {
-
+    
     @Getter
     private final InplaceEditor inplaceEditor = new BigDecimalInplaceEditor();
 
@@ -64,7 +69,7 @@ public class BigDecimalPropertyEditor extends PropertyEditorSupport implements E
         env.registerInplaceEditorFactory(this);
     }
 
-    private class BigDecimalInplaceEditor implements InplaceEditor {
+    private class BigDecimalInplaceEditor implements InplaceEditor, ChangeListener {
 
         private final JSpinner field;
 
@@ -75,8 +80,11 @@ public class BigDecimalPropertyEditor extends PropertyEditorSupport implements E
         @Setter
         private PropertyModel propertyModel;
 
+        private final List<ActionListener> listeners = new ArrayList<>();
+        
         public BigDecimalInplaceEditor() {
-            this.field = new JSpinner(new SpinnerBigDecimalModel()) {
+            SpinnerBigDecimalModel spinnerModel = new SpinnerBigDecimalModel();
+            this.field = new JSpinner(spinnerModel){
 
                 @Override
                 protected JComponent createEditor(SpinnerModel model) {
@@ -84,6 +92,7 @@ public class BigDecimalPropertyEditor extends PropertyEditorSupport implements E
                 }
 
             };
+            spinnerModel.addChangeListener(this);
         }
 
         @Override
@@ -127,13 +136,13 @@ public class BigDecimalPropertyEditor extends PropertyEditorSupport implements E
         }
 
         @Override
-        public void addActionListener(ActionListener al) {
-            //do nothing
+        public void addActionListener(ActionListener listener) {
+            listeners.add(listener);
         }
 
         @Override
-        public void removeActionListener(ActionListener al) {
-            //do nothing
+        public void removeActionListener(ActionListener listener) {
+            listeners.remove(listener);
         }
 
         @Override
@@ -144,6 +153,14 @@ public class BigDecimalPropertyEditor extends PropertyEditorSupport implements E
         @Override
         public boolean isKnownComponent(Component component) {
             return component == field || field.isAncestorOf(component);
+        }
+
+        @Override
+        public void stateChanged(ChangeEvent e) {
+            ActionEvent evt = new ActionEvent(this, ActionEvent.ACTION_PERFORMED, COMMAND_SUCCESS);
+            for (ActionListener listener : listeners) {
+                listener.actionPerformed(evt);
+            }
         }
 
     }
