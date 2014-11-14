@@ -23,11 +23,17 @@
  */
 package org.netbeans.modules.mongodb.ui.util;
 
+import java.awt.BorderLayout;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.beans.PropertyEditorManager;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.Map;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.netbeans.modules.mongodb.util.JsonProperty;
@@ -44,6 +50,7 @@ import org.openide.nodes.PropertySupport;
 public class JsonPropertyEditor {
 
     private static final Map<Class<?>, ValueBean<?>> BEANS = new HashMap<>();
+
     static {
         PropertyEditorManager.registerEditor(BigDecimal.class, BigDecimalPropertyEditor.class);
         BEANS.put(Boolean.class, new BooleanBean());
@@ -56,49 +63,119 @@ public class JsonPropertyEditor {
         BEANS.put(Long.class, new NumberBean());
         BEANS.put(Integer.class, new NumberBean());
     }
-    
+
     @SuppressWarnings("unchecked")
-    public static Object show(JsonProperty property) {
+    public static JsonProperty show(JsonProperty property) {
         Object value = property.getValue();
-        ValueBean<Object> bean = (ValueBean<Object>) BEANS.get(value.getClass());
-        if(value instanceof Number) {
+        StringBean nameBean = new StringBean(property.getName());
+        ValueBean<Object> valueBean = (ValueBean<Object>) BEANS.get(value.getClass());
+        if (value instanceof Number) {
             value = numberToBigDecimal((Number) value);
         }
-        bean.setValue(value);
+        valueBean.setValue(value);
         try {
-            PropertyPanel panel = new PropertyPanel(new PropertySupport.Reflection(bean, bean.getValueType(), "value"));
-            final DialogDescriptor desc = new DialogDescriptor(panel, property.getName() + " property value");
+            PropertyPanel namePanel = new PropertyPanel(new PropertySupport.Reflection(nameBean, String.class, "value"));
+            PropertyPanel valuePanel = new PropertyPanel(new PropertySupport.Reflection(valueBean, valueBean.getValueType(), "value"));
+            JPanel panel = new JPanel(new GridBagLayout());
+            panel.add(new JLabel("Name"), new GridBagConstraints(
+                0, 0, 1, 1, 1.0, 1.0,
+                GridBagConstraints.WEST,
+                GridBagConstraints.NONE,
+                new Insets(5, 5, 5, 5),
+                0, 0)
+            );
+            panel.add(namePanel, new GridBagConstraints(
+                1, 0, 1, 1, 10.0, 1.0,
+                GridBagConstraints.WEST,
+                GridBagConstraints.HORIZONTAL,
+                new Insets(5, 0, 5, 5),
+                0, 0)
+            );
+            panel.add(new JLabel("Value"), new GridBagConstraints(
+                0, 1, 1, 1, 1.0, 1.0,
+                GridBagConstraints.WEST,
+                GridBagConstraints.NONE,
+                new Insets(0, 5, 5, 5),
+                0, 0)
+            );
+            panel.add(valuePanel, new GridBagConstraints(
+                1, 1, 1, 1, 10.0, 1.0,
+                GridBagConstraints.WEST,
+                GridBagConstraints.HORIZONTAL,
+                new Insets(0, 0, 5, 5),
+                0, 0)
+            );
+            final DialogDescriptor desc = new DialogDescriptor(panel, "edit property");
             if (DialogDisplayer.getDefault().notify(desc) == NotifyDescriptor.OK_OPTION) {
-                return bean.getValue();
+                Object newValue = valueBean.getValue();
+                if(newValue instanceof BigDecimal) {
+                    BigDecimal numberValue = (BigDecimal) newValue;
+                    if(numberValue.signum() == 0 || numberValue.scale() <= 0 || numberValue.stripTrailingZeros().scale() <= 0) {
+                        newValue = numberValue.intValue();
+                    } else {
+                        newValue = numberValue.doubleValue();
+                    }
+                }
+                return new JsonProperty(nameBean.getValue(), newValue);
             }
         } catch (NoSuchMethodException ex) {
             throw new AssertionError();
         }
         return null;
     }
-    
+
+    public static Object show(String name, Object value) {
+        ValueBean<Object> bean = (ValueBean<Object>) BEANS.get(value.getClass());
+        if (value instanceof Number) {
+            value = numberToBigDecimal((Number) value);
+        }
+        bean.setValue(value);
+        try {
+            PropertyPanel propertyPanel = new PropertyPanel(new PropertySupport.Reflection(bean, bean.getValueType(), "value"));
+            JPanel panel = new JPanel(new BorderLayout(5, 0));
+            panel.add(new JLabel(name), BorderLayout.WEST);
+            panel.add(propertyPanel, BorderLayout.CENTER);
+            final DialogDescriptor desc = new DialogDescriptor(panel, "edit value");
+            if (DialogDisplayer.getDefault().notify(desc) == NotifyDescriptor.OK_OPTION) {
+                Object newValue = bean.getValue();
+                if(newValue instanceof BigDecimal) {
+                    BigDecimal numberValue = (BigDecimal) newValue;
+                    if(numberValue.signum() == 0 || numberValue.scale() <= 0 || numberValue.stripTrailingZeros().scale() <= 0) {
+                        newValue = numberValue.intValue();
+                    } else {
+                        newValue = numberValue.doubleValue();
+                    }
+                }
+                return newValue;
+            }
+        } catch (NoSuchMethodException ex) {
+            throw new AssertionError();
+        }
+        return null;
+    }
+
     private static BigDecimal numberToBigDecimal(Number number) {
-        if(number instanceof Integer) {
+        if (number instanceof Integer) {
             return new BigDecimal(number.intValue());
         }
-        if(number instanceof Long) {
+        if (number instanceof Long) {
             return new BigDecimal(number.longValue());
         }
-        if(number instanceof Double) {
+        if (number instanceof Double) {
             return new BigDecimal(number.doubleValue());
         }
-        if(number instanceof Float) {
+        if (number instanceof Float) {
             return new BigDecimal(number.floatValue());
         }
-        if(number instanceof Byte) {
+        if (number instanceof Byte) {
             return new BigDecimal(number.byteValue());
         }
-        if(number instanceof Short) {
+        if (number instanceof Short) {
             return new BigDecimal(number.shortValue());
         }
         return new BigDecimal(number.doubleValue());
     }
-    
+
     @AllArgsConstructor
     public static abstract class ValueBean<T> {
 

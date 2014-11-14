@@ -31,17 +31,14 @@ import com.mongodb.util.JSON;
 import java.awt.CardLayout;
 import org.netbeans.modules.mongodb.CollectionInfo;
 import java.awt.Font;
-import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.math.BigDecimal;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 import javax.swing.Action;
-import javax.swing.ImageIcon;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.JTable;
@@ -75,7 +72,6 @@ import org.netbeans.modules.mongodb.ui.windows.collectionview.flattable.JsonFlat
 import org.netbeans.modules.mongodb.ui.windows.collectionview.actions.ChangeResultViewAction;
 import org.netbeans.modules.mongodb.ui.windows.collectionview.actions.ClearQueryAction;
 import org.netbeans.modules.mongodb.ui.windows.collectionview.actions.CollapseAllDocumentsAction;
-import org.netbeans.modules.mongodb.ui.windows.collectionview.actions.CollectionViewAction;
 import org.netbeans.modules.mongodb.ui.windows.collectionview.actions.CopyDocumentToClipboardAction;
 import org.netbeans.modules.mongodb.ui.windows.collectionview.actions.CopyKeyToClipboardAction;
 import org.netbeans.modules.mongodb.ui.windows.collectionview.actions.CopyValueToClipboardAction;
@@ -96,6 +92,7 @@ import org.netbeans.modules.mongodb.ui.windows.collectionview.treetable.Document
 import org.netbeans.modules.mongodb.ui.windows.collectionview.treetable.JsonPropertyNode;
 import org.netbeans.modules.mongodb.ui.windows.collectionview.treetable.JsonTreeTableCellRenderer;
 import org.netbeans.modules.mongodb.ui.windows.collectionview.treetable.DocumentsTreeTableModel;
+import org.netbeans.modules.mongodb.ui.windows.collectionview.treetable.JsonValueNode;
 import org.netbeans.modules.mongodb.util.JsonProperty;
 import org.netbeans.modules.mongodb.util.SystemCollectionPredicate;
 import org.openide.DialogDisplayer;
@@ -234,7 +231,11 @@ public final class CollectionView extends TopComponent {
                     final TreePath path = resultTreeTable.getPathForLocation(e.getX(), e.getY());
                     final TreeTableNode node = (TreeTableNode) path.getLastPathComponent();
                     if (node.isLeaf()) {
-                        editSelectedDocumentAction.actionPerformed(null);
+                        if (node instanceof JsonPropertyNode) {
+                            editDocumentJsonProperty((JsonPropertyNode) node);
+                        } else if (node instanceof JsonValueNode) {
+                            editDocumentJsonValue((JsonValueNode) node);
+                        }
                     } else {
                         if (resultTreeTable.isCollapsed(path)) {
                             resultTreeTable.expandPath(path);
@@ -343,7 +344,7 @@ public final class CollectionView extends TopComponent {
                 throw new AssertionError();
         }
     }
-    
+
     public void changeResultView(ResultView resultView) {
         this.resultView = resultView;
         collectionQueryResult.setView(resultViews.get(resultView));
@@ -833,21 +834,13 @@ public final class CollectionView extends TopComponent {
             menu.add(new JMenuItem(new CopyDocumentToClipboardAction(documentNode.getUserObject())));
             if (node != documentNode) {
                 if (node instanceof JsonPropertyNode) {
-                    final JsonProperty property = ((JsonPropertyNode) node).getUserObject();
+                    JsonPropertyNode propertyNode = (JsonPropertyNode) node;
+                    JsonProperty property = propertyNode.getUserObject();
                     menu.add(new JMenuItem(new CopyKeyToClipboardAction(property)));
                     menu.add(new JMenuItem(new CopyValueToClipboardAction(property.getValue())));
-
-                    Object value = property.getValue();
-                    if (value instanceof Map || value instanceof List || value instanceof DBObject) {
-                        // nothing
-                    } else {
-                        JsonPropertyNode propertyNode = (JsonPropertyNode) node;
-                        if((propertyNode.getUserObject().getValue() instanceof ObjectId) == false) {
-                            menu.add(new JMenuItem(new EditSelectedDocumentPropertyAction(this, propertyNode)));
-                        }
-                    }
                 } else {
-                    menu.add(new JMenuItem(new CopyValueToClipboardAction(node.getUserObject())));
+                    Object value = node.getUserObject();
+                    menu.add(new JMenuItem(new CopyValueToClipboardAction(value)));
                 }
             }
             menu.addSeparator();
@@ -876,48 +869,55 @@ public final class CollectionView extends TopComponent {
         return menu;
     }
 
-    private class EditSelectedDocumentPropertyAction extends CollectionViewAction {
-
-        private final JsonPropertyNode propertyNode;
-
-        public EditSelectedDocumentPropertyAction(CollectionView view, JsonPropertyNode propertyNode) {
-            super(view,
-                "edit property value",
-                new ImageIcon(Images.EDIT_DOCUMENT_ICON),
-                "edit selected property value");
-            this.propertyNode = propertyNode;
+    private void editDocumentJsonProperty(JsonPropertyNode propertyNode) {
+        JsonProperty property = propertyNode.getUserObject();
+        if (property.getValue() instanceof ObjectId) {
+            return;
         }
-
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            JsonProperty property = propertyNode.getUserObject();
-            
-            Object newValue = JsonPropertyEditor.show(property);
-            if(newValue instanceof BigDecimal) {
-                BigDecimal numberValue = (BigDecimal) newValue;
-                if(numberValue.signum() == 0 || numberValue.scale() <= 0 || numberValue.stripTrailingZeros().scale() <= 0) {
-                    newValue = numberValue.intValue();
-                } else {
-                    newValue = numberValue.doubleValue();
-                }
-            }
-            if (newValue != null && newValue != property.getValue()) {
-                treeTableModel.setUserObject(propertyNode, new JsonProperty(property.getName(), newValue));
-                TreeTableNode parentNode = propertyNode.getParent();
-                DBObject parent = (DBObject) parentNode.getUserObject();
-                parent.put(property.getName(), newValue);
-                while ((parentNode instanceof DocumentNode) == false) {
-                    parentNode = parentNode.getParent();
-                }
-                try {
-                    final DBCollection dbCollection = getView().getLookup().lookup(DBCollection.class);
-                    dbCollection.save((DBObject) parentNode.getUserObject());
-                } catch (MongoException ex) {
-                    DialogDisplayer.getDefault().notify(
-                        new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE));
-                }
-            }
+        JsonProperty newProperty = JsonPropertyEditor.show(property);
+        if (newProperty == null) {
+            return;
         }
+        treeTableModel.setUserObject(propertyNode, newProperty);
+        TreeTableNode parentNode = propertyNode.getParent();
+        DBObject parent = (DBObject) parentNode.getUserObject();
+        if (newProperty.getName().equals(property.getName()) == false) {
+            parent.removeField(property.getName());
+        }
+        parent.put(newProperty.getName(), newProperty.getValue());
+        while ((parentNode instanceof DocumentNode) == false) {
+            parentNode = parentNode.getParent();
+        }
+        try {
+            final DBCollection dbCollection = getLookup().lookup(DBCollection.class);
+            dbCollection.save((DBObject) parentNode.getUserObject());
+        } catch (MongoException ex) {
+            DialogDisplayer.getDefault().notify(
+                new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE));
+        }
+    }
 
+    private void editDocumentJsonValue(JsonValueNode valueNode) {
+        Object value = valueNode.getUserObject();
+        Object newValue = JsonPropertyEditor.show("value", value);
+        if (newValue == null || newValue.equals(value)) {
+            return;
+        }
+        treeTableModel.setUserObject(valueNode, newValue);
+        TreeTableNode parentNode = valueNode.getParent();
+        JsonProperty parent = (JsonProperty) parentNode.getUserObject();
+        List<Object> list = (List<Object>) parent.getValue();
+        int index = list.indexOf(value);
+        list.set(index, newValue);
+        while ((parentNode instanceof DocumentNode) == false) {
+            parentNode = parentNode.getParent();
+        }
+        try {
+            final DBCollection dbCollection = getLookup().lookup(DBCollection.class);
+            dbCollection.save((DBObject) parentNode.getUserObject());
+        } catch (MongoException ex) {
+            DialogDisplayer.getDefault().notify(
+                new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE));
+        }
     }
 }
