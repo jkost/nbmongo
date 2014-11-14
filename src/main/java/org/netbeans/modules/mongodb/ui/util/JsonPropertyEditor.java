@@ -52,6 +52,8 @@ public class JsonPropertyEditor {
     private static final Map<Class<?>, ValueBean<?>> BEANS = new HashMap<>();
 
     static {
+        PropertyEditorManager.registerEditor(Boolean.class, BooleanPropertyEditor.class);
+        PropertyEditorManager.registerEditor(Boolean.TYPE, BooleanPropertyEditor.class);
         PropertyEditorManager.registerEditor(BigDecimal.class, BigDecimalPropertyEditor.class);
         BEANS.put(Boolean.class, new BooleanBean());
         BEANS.put(String.class, new StringBean());
@@ -124,6 +126,7 @@ public class JsonPropertyEditor {
         return null;
     }
 
+    @SuppressWarnings("unchecked")
     public static Object show(String name, Object value) {
         ValueBean<Object> bean = (ValueBean<Object>) BEANS.get(value.getClass());
         if (value instanceof Number) {

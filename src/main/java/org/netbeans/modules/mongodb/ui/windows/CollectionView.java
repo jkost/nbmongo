@@ -897,6 +897,7 @@ public final class CollectionView extends TopComponent {
         }
     }
 
+    @SuppressWarnings("unchecked")
     private void editDocumentJsonValue(JsonValueNode valueNode) {
         Object value = valueNode.getUserObject();
         Object newValue = JsonPropertyEditor.show("value", value);
