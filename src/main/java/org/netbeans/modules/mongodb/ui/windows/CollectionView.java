@@ -53,7 +53,6 @@ import javax.swing.table.TableColumnModel;
 import javax.swing.text.PlainDocument;
 import javax.swing.tree.TreePath;
 import lombok.Getter;
-import org.jdesktop.swingx.JXTreeTable;
 import org.jdesktop.swingx.treetable.TreeTableNode;
 import org.netbeans.modules.mongodb.ConnectionInfo;
 import org.netbeans.modules.mongodb.DbInfo;
@@ -62,6 +61,7 @@ import org.netbeans.modules.mongodb.options.JsonCellRenderingOptions;
 import org.netbeans.modules.mongodb.options.LabelCategory;
 import org.netbeans.modules.mongodb.ui.components.QueryEditor;
 import org.netbeans.modules.mongodb.ui.util.IntegerDocumentFilter;
+import static org.netbeans.modules.mongodb.ui.util.JsonPropertyEditor.isQuickEditableJsonValue;
 import org.netbeans.modules.mongodb.ui.windows.collectionview.CollectionQueryResult;
 import org.netbeans.modules.mongodb.ui.windows.collectionview.CollectionQueryResultView;
 import org.netbeans.modules.mongodb.ui.windows.collectionview.CollectionQueryResultUpdateListener;
@@ -73,6 +73,8 @@ import org.netbeans.modules.mongodb.ui.windows.collectionview.actions.CopyDocume
 import org.netbeans.modules.mongodb.ui.windows.collectionview.actions.CopyKeyToClipboardAction;
 import org.netbeans.modules.mongodb.ui.windows.collectionview.actions.CopyValueToClipboardAction;
 import org.netbeans.modules.mongodb.ui.windows.collectionview.actions.DeleteSelectedDocumentAction;
+import org.netbeans.modules.mongodb.ui.windows.collectionview.actions.EditJsonPropertyNodeAction;
+import org.netbeans.modules.mongodb.ui.windows.collectionview.actions.EditJsonValueNodeAction;
 import org.netbeans.modules.mongodb.ui.windows.collectionview.actions.EditQueryAction;
 import org.netbeans.modules.mongodb.ui.windows.collectionview.actions.EditSelectedDocumentAction;
 import org.netbeans.modules.mongodb.ui.windows.collectionview.actions.ExpandAllDocumentsAction;
@@ -89,6 +91,7 @@ import org.netbeans.modules.mongodb.ui.windows.collectionview.treetable.Document
 import org.netbeans.modules.mongodb.ui.windows.collectionview.treetable.JsonPropertyNode;
 import org.netbeans.modules.mongodb.ui.windows.collectionview.treetable.JsonTreeTableCellRenderer;
 import org.netbeans.modules.mongodb.ui.windows.collectionview.treetable.DocumentsTreeTableModel;
+import org.netbeans.modules.mongodb.ui.windows.collectionview.treetable.JsonValueNode;
 import org.netbeans.modules.mongodb.util.JsonProperty;
 import org.netbeans.modules.mongodb.util.SystemCollectionPredicate;
 import org.openide.util.Exceptions;
@@ -135,8 +138,15 @@ public final class CollectionView extends TopComponent {
 
     private final Map<ResultView, CollectionQueryResultUpdateListener> resultViews = new EnumMap<>(ResultView.class);
 
+    @Getter
+    private final DocumentsTreeTableModel treeTableModel;
+
+    @Getter
+    private final DocumentsFlatTableModel flatTableModel;
+
+    @Getter
     private Lookup lookup;
-    
+
     public CollectionView(CollectionInfo collectionInfo, Lookup lookup) {
         super(lookup);
         this.lookup = lookup;
@@ -153,8 +163,8 @@ public final class CollectionView extends TopComponent {
 
         final DBCollection dbCollection = lookup.lookup(DBCollection.class);
         collectionQueryResult = new CollectionQueryResult(dbCollection);
-        final DocumentsTreeTableModel treeTableModel = new DocumentsTreeTableModel(collectionQueryResult);
-        final DocumentsFlatTableModel flatTableModel = new DocumentsFlatTableModel(collectionQueryResult);
+        treeTableModel = new DocumentsTreeTableModel(collectionQueryResult);
+        flatTableModel = new DocumentsFlatTableModel(collectionQueryResult);
         resultViews.put(ResultView.TREE_TABLE, treeTableModel);
         resultViews.put(ResultView.FLAT_TABLE, flatTableModel);
 
@@ -221,7 +231,13 @@ public final class CollectionView extends TopComponent {
                     final TreePath path = resultTreeTable.getPathForLocation(e.getX(), e.getY());
                     final TreeTableNode node = (TreeTableNode) path.getLastPathComponent();
                     if (node.isLeaf()) {
-                        editSelectedDocumentAction.actionPerformed(null);
+                        if (node instanceof JsonPropertyNode) {
+                            editJsonPropertyNodeAction.setPropertyNode((JsonPropertyNode) node);
+                            editJsonPropertyNodeAction.actionPerformed(null);
+                        } else if (node instanceof JsonValueNode) {
+                            editJsonValueNodeAction.setValueNode((JsonValueNode) node);
+                            editJsonValueNodeAction.actionPerformed(null);
+                        }
                     } else {
                         if (resultTreeTable.isCollapsed(path)) {
                             resultTreeTable.expandPath(path);
@@ -271,17 +287,12 @@ public final class CollectionView extends TopComponent {
         });
     }
 
-    @Override
-    public Lookup getLookup() {
-        return lookup;
-    }
-
     public void setLookup(Lookup lookup) {
         this.lookup = lookup;
         final DBCollection dbCollection = lookup.lookup(DBCollection.class);
         collectionQueryResult.setDbCollection(dbCollection);
     }
-    
+
     public void updateTitle() {
         final ConnectionInfo connectionInfo = lookup.lookup(ConnectionInfo.class);
         final DbInfo dbInfo = lookup.lookup(DbInfo.class);
@@ -330,7 +341,7 @@ public final class CollectionView extends TopComponent {
                 throw new AssertionError();
         }
     }
-    
+
     public void changeResultView(ResultView resultView) {
         this.resultView = resultView;
         collectionQueryResult.setView(resultViews.get(resultView));
@@ -777,6 +788,12 @@ public final class CollectionView extends TopComponent {
     private final Action editSelectedDocumentAction = new EditSelectedDocumentAction(this);
 
     @Getter
+    private final EditJsonPropertyNodeAction editJsonPropertyNodeAction = new EditJsonPropertyNodeAction(this, null);
+
+    @Getter
+    private final EditJsonValueNodeAction editJsonValueNodeAction = new EditJsonValueNodeAction(this, null);
+
+    @Getter
     private final Action refreshDocumentsAction = new RefreshDocumentsAction(this);
 
     @Getter
@@ -805,7 +822,7 @@ public final class CollectionView extends TopComponent {
 
     @Getter
     private final Action expandTreeAction = new ExpandAllDocumentsAction(this);
-    
+
     public enum ResultView {
 
         FLAT_TABLE, TREE_TABLE
@@ -820,11 +837,21 @@ public final class CollectionView extends TopComponent {
             menu.add(new JMenuItem(new CopyDocumentToClipboardAction(documentNode.getUserObject())));
             if (node != documentNode) {
                 if (node instanceof JsonPropertyNode) {
-                    final JsonProperty property = ((JsonPropertyNode) node).getUserObject();
+                    JsonPropertyNode propertyNode = (JsonPropertyNode) node;
+                    JsonProperty property = propertyNode.getUserObject();
                     menu.add(new JMenuItem(new CopyKeyToClipboardAction(property)));
                     menu.add(new JMenuItem(new CopyValueToClipboardAction(property.getValue())));
+                    if(isQuickEditableJsonValue(property.getValue())) {
+                        editJsonPropertyNodeAction.setPropertyNode(propertyNode);
+                        menu.add(new JMenuItem(editJsonPropertyNodeAction));
+                    }
                 } else {
-                    menu.add(new JMenuItem(new CopyValueToClipboardAction(node.getUserObject())));
+                    Object value = node.getUserObject();
+                    menu.add(new JMenuItem(new CopyValueToClipboardAction(value)));
+                    if(isQuickEditableJsonValue(value)) {
+                        editJsonValueNodeAction.setValueNode((JsonValueNode) node);
+                        menu.add(new JMenuItem(editJsonValueNodeAction));
+                    }
                 }
             }
             menu.addSeparator();
@@ -852,5 +879,4 @@ public final class CollectionView extends TopComponent {
         menu.add(new JMenuItem(new DeleteSelectedDocumentAction(this)));
         return menu;
     }
-
 }
