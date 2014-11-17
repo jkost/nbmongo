@@ -53,6 +53,7 @@ import javax.swing.table.TableColumnModel;
 import javax.swing.text.PlainDocument;
 import javax.swing.tree.TreePath;
 import lombok.Getter;
+import org.bson.types.ObjectId;
 import org.jdesktop.swingx.treetable.TreeTableNode;
 import org.netbeans.modules.mongodb.ConnectionInfo;
 import org.netbeans.modules.mongodb.DbInfo;
@@ -232,8 +233,11 @@ public final class CollectionView extends TopComponent {
                     final TreeTableNode node = (TreeTableNode) path.getLastPathComponent();
                     if (node.isLeaf()) {
                         if (node instanceof JsonPropertyNode) {
-                            editJsonPropertyNodeAction.setPropertyNode((JsonPropertyNode) node);
-                            editJsonPropertyNodeAction.actionPerformed(null);
+                            JsonPropertyNode propertyNode = (JsonPropertyNode) node;
+                            if (!(propertyNode.getUserObject().getValue() instanceof ObjectId)) {
+                                editJsonPropertyNodeAction.setPropertyNode(propertyNode);
+                                editJsonPropertyNodeAction.actionPerformed(null);
+                            }
                         } else if (node instanceof JsonValueNode) {
                             editJsonValueNodeAction.setValueNode((JsonValueNode) node);
                             editJsonValueNodeAction.actionPerformed(null);
@@ -525,7 +529,7 @@ public final class CollectionView extends TopComponent {
                             .addComponent(sortField)))))
         );
 
-        queryPanelLayout.linkSize(javax.swing.SwingConstants.HORIZONTAL, new java.awt.Component[] {criteriaLabel, projectionLabel, sortLabel});
+        queryPanelLayout.linkSize(javax.swing.SwingConstants.HORIZONTAL, new java.awt.Component[]{criteriaLabel, projectionLabel, sortLabel});
 
         queryPanelLayout.setVerticalGroup(
             queryPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -702,44 +706,81 @@ public final class CollectionView extends TopComponent {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton addButton;
+
     private javax.swing.JButton clearQueryButton;
+
     private javax.swing.JButton collapseTreeButton;
+
     private javax.swing.JTextField criteriaField;
+
     private javax.swing.JLabel criteriaLabel;
+
     private javax.swing.JButton deleteButton;
+
     private javax.swing.JToolBar documentsToolBar;
+
     private javax.swing.JButton editButton;
+
     private javax.swing.JButton editQueryButton;
+
     private javax.swing.JButton expandTreeButton;
+
     private javax.swing.JButton exportButton;
+
     private javax.swing.JScrollPane flatTableScrollPane;
+
     private javax.swing.JToggleButton flatTableViewButton;
+
     private javax.swing.JToolBar.Separator jSeparator1;
+
     private javax.swing.JToolBar.Separator jSeparator2;
+
     private javax.swing.JToolBar.Separator jSeparator3;
+
     private javax.swing.JToolBar.Separator jSeparator4;
+
     private javax.swing.JToolBar.Separator jSeparator5;
+
     private javax.swing.JButton navFirstButton;
+
     private javax.swing.JButton navLastButton;
+
     private javax.swing.JButton navLeftButton;
+
     private javax.swing.JButton navRightButton;
+
     private javax.swing.JLabel pageCountLabel;
+
     private javax.swing.JTextField pageSizeField;
+
     private javax.swing.JLabel pageSizeLabel;
+
     private javax.swing.JTextField projectionField;
+
     private javax.swing.JLabel projectionLabel;
+
     private javax.swing.JPanel queryPanel;
+
     private javax.swing.JButton refreshDocumentsButton;
+
     @Getter
     private javax.swing.JTable resultFlatTable;
+
     private javax.swing.JPanel resultPanel;
+
     @Getter
     private org.jdesktop.swingx.JXTreeTable resultTreeTable;
+
     private javax.swing.ButtonGroup resultsViewButtonGroup;
+
     private javax.swing.JTextField sortField;
+
     private javax.swing.JLabel sortLabel;
+
     private javax.swing.JLabel totalDocumentsLabel;
+
     private javax.swing.JScrollPane treeTableScrollPane;
+
     private javax.swing.JToggleButton treeTableViewButton;
     // End of variables declaration//GEN-END:variables
 
@@ -841,14 +882,14 @@ public final class CollectionView extends TopComponent {
                     JsonProperty property = propertyNode.getUserObject();
                     menu.add(new JMenuItem(new CopyKeyToClipboardAction(property)));
                     menu.add(new JMenuItem(new CopyValueToClipboardAction(property.getValue())));
-                    if(isQuickEditableJsonValue(property.getValue())) {
+                    if (isQuickEditableJsonValue(property.getValue())) {
                         editJsonPropertyNodeAction.setPropertyNode(propertyNode);
                         menu.add(new JMenuItem(editJsonPropertyNodeAction));
                     }
                 } else {
                     Object value = node.getUserObject();
                     menu.add(new JMenuItem(new CopyValueToClipboardAction(value)));
-                    if(isQuickEditableJsonValue(value)) {
+                    if (isQuickEditableJsonValue(value)) {
                         editJsonValueNodeAction.setValueNode((JsonValueNode) node);
                         menu.add(new JMenuItem(editJsonValueNodeAction));
                     }

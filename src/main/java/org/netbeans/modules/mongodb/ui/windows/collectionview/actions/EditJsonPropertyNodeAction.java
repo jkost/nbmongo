@@ -66,9 +66,6 @@ public final class EditJsonPropertyNodeAction extends CollectionViewAction {
     @Override
     public void actionPerformed(ActionEvent e) {
         JsonProperty property = propertyNode.getUserObject();
-        if (property.getValue() instanceof ObjectId) {
-            return;
-        }
         JsonProperty newProperty = JsonPropertyEditor.show(property);
         if (newProperty == null) {
             return;
