@@ -45,7 +45,6 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.EditorKit;
 import lombok.Getter;
-import lombok.Setter;
 import org.netbeans.api.editor.mimelookup.MimeLookup;
 import org.netbeans.modules.mongodb.util.Json;
 import org.openide.DialogDescriptor;
@@ -60,7 +59,10 @@ import org.openide.util.NbBundle.Messages;
  * @author Yann D'Isanto
  */
 @Messages({
-    "invalidJson=invalid json"
+    "invalidJson=invalid json",
+    "HINT_search=search your document with Ctrl+F",
+    "HINT_nextResult=hit ENTER to search next occurence",
+    "HINT_noResultFound=no result found"
 })
 public class JsonEditor extends JPanel {
 
@@ -77,7 +79,6 @@ public class JsonEditor extends JPanel {
     private int lastSearchIndex = 0;
 
     @Getter
-    @Setter
     private NotificationLineSupport notificationLineSupport;
 
     private JsonEditor() {
@@ -97,6 +98,7 @@ public class JsonEditor extends JPanel {
             public void actionPerformed(ActionEvent e) {
                 searchPane.setVisible(false);
                 notificationLineSupport.clearMessages();
+                notificationLineSupport.setInformationMessage(Bundle.HINT_search());
                 editor.requestFocusInWindow();
             }
         };
@@ -112,6 +114,7 @@ public class JsonEditor extends JPanel {
                 if (selection != null && selection.isEmpty() == false) {
                     searchField.setText(selection);
                 }
+                notificationLineSupport.clearMessages();
                 searchPane.setVisible(true);
                 searchField.selectAll();
                 searchField.requestFocusInWindow();
@@ -136,8 +139,11 @@ public class JsonEditor extends JPanel {
                     editor.setSelectionStart(index);
                     lastSearchIndex = index + search.length();
                     editor.setSelectionEnd(lastSearchIndex);
+                    notificationLineSupport.setInformationMessage(Bundle.HINT_nextResult());
                 } else {
-                    notificationLineSupport.setInformationMessage("no result found");
+                    notificationLineSupport.setInformationMessage(Bundle.HINT_noResultFound());
+//                    editor.setSelectionStart(0);
+                    editor.setSelectionEnd(editor.getSelectionStart());
                 }
             }
         });
@@ -146,11 +152,13 @@ public class JsonEditor extends JPanel {
             @Override
             public void insertUpdate(DocumentEvent e) {
                 lastSearchIndex = 0;
+                notificationLineSupport.setInformationMessage(Bundle.HINT_nextResult());
             }
 
             @Override
             public void removeUpdate(DocumentEvent e) {
                 lastSearchIndex = 0;
+                notificationLineSupport.setInformationMessage(Bundle.HINT_nextResult());
             }
 
             @Override
@@ -160,6 +168,14 @@ public class JsonEditor extends JPanel {
         add(scrollPane, BorderLayout.CENTER);
         add(searchPane, BorderLayout.SOUTH);
         searchPane.setVisible(false);
+    }
+
+    public void setNotificationLineSupport(NotificationLineSupport notificationLineSupport) {
+        this.notificationLineSupport = notificationLineSupport;
+        notificationLineSupport.clearMessages();
+        if(searchPane.isVisible() == false) {
+            notificationLineSupport.setInformationMessage(Bundle.HINT_search());
+        }
     }
 
     public String getJson() {
