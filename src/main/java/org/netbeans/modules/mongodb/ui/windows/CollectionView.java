@@ -26,7 +26,6 @@ package org.netbeans.modules.mongodb.ui.windows;
 import org.netbeans.modules.mongodb.ui.windows.collectionview.actions.AddDocumentAction;
 import com.mongodb.DBCollection;
 import com.mongodb.DBObject;
-import com.mongodb.MongoException;
 import com.mongodb.util.JSON;
 import java.awt.CardLayout;
 import org.netbeans.modules.mongodb.CollectionInfo;
@@ -34,7 +33,6 @@ import java.awt.Font;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.EnumMap;
-import java.util.List;
 import java.util.Map;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
@@ -55,7 +53,6 @@ import javax.swing.table.TableColumnModel;
 import javax.swing.text.PlainDocument;
 import javax.swing.tree.TreePath;
 import lombok.Getter;
-import org.bson.types.ObjectId;
 import org.jdesktop.swingx.treetable.TreeTableNode;
 import org.netbeans.modules.mongodb.ConnectionInfo;
 import org.netbeans.modules.mongodb.DbInfo;
@@ -64,7 +61,7 @@ import org.netbeans.modules.mongodb.options.JsonCellRenderingOptions;
 import org.netbeans.modules.mongodb.options.LabelCategory;
 import org.netbeans.modules.mongodb.ui.components.QueryEditor;
 import org.netbeans.modules.mongodb.ui.util.IntegerDocumentFilter;
-import org.netbeans.modules.mongodb.ui.util.JsonPropertyEditor;
+import static org.netbeans.modules.mongodb.ui.util.JsonPropertyEditor.isQuickEditableJsonValue;
 import org.netbeans.modules.mongodb.ui.windows.collectionview.CollectionQueryResult;
 import org.netbeans.modules.mongodb.ui.windows.collectionview.CollectionQueryResultView;
 import org.netbeans.modules.mongodb.ui.windows.collectionview.CollectionQueryResultUpdateListener;
@@ -76,6 +73,8 @@ import org.netbeans.modules.mongodb.ui.windows.collectionview.actions.CopyDocume
 import org.netbeans.modules.mongodb.ui.windows.collectionview.actions.CopyKeyToClipboardAction;
 import org.netbeans.modules.mongodb.ui.windows.collectionview.actions.CopyValueToClipboardAction;
 import org.netbeans.modules.mongodb.ui.windows.collectionview.actions.DeleteSelectedDocumentAction;
+import org.netbeans.modules.mongodb.ui.windows.collectionview.actions.EditJsonPropertyNodeAction;
+import org.netbeans.modules.mongodb.ui.windows.collectionview.actions.EditJsonValueNodeAction;
 import org.netbeans.modules.mongodb.ui.windows.collectionview.actions.EditQueryAction;
 import org.netbeans.modules.mongodb.ui.windows.collectionview.actions.EditSelectedDocumentAction;
 import org.netbeans.modules.mongodb.ui.windows.collectionview.actions.ExpandAllDocumentsAction;
@@ -95,8 +94,6 @@ import org.netbeans.modules.mongodb.ui.windows.collectionview.treetable.Document
 import org.netbeans.modules.mongodb.ui.windows.collectionview.treetable.JsonValueNode;
 import org.netbeans.modules.mongodb.util.JsonProperty;
 import org.netbeans.modules.mongodb.util.SystemCollectionPredicate;
-import org.openide.DialogDisplayer;
-import org.openide.NotifyDescriptor;
 import org.openide.util.Exceptions;
 import org.openide.util.Lookup;
 import org.openide.util.NbBundle.Messages;
@@ -141,10 +138,13 @@ public final class CollectionView extends TopComponent {
 
     private final Map<ResultView, CollectionQueryResultUpdateListener> resultViews = new EnumMap<>(ResultView.class);
 
+    @Getter
     private final DocumentsTreeTableModel treeTableModel;
 
+    @Getter
     private final DocumentsFlatTableModel flatTableModel;
 
+    @Getter
     private Lookup lookup;
 
     public CollectionView(CollectionInfo collectionInfo, Lookup lookup) {
@@ -232,9 +232,11 @@ public final class CollectionView extends TopComponent {
                     final TreeTableNode node = (TreeTableNode) path.getLastPathComponent();
                     if (node.isLeaf()) {
                         if (node instanceof JsonPropertyNode) {
-                            editDocumentJsonProperty((JsonPropertyNode) node);
+                            editJsonPropertyNodeAction.setPropertyNode((JsonPropertyNode) node);
+                            editJsonPropertyNodeAction.actionPerformed(null);
                         } else if (node instanceof JsonValueNode) {
-                            editDocumentJsonValue((JsonValueNode) node);
+                            editJsonValueNodeAction.setValueNode((JsonValueNode) node);
+                            editJsonValueNodeAction.actionPerformed(null);
                         }
                     } else {
                         if (resultTreeTable.isCollapsed(path)) {
@@ -283,11 +285,6 @@ public final class CollectionView extends TopComponent {
             }
 
         });
-    }
-
-    @Override
-    public Lookup getLookup() {
-        return lookup;
     }
 
     public void setLookup(Lookup lookup) {
@@ -791,6 +788,12 @@ public final class CollectionView extends TopComponent {
     private final Action editSelectedDocumentAction = new EditSelectedDocumentAction(this);
 
     @Getter
+    private final EditJsonPropertyNodeAction editJsonPropertyNodeAction = new EditJsonPropertyNodeAction(this, null);
+
+    @Getter
+    private final EditJsonValueNodeAction editJsonValueNodeAction = new EditJsonValueNodeAction(this, null);
+
+    @Getter
     private final Action refreshDocumentsAction = new RefreshDocumentsAction(this);
 
     @Getter
@@ -838,9 +841,17 @@ public final class CollectionView extends TopComponent {
                     JsonProperty property = propertyNode.getUserObject();
                     menu.add(new JMenuItem(new CopyKeyToClipboardAction(property)));
                     menu.add(new JMenuItem(new CopyValueToClipboardAction(property.getValue())));
+                    if(isQuickEditableJsonValue(property.getValue())) {
+                        editJsonPropertyNodeAction.setPropertyNode(propertyNode);
+                        menu.add(new JMenuItem(editJsonPropertyNodeAction));
+                    }
                 } else {
                     Object value = node.getUserObject();
                     menu.add(new JMenuItem(new CopyValueToClipboardAction(value)));
+                    if(isQuickEditableJsonValue(value)) {
+                        editJsonValueNodeAction.setValueNode((JsonValueNode) node);
+                        menu.add(new JMenuItem(editJsonValueNodeAction));
+                    }
                 }
             }
             menu.addSeparator();
@@ -867,58 +878,5 @@ public final class CollectionView extends TopComponent {
         menu.add(new JMenuItem(new EditSelectedDocumentAction(this)));
         menu.add(new JMenuItem(new DeleteSelectedDocumentAction(this)));
         return menu;
-    }
-
-    private void editDocumentJsonProperty(JsonPropertyNode propertyNode) {
-        JsonProperty property = propertyNode.getUserObject();
-        if (property.getValue() instanceof ObjectId) {
-            return;
-        }
-        JsonProperty newProperty = JsonPropertyEditor.show(property);
-        if (newProperty == null) {
-            return;
-        }
-        treeTableModel.setUserObject(propertyNode, newProperty);
-        TreeTableNode parentNode = propertyNode.getParent();
-        DBObject parent = (DBObject) parentNode.getUserObject();
-        if (newProperty.getName().equals(property.getName()) == false) {
-            parent.removeField(property.getName());
-        }
-        parent.put(newProperty.getName(), newProperty.getValue());
-        while ((parentNode instanceof DocumentNode) == false) {
-            parentNode = parentNode.getParent();
-        }
-        try {
-            final DBCollection dbCollection = getLookup().lookup(DBCollection.class);
-            dbCollection.save((DBObject) parentNode.getUserObject());
-        } catch (MongoException ex) {
-            DialogDisplayer.getDefault().notify(
-                new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE));
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    private void editDocumentJsonValue(JsonValueNode valueNode) {
-        Object value = valueNode.getUserObject();
-        Object newValue = JsonPropertyEditor.show("value", value);
-        if (newValue == null || newValue.equals(value)) {
-            return;
-        }
-        treeTableModel.setUserObject(valueNode, newValue);
-        TreeTableNode parentNode = valueNode.getParent();
-        JsonProperty parent = (JsonProperty) parentNode.getUserObject();
-        List<Object> list = (List<Object>) parent.getValue();
-        int index = list.indexOf(value);
-        list.set(index, newValue);
-        while ((parentNode instanceof DocumentNode) == false) {
-            parentNode = parentNode.getParent();
-        }
-        try {
-            final DBCollection dbCollection = getLookup().lookup(DBCollection.class);
-            dbCollection.save((DBObject) parentNode.getUserObject());
-        } catch (MongoException ex) {
-            DialogDisplayer.getDefault().notify(
-                new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE));
-        }
     }
 }

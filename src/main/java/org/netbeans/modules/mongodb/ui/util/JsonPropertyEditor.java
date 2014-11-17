@@ -23,7 +23,6 @@
  */
 package org.netbeans.modules.mongodb.ui.util;
 
-import java.awt.BorderLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -31,11 +30,13 @@ import java.beans.PropertyEditorManager;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import org.bson.types.ObjectId;
 import org.netbeans.modules.mongodb.util.JsonProperty;
 import org.openide.DialogDescriptor;
 import org.openide.DialogDisplayer;
@@ -49,6 +50,10 @@ import org.openide.nodes.PropertySupport;
  */
 public class JsonPropertyEditor {
 
+    public static boolean isQuickEditableJsonValue(Object value) {
+        return !(value instanceof Map || value instanceof List || value instanceof ObjectId);
+    }
+    
     private static final Map<Class<?>, ValueBean<?>> BEANS = new HashMap<>();
 
     static {
@@ -77,7 +82,7 @@ public class JsonPropertyEditor {
         valueBean.setValue(value);
         try {
             PropertyPanel namePanel = new PropertyPanel(new PropertySupport.Reflection(nameBean, String.class, "value"));
-            PropertyPanel valuePanel = new PropertyPanel(new PropertySupport.Reflection(valueBean, valueBean.getValueType(), "value"));
+            final PropertyPanel valuePanel = new PropertyPanel(new PropertySupport.Reflection(valueBean, valueBean.getValueType(), "value"));
             JPanel panel = new JPanel(new GridBagLayout());
             panel.add(new JLabel("Name"), new GridBagConstraints(
                 0, 0, 1, 1, 1.0, 1.0,
@@ -135,9 +140,21 @@ public class JsonPropertyEditor {
         bean.setValue(value);
         try {
             PropertyPanel propertyPanel = new PropertyPanel(new PropertySupport.Reflection(bean, bean.getValueType(), "value"));
-            JPanel panel = new JPanel(new BorderLayout(5, 0));
-            panel.add(new JLabel(name), BorderLayout.WEST);
-            panel.add(propertyPanel, BorderLayout.CENTER);
+            JPanel panel = new JPanel(new GridBagLayout());
+            panel.add(new JLabel(name), new GridBagConstraints(
+                0, 0, 1, 1, 1.0, 1.0,
+                GridBagConstraints.WEST,
+                GridBagConstraints.NONE,
+                new Insets(5, 5, 5, 5),
+                0, 0)
+            );
+            panel.add(propertyPanel, new GridBagConstraints(
+                1, 0, 1, 1, 10.0, 1.0,
+                GridBagConstraints.WEST,
+                GridBagConstraints.HORIZONTAL,
+                new Insets(5, 0, 5, 5),
+                0, 0)
+            );
             final DialogDescriptor desc = new DialogDescriptor(panel, "edit value");
             if (DialogDisplayer.getDefault().notify(desc) == NotifyDescriptor.OK_OPTION) {
                 Object newValue = bean.getValue();
