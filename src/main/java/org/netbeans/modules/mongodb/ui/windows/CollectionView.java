@@ -74,6 +74,7 @@ import org.netbeans.modules.mongodb.ui.windows.collectionview.actions.CopyDocume
 import org.netbeans.modules.mongodb.ui.windows.collectionview.actions.CopyKeyToClipboardAction;
 import org.netbeans.modules.mongodb.ui.windows.collectionview.actions.CopyValueToClipboardAction;
 import org.netbeans.modules.mongodb.ui.windows.collectionview.actions.DeleteSelectedDocumentAction;
+import org.netbeans.modules.mongodb.ui.windows.collectionview.actions.EditDocumentAction;
 import org.netbeans.modules.mongodb.ui.windows.collectionview.actions.EditJsonPropertyNodeAction;
 import org.netbeans.modules.mongodb.ui.windows.collectionview.actions.EditJsonValueNodeAction;
 import org.netbeans.modules.mongodb.ui.windows.collectionview.actions.EditQueryAction;
@@ -231,22 +232,28 @@ public final class CollectionView extends TopComponent {
                 if (e.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(e)) {
                     final TreePath path = resultTreeTable.getPathForLocation(e.getX(), e.getY());
                     final TreeTableNode node = (TreeTableNode) path.getLastPathComponent();
-                    if (node.isLeaf()) {
-                        if (node instanceof JsonPropertyNode) {
-                            JsonPropertyNode propertyNode = (JsonPropertyNode) node;
-                            if (!(propertyNode.getUserObject().getValue() instanceof ObjectId)) {
-                                editJsonPropertyNodeAction.setPropertyNode(propertyNode);
-                                editJsonPropertyNodeAction.actionPerformed(null);
-                            }
-                        } else if (node instanceof JsonValueNode) {
-                            editJsonValueNodeAction.setValueNode((JsonValueNode) node);
-                            editJsonValueNodeAction.actionPerformed(null);
-                        }
+                    if ((e.getModifiersEx() & MouseEvent.CTRL_DOWN_MASK) == MouseEvent.CTRL_DOWN_MASK) {
+                        final DocumentNode documentNode = (DocumentNode) path.getPathComponent(1);
+                        editDocumentAction.setDocument(documentNode.getUserObject());
+                        editDocumentAction.actionPerformed(null);
                     } else {
-                        if (resultTreeTable.isCollapsed(path)) {
-                            resultTreeTable.expandPath(path);
+                        if (node.isLeaf()) {
+                            if (node instanceof JsonPropertyNode) {
+                                JsonPropertyNode propertyNode = (JsonPropertyNode) node;
+                                if (!(propertyNode.getUserObject().getValue() instanceof ObjectId)) {
+                                    editJsonPropertyNodeAction.setPropertyNode(propertyNode);
+                                    editJsonPropertyNodeAction.actionPerformed(null);
+                                }
+                            } else if (node instanceof JsonValueNode) {
+                                editJsonValueNodeAction.setValueNode((JsonValueNode) node);
+                                editJsonValueNodeAction.actionPerformed(null);
+                            }
                         } else {
-                            resultTreeTable.collapsePath(path);
+                            if (resultTreeTable.isCollapsed(path)) {
+                                resultTreeTable.expandPath(path);
+                            } else {
+                                resultTreeTable.collapsePath(path);
+                            }
                         }
                     }
                 }
@@ -340,7 +347,7 @@ public final class CollectionView extends TopComponent {
             case TREE_TABLE:
                 final TreePath selectionPath = resultTreeTable.getPathForRow(row);
                 final DocumentNode documentNode = (DocumentNode) selectionPath.getPathComponent(1);
-                return (DBObject) resultTreeTable.getTreeTableModel().getValueAt(documentNode, 0);
+                return documentNode.getUserObject();
             default:
                 throw new AssertionError();
         }
@@ -824,6 +831,9 @@ public final class CollectionView extends TopComponent {
 
     @Getter
     private final Action deleteSelectedDocumentAction = new DeleteSelectedDocumentAction(this);
+
+    @Getter
+    private final EditDocumentAction editDocumentAction = new EditDocumentAction(this);
 
     @Getter
     private final Action editSelectedDocumentAction = new EditSelectedDocumentAction(this);

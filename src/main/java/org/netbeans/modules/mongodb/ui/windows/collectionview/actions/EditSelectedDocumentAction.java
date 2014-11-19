@@ -23,52 +23,22 @@
  */
 package org.netbeans.modules.mongodb.ui.windows.collectionview.actions;
 
-import com.mongodb.DBCollection;
-import com.mongodb.DBObject;
-import com.mongodb.MongoException;
-import com.mongodb.util.JSON;
 import java.awt.event.ActionEvent;
-import javax.swing.ImageIcon;
-import org.netbeans.modules.mongodb.resources.Images;
-import org.netbeans.modules.mongodb.ui.util.JsonEditor;
 import org.netbeans.modules.mongodb.ui.windows.CollectionView;
-import org.openide.DialogDisplayer;
-import org.openide.NotifyDescriptor;
-import org.openide.util.NbBundle.Messages;
 
 /**
  *
  * @author Yann D'Isanto
  */
-@Messages({
-    "editDocumentTitle=Edit document",
-    "ACTION_editSelectedDocument=Edit document",
-    "ACTION_editSelectedDocument_tooltip=Edit Selected Document"
-})
-public final class EditSelectedDocumentAction extends CollectionViewAction {
+public final class EditSelectedDocumentAction extends EditDocumentAction {
 
     public EditSelectedDocumentAction(CollectionView view) {
-        super(view,
-            Bundle.ACTION_editSelectedDocument(),
-            new ImageIcon(Images.EDIT_DOCUMENT_ICON),
-            Bundle.ACTION_editSelectedDocument_tooltip());
+        super(view);
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        final DBObject document = getView().getResultTableSelectedDocument();
-        final DBObject modifiedDocument = JsonEditor.show(
-            Bundle.editDocumentTitle(),
-            JSON.serialize(document));
-        if (modifiedDocument != null) {
-            try {
-                final DBCollection dbCollection = getView().getLookup().lookup(DBCollection.class);
-                dbCollection.save(modifiedDocument);
-                getView().getCollectionQueryResult().updateDocument(document, modifiedDocument);
-            } catch (MongoException ex) {
-                DialogDisplayer.getDefault().notify(
-                    new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE));
-            }
-        }
+        setDocument(getView().getResultTableSelectedDocument());
+        super.actionPerformed(e);
     }
 }

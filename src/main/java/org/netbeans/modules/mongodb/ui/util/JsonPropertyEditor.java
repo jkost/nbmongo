@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.Map;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.bson.types.ObjectId;
@@ -53,7 +54,7 @@ public class JsonPropertyEditor {
     public static boolean isQuickEditableJsonValue(Object value) {
         return !(value instanceof Map || value instanceof List || value instanceof ObjectId);
     }
-    
+
     private static final Map<Class<?>, ValueBean<?>> BEANS = new HashMap<>();
 
     static {
@@ -113,11 +114,19 @@ public class JsonPropertyEditor {
                 0, 0)
             );
             final DialogDescriptor desc = new DialogDescriptor(panel, "edit property");
+            SwingUtilities.invokeLater(new Runnable() {
+
+                @Override
+                public void run() {
+                    valuePanel.requestFocus();
+                    valuePanel.transferFocus();
+                }
+            });
             if (DialogDisplayer.getDefault().notify(desc) == NotifyDescriptor.OK_OPTION) {
                 Object newValue = valueBean.getValue();
-                if(newValue instanceof BigDecimal) {
+                if (newValue instanceof BigDecimal) {
                     BigDecimal numberValue = (BigDecimal) newValue;
-                    if(numberValue.signum() == 0 || numberValue.scale() <= 0 || numberValue.stripTrailingZeros().scale() <= 0) {
+                    if (numberValue.signum() == 0 || numberValue.scale() <= 0 || numberValue.stripTrailingZeros().scale() <= 0) {
                         newValue = numberValue.intValue();
                     } else {
                         newValue = numberValue.doubleValue();
@@ -158,9 +167,9 @@ public class JsonPropertyEditor {
             final DialogDescriptor desc = new DialogDescriptor(panel, "edit value");
             if (DialogDisplayer.getDefault().notify(desc) == NotifyDescriptor.OK_OPTION) {
                 Object newValue = bean.getValue();
-                if(newValue instanceof BigDecimal) {
+                if (newValue instanceof BigDecimal) {
                     BigDecimal numberValue = (BigDecimal) newValue;
-                    if(numberValue.signum() == 0 || numberValue.scale() <= 0 || numberValue.stripTrailingZeros().scale() <= 0) {
+                    if (numberValue.signum() == 0 || numberValue.scale() <= 0 || numberValue.stripTrailingZeros().scale() <= 0) {
                         newValue = numberValue.intValue();
                     } else {
                         newValue = numberValue.doubleValue();
