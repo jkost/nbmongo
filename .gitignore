@@ -9,3 +9,4 @@ target/
 .DS_Store
 
 /private/
+nb-configuration.xml
