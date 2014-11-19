@@ -42,14 +42,27 @@ final class ConnectionChildFactory extends RefreshableChildFactory<ConnectionInf
         try {
             Preferences prefs = MongoServicesNode.prefs();
             String[] kids = prefs.childrenNames();
-            System.out.println("CHILD NAMES: " + Arrays.asList(kids));
             ConnectionInfo[] result = new ConnectionInfo[kids.length];
             for (int i = 0; i < kids.length; i++) {
                 String kid = kids[i];
                 Preferences node = prefs.node(kid);
-                result[i] = new ConnectionInfo(UUID.fromString(kid), node);
+                UUID uuid;
+                try {
+                    uuid = UUID.fromString(kid);
+                } catch(IllegalArgumentException ex) {
+                    // old connection info, need migration
+                    uuid = UUID.randomUUID();
+                    Preferences oldNode = node;
+                    node = prefs.node(uuid.toString());
+                    for (String key : oldNode.childrenNames()) {
+                        node.put(key, oldNode.get(key, null));
+                    }
+                    node.flush();
+                    oldNode.removeNode();
+                    oldNode.flush();
+                }
+                result[i] = new ConnectionInfo(uuid, node);
             }
-            System.out.println("RETURNING " + result.length + " connections: " + Arrays.asList(result));
             return result;
         } catch (BackingStoreException ex) {
             Exceptions.printStackTrace(ex);
