@@ -28,6 +28,9 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.prefs.Preferences;
 import org.netbeans.modules.mongodb.util.Version;
 import org.openide.util.Exceptions;
@@ -59,6 +62,16 @@ public enum MongoNativeToolsOptions {
 
     public void load() {
         toolsFolder = getPreferences().get(TOOLS_FOLDER, null);
+        if(toolsFolder == null) {
+            // try to use mongo shell executable path (a plugin older version option)
+            String mongoExecPath = getPreferences().get("mongo-exec-path", null);
+            if(mongoExecPath != null) {
+                Path toolsFolderPath = Paths.get(mongoExecPath).getParent();
+                if(Files.isDirectory(toolsFolderPath)) {
+                    toolsFolder = toolsFolderPath.toString();
+                }
+            }
+        }
         final String versionAsString = getPreferences().get(TOOLS_VERSION, null);
         if (versionAsString != null) {
             toolsVersion = new Version(versionAsString);
