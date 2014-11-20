@@ -45,7 +45,7 @@ import org.openide.util.NbBundle.Messages;
 @Messages({
     "editDocumentTitle=Edit document",
     "ACTION_editDocument=Edit document",
-    "ACTION_editDocument_tooltip=Edit Document (Ctrl + double click)"
+    "ACTION_editDocument_tooltip=Edit Document"
 })
 public class EditDocumentAction extends CollectionViewAction {
 

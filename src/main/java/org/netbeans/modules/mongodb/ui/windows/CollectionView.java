@@ -30,6 +30,8 @@ import com.mongodb.util.JSON;
 import java.awt.CardLayout;
 import org.netbeans.modules.mongodb.CollectionInfo;
 import java.awt.Font;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.EnumMap;
@@ -37,6 +39,7 @@ import java.util.Map;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 import javax.swing.Action;
+import javax.swing.ImageIcon;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.JTable;
@@ -96,6 +99,7 @@ import org.netbeans.modules.mongodb.ui.windows.collectionview.treetable.Document
 import org.netbeans.modules.mongodb.ui.windows.collectionview.treetable.JsonValueNode;
 import org.netbeans.modules.mongodb.util.JsonProperty;
 import org.netbeans.modules.mongodb.util.SystemCollectionPredicate;
+import org.openide.awt.NotificationDisplayer;
 import org.openide.util.Exceptions;
 import org.openide.util.Lookup;
 import org.openide.util.NbBundle.Messages;
@@ -120,7 +124,9 @@ import org.openide.windows.TopComponent;
     "collectionViewTitle={0}.{1}",
     "# {0} - connection name",
     "# {1} - view title",
-    "collectionViewTooltip={0}: {1}"
+    "collectionViewTooltip={0}: {1}",
+    "documentEditionShortcutHintTitle=Use CTRL + doubleclick to edit full document",
+    "documentEditionShortcutHintDetails=Click here or use shortcut so this message won't show again."
 })
 public final class CollectionView extends TopComponent {
 
@@ -148,6 +154,8 @@ public final class CollectionView extends TopComponent {
 
     @Getter
     private Lookup lookup;
+
+    private boolean displayDocumentEditionShortcutHint = true;
 
     public CollectionView(CollectionInfo collectionInfo, Lookup lookup) {
         super(lookup);
@@ -233,11 +241,13 @@ public final class CollectionView extends TopComponent {
                     final TreePath path = resultTreeTable.getPathForLocation(e.getX(), e.getY());
                     final TreeTableNode node = (TreeTableNode) path.getLastPathComponent();
                     if ((e.getModifiersEx() & MouseEvent.CTRL_DOWN_MASK) == MouseEvent.CTRL_DOWN_MASK) {
+                        displayDocumentEditionShortcutHint = false;                        
                         final DocumentNode documentNode = (DocumentNode) path.getPathComponent(1);
                         editDocumentAction.setDocument(documentNode.getUserObject());
                         editDocumentAction.actionPerformed(null);
                     } else {
                         if (node.isLeaf()) {
+                            dislayDocumentEditionShortcutHintIfNecessary();
                             if (node instanceof JsonPropertyNode) {
                                 JsonPropertyNode propertyNode = (JsonPropertyNode) node;
                                 if (!(propertyNode.getUserObject().getValue() instanceof ObjectId)) {
@@ -798,6 +808,7 @@ public final class CollectionView extends TopComponent {
     void loadPreferences() {
         final Preferences prefs = prefs();
         final String version = prefs.get("version", "1.0");
+        displayDocumentEditionShortcutHint = prefs.getBoolean("display-document-edition-shortcut-hint", true);
         final int pageSize = prefs.getInt("result-view-table-page-size", collectionQueryResult.getPageSize());
         collectionQueryResult.setPageSize(pageSize);
         pageSizeField.setText(String.valueOf(pageSize));
@@ -813,6 +824,7 @@ public final class CollectionView extends TopComponent {
         prefs.put("version", "1.0");
         prefs.putInt("result-view-table-page-size", collectionQueryResult.getPageSize());
         prefs.put("result-view", resultView.name());
+        prefs.putBoolean("display-document-edition-shortcut-hint", displayDocumentEditionShortcutHint);
         try {
             prefs.flush();
         } catch (BackingStoreException ex) {
@@ -929,5 +941,22 @@ public final class CollectionView extends TopComponent {
         menu.add(new JMenuItem(new EditSelectedDocumentAction(this)));
         menu.add(new JMenuItem(new DeleteSelectedDocumentAction(this)));
         return menu;
+    }
+
+    private void dislayDocumentEditionShortcutHintIfNecessary() {
+        if (displayDocumentEditionShortcutHint) {
+            NotificationDisplayer.getDefault().notify(
+                Bundle.documentEditionShortcutHintTitle(),
+                new ImageIcon(Images.EDIT_DOCUMENT_ICON),
+                Bundle.documentEditionShortcutHintDetails(),
+                new ActionListener() {
+
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        displayDocumentEditionShortcutHint = false;
+                    }
+                }
+            );
+        }
     }
 }
