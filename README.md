@@ -6,16 +6,16 @@ a node to the Services tab. Right click it to add connections.
 
 Available main features:
  * Connect to MongoDB using mongo standard uri
- * Browse collections
- * Create/Rename/Delete collections
- * Browse documents (json criteria/projection/sort can be specified)
+ * Browse/Create/Drop databases
+ * Browse/Create/Rename/Delete collections
+ * Query documents (json criteria/projection/sort can be specified)
  * Add/Edit/Delete documents as json
  * Import/Export json
- * Open a [mongo shell](https://github.com/le-yams/netbeans-mongodb/wiki/MongoShell) for configured connection (mongo executable path must be configured in options)
+ * Use some mongo [native tools](https://github.com/le-yams/netbeans-mongodb/wiki/MongoShell) as mongo shell, mongodump, mongorestore, etc. (mongo bin folder path must be configured in options)
 
 See [release notes](https://github.com/le-yams/netbeans-mongodb/wiki/ReleaseNotes) for more informations.
 
-![NetBeans MongoDB Plugin Screen Shot](screenshot.png "NetBeans MongoDB Plugin Screen Shot")
+![NetBeans MongoDB Plugin Screen Shot](https://raw.githubusercontent.com/le-yams/netbeans-mongodb/master/screenshots/screenshot-medium-1.png "NetBeans MongoDB Plugin Screen Shot")
 
 
 Get and Install
