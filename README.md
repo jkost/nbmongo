@@ -11,7 +11,7 @@ Available main features:
  * Query documents (json criteria/projection/sort can be specified)
  * Add/Edit/Delete documents as json
  * Import/Export json
- * Use some mongo [native tools](https://github.com/le-yams/netbeans-mongodb/wiki/MongoShell) as mongo shell, mongodump, mongorestore, etc. (mongo bin folder path must be configured in options)
+ * Use some mongo [native tools](https://github.com/le-yams/netbeans-mongodb/wiki/MongoNativeTools) as mongo shell, mongodump, mongorestore, etc. (mongo bin folder path must be configured in options)
 
 See [release notes](https://github.com/le-yams/netbeans-mongodb/wiki/ReleaseNotes) for more informations.
 
