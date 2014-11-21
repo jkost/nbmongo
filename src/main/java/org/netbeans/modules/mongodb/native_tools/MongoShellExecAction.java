@@ -39,7 +39,7 @@ import org.openide.util.NbBundle.Messages;
  * @author Yann D'Isanto
  */
 @Messages({
-    "ACTION_MongoShell=mongo shell",
+    "ACTION_MongoShell=Mongo Shell",
     "# {0} - connection uri",
     "mongoShellOutputTitle=mongo - {0}"
 })

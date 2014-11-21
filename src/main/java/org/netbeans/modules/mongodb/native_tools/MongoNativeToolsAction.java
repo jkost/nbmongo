@@ -56,6 +56,7 @@ public final class MongoNativeToolsAction extends AbstractAction implements Pres
     public JMenuItem getPopupPresenter() {
         final JMenu menu = new JMenu(this);
         menu.add(new JMenuItem(new MongoShellExecAction(lookup)));
+        menu.addSeparator();
         menu.add(new JMenuItem(new MongoDumpExecAction(lookup)));
         menu.add(new JMenuItem(new MongoRestoreExecAction(lookup)));
         menu.add(new JMenuItem(new MongoTopExecAction(lookup)));
