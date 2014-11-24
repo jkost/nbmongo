@@ -23,18 +23,18 @@
  */
 package org.netbeans.modules.mongodb.ui.explorer;
 
-import org.netbeans.modules.mongodb.properties.CollectionNameProperty;
-import org.netbeans.modules.mongodb.properties.DatabaseNameProperty;
-import org.netbeans.modules.mongodb.properties.ConnectionNameProperty;
-import org.netbeans.modules.mongodb.properties.MongoClientURIProperty;
 import org.netbeans.modules.mongodb.resources.Images;
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
 import com.mongodb.MongoException;
+import de.bfg9000.mongonb.core.CollectionStats;
 import java.awt.Image;
 import org.netbeans.modules.mongodb.ui.util.TopComponentUtils;
 import java.awt.event.ActionEvent;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -122,16 +122,30 @@ final class CollectionNode extends AbstractNode {
     protected Sheet createSheet() {
         Sheet sheet = Sheet.createDefault();
         Sheet.Set set = Sheet.createPropertiesSet();
-        set.put(new CollectionNameProperty(getLookup()));
-        set.put(new DatabaseNameProperty(getLookup()));
-        set.put(new ConnectionNameProperty(getLookup()));
-        set.put(new MongoClientURIProperty(getLookup()));
+        DBCollection col = getLookup().lookup(DBCollection.class);
+        final CollectionStats stats = new CollectionStats(col.isCapped(), col.getStats());
+        
+        set.put(new CollectionStatsProperty("serverUsed", stats.getServerUsed()));
+        set.put(new CollectionStatsProperty("ns", stats.getNs()));
+        set.put(new CollectionStatsProperty("capped", stats.getCapped()));
+        set.put(new CollectionStatsProperty("count", stats.getCount()));
+        set.put(new CollectionStatsProperty("size", stats.getSize()));
+        set.put(new CollectionStatsProperty("storageSize", stats.getStorageSize()));
+        set.put(new CollectionStatsProperty("numExtents", stats.getNumExtents()));
+        set.put(new CollectionStatsProperty("nindexes", stats.getNindexes()));
+        set.put(new CollectionStatsProperty("lastExtentSize", stats.getLastExtentSize()));
+        set.put(new CollectionStatsProperty("paddingFactor", stats.getPaddingFactor()));
+        set.put(new CollectionStatsProperty("systemFlags", stats.getSystemFlags()));
+        set.put(new CollectionStatsProperty("userFlags", stats.getUserFlags()));
+        set.put(new CollectionStatsProperty("totalIndexSize", stats.getTotalIndexSize()));
+        set.put(new CollectionStatsProperty("ok", stats.getOk()));
+        
         sheet.put(set);
         return sheet;
     }
 
     @Override
-    public Action[] getActions(boolean context) {
+    public Action[] getActions(boolean ignored) {
         final Map<String, Object> properties = new HashMap<>();
         properties.put(ExportWizardAction.PROP_COLLECTION, collection.getName());
         properties.put(ImportWizardAction.PROP_COLLECTION, collection.getName());
@@ -143,17 +157,22 @@ final class CollectionNode extends AbstractNode {
             renameAction.setEnabled(false);
             dropAction.setEnabled(false);
         }
-        return new Action[]{
-            SystemAction.get(OpenAction.class),
-            null,
-            dropAction,
-            renameAction,
-            null,
-            new MongoNativeToolsAction(getLookup()),
-            null,
-            new ExportWizardAction(getLookup(), properties),
-            importAction
-        };
+        final List<Action> actions = new LinkedList<>();
+        actions.add(SystemAction.get(OpenAction.class));
+        actions.add(null);
+        actions.add(dropAction);
+        actions.add(renameAction);
+        actions.add(null);
+        actions.add(new MongoNativeToolsAction(getLookup()));
+        actions.add(null);
+        actions.add(new ExportWizardAction(getLookup(), properties));
+        actions.add(importAction);
+        final Action[] orig = super.getActions(ignored);
+        if(orig.length > 0) {
+            actions.add(null);
+        }
+        actions.addAll(Arrays.asList(orig));
+        return actions.toArray(new Action[actions.size()]);
     }
 
     @Override

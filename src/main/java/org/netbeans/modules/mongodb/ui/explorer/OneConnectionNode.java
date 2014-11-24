@@ -38,6 +38,9 @@ import java.awt.event.ActionEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.net.UnknownHostException;
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -159,9 +162,6 @@ final class OneConnectionNode extends AbstractNode implements PropertyChangeList
 
     @Override
     public Action[] getActions(boolean ignored) {
-        final Action[] orig = super.getActions(ignored);
-        final Action[] nue = new Action[orig.length + 9];
-        System.arraycopy(orig, 0, nue, 9, orig.length);
         final Action connectAction = new ConnectAction();
         final Action disconnectAction = new DisconnectAction();
         final Action createDatabaseAction = new CreateDatabaseAction();
@@ -170,16 +170,22 @@ final class OneConnectionNode extends AbstractNode implements PropertyChangeList
         createDatabaseAction.setEnabled(isConnected());
         connectAction.setEnabled(isConnected() == false);
         disconnectAction.setEnabled(isConnected());
-        nue[0] = connectAction;
-        nue[1] = disconnectAction;
-        nue[2] = null;
-        nue[3] = createDatabaseAction;
-        nue[4] = refreshAction;
-        nue[5] = new DeleteAction();
-        nue[6] = null;
-        nue[7] = new MongoNativeToolsAction(getLookup());
-        nue[8] = null;
-        return nue;
+        
+        final List<Action> actions = new LinkedList<>();
+        actions.add(connectAction);
+        actions.add(disconnectAction);
+        actions.add(null);
+        actions.add(createDatabaseAction);
+        actions.add(refreshAction);
+        actions.add(new DeleteAction());
+        actions.add(null);
+        actions.add(new MongoNativeToolsAction(getLookup()));
+        final Action[] orig = super.getActions(ignored);
+        if (orig.length > 0) {
+            actions.add(null);
+        }
+        actions.addAll(Arrays.asList(orig));
+        return actions.toArray(new Action[actions.size()]);
     }
 
     @Override

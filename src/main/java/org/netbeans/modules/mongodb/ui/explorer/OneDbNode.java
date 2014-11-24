@@ -23,16 +23,17 @@
  */
 package org.netbeans.modules.mongodb.ui.explorer;
 
-import org.netbeans.modules.mongodb.properties.DatabaseNameProperty;
-import org.netbeans.modules.mongodb.properties.ConnectionNameProperty;
-import org.netbeans.modules.mongodb.properties.MongoClientURIProperty;
 import org.netbeans.modules.mongodb.resources.Images;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
 import com.mongodb.DBObject;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoException;
+import de.bfg9000.mongonb.core.DatabaseStats;
 import java.awt.event.ActionEvent;
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import org.netbeans.modules.mongodb.DbInfo;
@@ -103,31 +104,51 @@ final class OneDbNode extends AbstractNode {
     protected Sheet createSheet() {
         Sheet sheet = Sheet.createDefault();
         Sheet.Set set = Sheet.createPropertiesSet();
-        set.put(new DatabaseNameProperty(getLookup()));
-        set.put(new ConnectionNameProperty(getLookup()));
-        set.put(new MongoClientURIProperty(getLookup()));
+        DB db = getLookup().lookup(DB.class);
+        if (db != null) {
+            final DatabaseStats stats = new DatabaseStats(db.getStats());
+            set.put(new DatabaseStatsProperty("serverUsed", stats.getServerUsed()));
+            set.put(new DatabaseStatsProperty("db", stats.getDb()));
+            set.put(new DatabaseStatsProperty("collections", stats.getCollections()));
+            set.put(new DatabaseStatsProperty("objects", stats.getObjects()));
+            set.put(new DatabaseStatsProperty("avgObjSize", stats.getAvgObjSize()));
+            set.put(new DatabaseStatsProperty("dataSize", stats.getDataSize()));
+            set.put(new DatabaseStatsProperty("storageSize", stats.getStorageSize()));
+            set.put(new DatabaseStatsProperty("numExtents", stats.getNumExtents()));
+            set.put(new DatabaseStatsProperty("indexes", stats.getIndexes()));
+            set.put(new DatabaseStatsProperty("indexSize", stats.getIndexSize()));
+            set.put(new DatabaseStatsProperty("fileSize", stats.getFileSize()));
+            set.put(new DatabaseStatsProperty("nsSizeMB", stats.getNsSizeMB()));
+            set.put(new DatabaseStatsProperty("dataFileVersion", stats.getDataFileVersion()));
+            set.put(new DatabaseStatsProperty("ok", stats.getOk()));
+        }
         sheet.put(set);
         return sheet;
     }
 
     @Override
-    public Action[] getActions(boolean context) {
-        return new Action[]{
-            new AddCollectionAction(),
-            new RefreshChildrenAction(childFactory),
-            new DropDatabaseAction(),
-            null,
-            new MongoNativeToolsAction(getLookup()),
-            null,
-            new ExportWizardAction(getLookup()),
-            new ImportWizardAction(getLookup(), new Runnable() {
+    public Action[] getActions(boolean ignored) {
+        final List<Action> actions = new LinkedList<>();
+        actions.add(new AddCollectionAction());
+        actions.add(new RefreshChildrenAction(childFactory));
+        actions.add(new DropDatabaseAction());
+        actions.add(null);
+        actions.add(new MongoNativeToolsAction(getLookup()));
+        actions.add(null);
+        actions.add(new ExportWizardAction(getLookup()));
+        actions.add(new ImportWizardAction(getLookup(), new Runnable() {
 
-                @Override
-                public void run() {
-                    refreshChildren();
-                }
-            })
-        };
+            @Override
+            public void run() {
+                refreshChildren();
+            }
+        }));
+        final Action[] orig = super.getActions(ignored);
+        if (orig.length > 0) {
+            actions.add(null);
+        }
+        actions.addAll(Arrays.asList(orig));
+        return actions.toArray(new Action[actions.size()]);
     }
 
     public void refreshChildren() {
@@ -216,5 +237,4 @@ final class OneDbNode extends AbstractNode {
             }
         }
     }
-
 }
