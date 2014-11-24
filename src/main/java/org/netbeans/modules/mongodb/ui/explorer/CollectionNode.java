@@ -28,6 +28,7 @@ import com.mongodb.DB;
 import com.mongodb.DBCollection;
 import com.mongodb.MongoException;
 import de.bfg9000.mongonb.core.CollectionStats;
+import de.bfg9000.mongonb.ui.core.actions.ManageIndexesAction;
 import java.awt.Image;
 import org.netbeans.modules.mongodb.ui.util.TopComponentUtils;
 import java.awt.event.ActionEvent;
@@ -159,6 +160,8 @@ final class CollectionNode extends AbstractNode {
         }
         final List<Action> actions = new LinkedList<>();
         actions.add(SystemAction.get(OpenAction.class));
+        actions.add(null);
+        actions.add(new ManageIndexesAction(getLookup()));
         actions.add(null);
         actions.add(dropAction);
         actions.add(renameAction);
