@@ -14,6 +14,7 @@ import org.openide.windows.InputOutput;
  * Executes a createQuery asynchronously, then updates the UI.
  *
  * @author thomaswerner35
+ * @author Yann D'Isanto
  */
 @Messages({
     "# {0} - execution duration",

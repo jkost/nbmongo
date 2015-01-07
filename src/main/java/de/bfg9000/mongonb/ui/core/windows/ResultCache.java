@@ -12,6 +12,7 @@ import lombok.Setter;
  * when required.
  *
  * @author thomaswerner35
+ * @author Yann D'Isanto
  */
 public final class ResultCache {
 
