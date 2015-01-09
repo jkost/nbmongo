@@ -21,20 +21,36 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.netbeans.modules.mongodb.ui.windows.collectionview.actions;
+package org.netbeans.modules.mongodb.ui.windows.queryresultpanel.actions;
 
-import org.netbeans.modules.mongodb.ui.actions.CopyObjectToClipboardAction;
-import org.netbeans.modules.mongodb.util.JsonProperty;
+import java.awt.event.ActionEvent;
+import javax.swing.ImageIcon;
+import org.netbeans.modules.mongodb.resources.Images;
+import org.netbeans.modules.mongodb.ui.windows.QueryResultPanel;
 import org.openide.util.NbBundle.Messages;
 
 /**
  *
  * @author Yann D'Isanto
  */
-@Messages({"ACTION_copyKeyToClipboard=Copy key"})
-public final class CopyKeyToClipboardAction extends CopyObjectToClipboardAction<String> {
+@Messages({
+    "ACTION_navLast=Last Page",
+    "ACTION_navLast_tooltip=Last Page"
+})
+public final class NavLastAction extends QueryResultPanelAction {
+    
+    private static final long serialVersionUID = 1L;
 
-    public CopyKeyToClipboardAction(JsonProperty property) {
-        super(Bundle.ACTION_copyKeyToClipboard(), property.getName());
+    public NavLastAction(QueryResultPanel resultPanel) {
+        super(resultPanel,
+            Bundle.ACTION_navLast(),
+            new ImageIcon(Images.NAV_LAST_ICON),
+            Bundle.ACTION_navLast_tooltip());
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        getResultPanel().getResultPages().moveLast();
+        getResultPanel().updatePagination();
     }
 }

@@ -21,14 +21,14 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.netbeans.modules.mongodb.ui.windows.collectionview.actions;
+package org.netbeans.modules.mongodb.ui.windows.queryresultpanel.actions;
 
 import java.awt.event.ActionEvent;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import org.netbeans.modules.mongodb.resources.Images;
-import org.netbeans.modules.mongodb.ui.windows.CollectionView;
-import org.netbeans.modules.mongodb.ui.windows.CollectionView.ResultView;
+import org.netbeans.modules.mongodb.ui.windows.QueryResultPanel;
+import org.netbeans.modules.mongodb.ui.windows.QueryResultPanel.ResultView;
 import org.openide.util.NbBundle.Messages;
 
 /**
@@ -41,29 +41,31 @@ import org.openide.util.NbBundle.Messages;
     "ACTION_displayResultsAsFlatTable=Display results in flat table",
     "ACTION_displayResultsAsFlatTable_tooltip=Display results in flat table"
 })
-public final class ChangeResultViewAction extends CollectionViewAction {
+public final class ChangeResultViewAction extends QueryResultPanelAction {
+    
+    private static final long serialVersionUID = 1L;
 
     private final ResultView resultView;
 
-    private ChangeResultViewAction(CollectionView view, ResultView resultView, String name, Icon icon, String shortDescription) {
-        super(view, name, icon, shortDescription);
+    private ChangeResultViewAction(QueryResultPanel resultPanel, ResultView resultView, String name, Icon icon, String shortDescription) {
+        super(resultPanel, name, icon, shortDescription);
         this.resultView = resultView;
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        getView().changeResultView(resultView);
+        getResultPanel().changeResultView(resultView);
     }
 
-    public static ChangeResultViewAction create(CollectionView view, ResultView resultView) {
+    public static ChangeResultViewAction create(QueryResultPanel resultPanel, ResultView resultView) {
         switch (resultView) {
             case FLAT_TABLE:
-                return new ChangeResultViewAction(view, resultView, 
+                return new ChangeResultViewAction(resultPanel, resultView, 
                     Bundle.ACTION_displayResultsAsFlatTable(), 
                     new ImageIcon(Images.FLAT_TABLE_VIEW_ICON), 
                     Bundle.ACTION_displayResultsAsFlatTable_tooltip());
             case TREE_TABLE:
-                return new ChangeResultViewAction(view, resultView, 
+                return new ChangeResultViewAction(resultPanel, resultView, 
                     Bundle.ACTION_displayResultsAsTreeTable(), 
                     new ImageIcon(Images.TREE_TABLE_VIEW_ICON), 
                     Bundle.ACTION_displayResultsAsTreeTable_tooltip());

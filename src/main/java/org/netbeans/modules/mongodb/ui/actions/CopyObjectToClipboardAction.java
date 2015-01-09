@@ -36,6 +36,8 @@ import javax.swing.Icon;
  * @author Yann D'Isanto
  */
 public class CopyObjectToClipboardAction<T> extends AbstractAction {
+    
+    private static final long serialVersionUID = 1L;
 
     /**
      * The object to copy to the clipboard.

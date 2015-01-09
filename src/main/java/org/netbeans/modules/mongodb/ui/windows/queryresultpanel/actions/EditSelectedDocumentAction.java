@@ -21,34 +21,26 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.netbeans.modules.mongodb.ui.windows.collectionview.actions;
+package org.netbeans.modules.mongodb.ui.windows.queryresultpanel.actions;
 
 import java.awt.event.ActionEvent;
-import javax.swing.ImageIcon;
-import org.netbeans.modules.mongodb.resources.Images;
-import org.netbeans.modules.mongodb.ui.windows.CollectionView;
-import org.openide.util.NbBundle.Messages;
+import org.netbeans.modules.mongodb.ui.windows.QueryResultPanel;
 
 /**
  *
  * @author Yann D'Isanto
  */
-@Messages({
-    "ACTION_expandDocuments=Expand All",
-    "ACTION_expandDocuments_tooltip=Expand all documents"
-})
-public final class ExpandAllDocumentsAction extends CollectionViewAction {
+public final class EditSelectedDocumentAction extends EditDocumentAction {
+    
+    private static final long serialVersionUID = 1L;
 
-    public ExpandAllDocumentsAction(CollectionView view) {
-        super(view,
-            Bundle.ACTION_expandDocuments(),
-            new ImageIcon(Images.EXPAND_TREE_ICON),
-            Bundle.ACTION_expandDocuments_tooltip());
+    public EditSelectedDocumentAction(QueryResultPanel resultPanel) {
+        super(resultPanel);
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        getView().getResultTreeTable().expandAll();
-
+        setDocument(getResultPanel().getResultTableSelectedDocument());
+        super.actionPerformed(e);
     }
 }

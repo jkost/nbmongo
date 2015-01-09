@@ -24,67 +24,73 @@
 package org.netbeans.modules.mongodb.ui.windows.collectionview.flattable;
 
 import com.mongodb.DBObject;
+import de.bfg9000.mongonb.ui.core.windows.ResultDisplayer;
+import de.bfg9000.mongonb.ui.core.windows.ResultPages;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
+import javax.swing.SwingUtilities;
 import javax.swing.table.AbstractTableModel;
-import org.netbeans.modules.mongodb.ui.windows.collectionview.CollectionQueryResult;
-import org.netbeans.modules.mongodb.ui.windows.collectionview.CollectionQueryResultView;
-import org.netbeans.modules.mongodb.ui.windows.collectionview.CollectionQueryResultUpdateListener;
+import lombok.Getter;
 
 /**
  *
  * @author Yann D'Isanto
  */
-public final class DocumentsFlatTableModel extends AbstractTableModel implements CollectionQueryResultView, CollectionQueryResultUpdateListener {
+public final class DocumentsFlatTableModel extends AbstractTableModel implements ResultPages.ResultPagesListener, ResultDisplayer.View {
     
     private static final long serialVersionUID = 1L;
 
+    @Getter
+    private final ResultPages pages;
+
     private final List<String> columns = new LinkedList<>();
 
-    private final CollectionQueryResult collectionQueryResult;
-
-    public DocumentsFlatTableModel(CollectionQueryResult collectionQueryResult) {
-        this.collectionQueryResult = collectionQueryResult;
+    public DocumentsFlatTableModel(ResultPages pages) {
+        this.pages = pages;
+        pages.addResultPagesListener(this);
+        buildFromPage();
     }
 
-    @Override
-    public CollectionQueryResult getCollectionQueryResult() {
-        return collectionQueryResult;
-    }
+    private void buildFromPage() {
 
-    @Override
-    public void updateStarting(CollectionQueryResult source) {
-        columns.clear();
-    }
-
-    @Override
-    public void documentAdded(CollectionQueryResult source, DBObject document) {
-        updateColumns(document);
-    }
-
-    @Override
-    public void documentUpdated(CollectionQueryResult source, DBObject document, int index) {
-        fireTableRowsUpdated(index, index);
-    }
-
-    @Override
-    public void updateFinished(CollectionQueryResult source) {
-        fireTableStructureChanged();
-    }
-
-    private void updateColumns(DBObject document) {
-        for (String field : document.keySet()) {
-            if (columns.contains(field) == false) {
-                columns.add(field);
+        Set<String> updatedColumns = new LinkedHashSet<>(columns);
+    
+        // update columns if necessary
+        boolean columnsChanged = false;
+        if (pages != null) {
+            for (DBObject document : pages.getPageContent()) {
+                columnsChanged |= updatedColumns.addAll(document.keySet());
             }
         }
+        columns.clear();
+        columns.addAll(updatedColumns);
         int idIndex = columns.indexOf("_id");
         if (idIndex > 0) {
             Collections.swap(columns, idIndex, 0);
         }
+
+        final boolean tableStructureChanged = columnsChanged;
+        SwingUtilities.invokeLater(new Runnable() {
+
+            @Override
+            public void run() {
+                if (tableStructureChanged) {
+                    fireTableStructureChanged();
+                } else {
+                    fireTableDataChanged();
+                }
+            }
+        });
+
     }
 
+    String getFieldName(int column) {
+        return columns.get(column);
+    }
+    
     @Override
     public int getColumnCount() {
         return columns != null ? columns.size() : 0;
@@ -92,7 +98,7 @@ public final class DocumentsFlatTableModel extends AbstractTableModel implements
 
     @Override
     public String getColumnName(int column) {
-        return columns.get(column);
+        return getFieldName(column);
     }
 
     @Override
@@ -102,7 +108,7 @@ public final class DocumentsFlatTableModel extends AbstractTableModel implements
 
     @Override
     public int getRowCount() {
-        return collectionQueryResult.getDocuments().size();
+        return pages.getPageContent().size();
     }
 
     @Override
@@ -111,8 +117,7 @@ public final class DocumentsFlatTableModel extends AbstractTableModel implements
         if (document == null) {
             return null;
         }
-        final String field = columns.get(columnIndex);
-        return document.get(field);
+        return document.get(getFieldName(columnIndex));
     }
 
     @Override
@@ -124,6 +129,18 @@ public final class DocumentsFlatTableModel extends AbstractTableModel implements
         if (rowIndex == -1) {
             return null;
         }
-        return collectionQueryResult.getDocuments().get(rowIndex);
+        return pages.getPageContent().get(rowIndex);
+    }
+
+    @Override
+    public void pageChanged(ResultPages source, int pageIndex, List<DBObject> page) {
+        buildFromPage();
+    }
+
+    @Override
+    public void refreshIfNecessary(boolean force) {
+        if (force) {
+            buildFromPage();
+        }
     }
 }

@@ -21,12 +21,12 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.netbeans.modules.mongodb.ui.windows.collectionview.actions;
+package org.netbeans.modules.mongodb.ui.windows.queryresultpanel.actions;
 
-import com.mongodb.DBObject;
-import com.mongodb.util.JSON;
-import java.awt.datatransfer.StringSelection;
-import org.netbeans.modules.mongodb.ui.actions.CopyObjectToClipboardAction;
+import java.awt.event.ActionEvent;
+import javax.swing.ImageIcon;
+import org.netbeans.modules.mongodb.resources.Images;
+import org.netbeans.modules.mongodb.ui.windows.QueryResultPanel;
 import org.openide.util.NbBundle.Messages;
 
 /**
@@ -34,15 +34,22 @@ import org.openide.util.NbBundle.Messages;
  * @author Yann D'Isanto
  */
 @Messages({
-    "ACTION_copyDocumentToClipboard=Copy document"})
-public final class CopyDocumentToClipboardAction extends CopyObjectToClipboardAction<DBObject> {
+    "ACTION_refreshDocuments=Refresh",
+    "ACTION_refreshDocuments_tooltip=Refresh Documents"
+})
+public final class RefreshDocumentsAction extends QueryResultPanelAction {
+    
+    private static final long serialVersionUID = 1L;
 
-    public CopyDocumentToClipboardAction(DBObject dBObject) {
-        super(Bundle.ACTION_copyDocumentToClipboard(), dBObject);
+    public RefreshDocumentsAction(QueryResultPanel resultPanel) {
+        super(resultPanel,
+            Bundle.ACTION_refreshDocuments(),
+            new ImageIcon(Images.REFRESH_ICON),
+            Bundle.ACTION_refreshDocuments_tooltip());
     }
 
     @Override
-    public StringSelection convertToStringSelection(DBObject dbObject) {
-        return new StringSelection(JSON.serialize(dbObject));
+    public void actionPerformed(ActionEvent e) {
+        getResultPanel().refreshResults();
     }
 }

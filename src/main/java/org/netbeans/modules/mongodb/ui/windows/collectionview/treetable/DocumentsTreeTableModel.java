@@ -24,53 +24,49 @@
 package org.netbeans.modules.mongodb.ui.windows.collectionview.treetable;
 
 import com.mongodb.DBObject;
+import de.bfg9000.mongonb.ui.core.windows.ResultDisplayer;
+import de.bfg9000.mongonb.ui.core.windows.ResultPages;
+import java.util.List;
 import javax.swing.SwingUtilities;
 import javax.swing.tree.TreePath;
+import lombok.Getter;
 import org.jdesktop.swingx.treetable.DefaultTreeTableModel;
 import org.jdesktop.swingx.treetable.TreeTableNode;
-import org.netbeans.modules.mongodb.ui.windows.collectionview.CollectionQueryResult;
-import org.netbeans.modules.mongodb.ui.windows.collectionview.CollectionQueryResultView;
-import org.netbeans.modules.mongodb.ui.windows.collectionview.CollectionQueryResultUpdateListener;
 
 /**
  *
  * @author Yann D'Isanto
  */
-public final class DocumentsTreeTableModel extends DefaultTreeTableModel implements CollectionQueryResultView, CollectionQueryResultUpdateListener {
+public final class DocumentsTreeTableModel extends DefaultTreeTableModel implements ResultPages.ResultPagesListener, ResultDisplayer.View {
 
-    private final CollectionQueryResult collectionQueryResult;
+    @Getter
+    private final ResultPages pages;
 
-    public DocumentsTreeTableModel(CollectionQueryResult collectionQueryResult) {
-        this.collectionQueryResult = collectionQueryResult;
+    public DocumentsTreeTableModel(ResultPages pages) {
+        this.pages = pages;
+        pages.addResultPagesListener(this);
+        buildFromPage();
     }
 
     @Override
-    public CollectionQueryResult getCollectionQueryResult() {
-        return collectionQueryResult;
+    public void pageChanged(ResultPages source, int pageIndex, List<DBObject> page) {
+        buildFromPage();
     }
 
     @Override
-    public void updateStarting(CollectionQueryResult source) {
+    public void refreshIfNecessary(boolean force) {
+        if (force) {
+            buildFromPage();
+        }
     }
 
-    @Override
-    public void documentAdded(CollectionQueryResult source, DBObject document) {
-    }
-
-    @Override
-    public void documentUpdated(CollectionQueryResult source, DBObject document, int index) {
-        DocumentNode node = (DocumentNode) getRoot().getChildAt(index);
-        setUserObject(node, document);
-        TreePath path = new TreePath(getPathToRoot(node));
-        modelSupport.fireTreeStructureChanged(path);
-    }
-
-    @Override
-    public void updateFinished(CollectionQueryResult source) {
+    private void buildFromPage() {
         final TreeTableNode rootNode = new CollectionViewTreeTableNode<Object>(null) {
             {
-                for (DBObject document : collectionQueryResult.getDocuments()) {
-                    add(new DocumentNode(document));
+                if (pages != null) {
+                    for (DBObject document : pages.getPageContent()) {
+                        add(new DocumentNode(document));
+                    }
                 }
             }
         };
@@ -82,6 +78,13 @@ public final class DocumentsTreeTableModel extends DefaultTreeTableModel impleme
                 setRoot(rootNode);
             }
         });
+    }
+
+    public void documentUpdated(DBObject document, int index) {
+        DocumentNode node = (DocumentNode) getRoot().getChildAt(index);
+        setUserObject(node, document);
+        TreePath path = new TreePath(getPathToRoot(node));
+        modelSupport.fireTreeStructureChanged(path);
     }
 
     @Override

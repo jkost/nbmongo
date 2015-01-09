@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.netbeans.modules.mongodb.ui.windows.collectionview.actions;
+package org.netbeans.modules.mongodb.ui.windows.queryresultpanel.actions;
 
 import com.mongodb.DBCollection;
 import com.mongodb.DBObject;
@@ -32,7 +32,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.jdesktop.swingx.treetable.TreeTableNode;
 import org.netbeans.modules.mongodb.ui.util.JsonPropertyEditor;
-import org.netbeans.modules.mongodb.ui.windows.CollectionView;
+import org.netbeans.modules.mongodb.ui.windows.QueryResultPanel;
 import org.netbeans.modules.mongodb.ui.windows.collectionview.treetable.DocumentNode;
 import org.netbeans.modules.mongodb.ui.windows.collectionview.treetable.JsonValueNode;
 import org.netbeans.modules.mongodb.util.JsonProperty;
@@ -49,14 +49,16 @@ import org.openide.util.NbBundle.Messages;
     "ACTION_editJsonValue=Edit json value",
     "ACTION_editJsonValue_tooltip=Edit Selected JSON Value"
 })
-public final class EditJsonValueNodeAction extends CollectionViewAction {
+public final class EditJsonValueNodeAction extends QueryResultPanelAction {
+    
+    private static final long serialVersionUID = 1L;
 
     @Getter
     @Setter
     private JsonValueNode valueNode;
 
-    public EditJsonValueNodeAction(CollectionView view, JsonValueNode valueNode) {
-        super(view,
+    public EditJsonValueNodeAction(QueryResultPanel resultPanel, JsonValueNode valueNode) {
+        super(resultPanel,
             Bundle.ACTION_editJsonValue(),
             null,
             Bundle.ACTION_editJsonValue_tooltip());
@@ -71,7 +73,7 @@ public final class EditJsonValueNodeAction extends CollectionViewAction {
         if (newValue == null || newValue.equals(value)) {
             return;
         }
-        getView().getTreeTableModel().setUserObject(valueNode, newValue);
+        getResultPanel().getTreeTableModel().setUserObject(valueNode, newValue);
         TreeTableNode parentNode = valueNode.getParent();
         JsonProperty parent = (JsonProperty) parentNode.getUserObject();
         List<Object> list = (List<Object>) parent.getValue();
@@ -81,7 +83,7 @@ public final class EditJsonValueNodeAction extends CollectionViewAction {
             parentNode = parentNode.getParent();
         }
         try {
-            final DBCollection dbCollection = getView().getLookup().lookup(DBCollection.class);
+            final DBCollection dbCollection = getResultPanel().getLookup().lookup(DBCollection.class);
             dbCollection.save((DBObject) parentNode.getUserObject());
         } catch (MongoException ex) {
             DialogDisplayer.getDefault().notify(

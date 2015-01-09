@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.netbeans.modules.mongodb.ui.windows.collectionview.actions;
+package org.netbeans.modules.mongodb.ui.windows.queryresultpanel.actions;
 
 import com.mongodb.DBCollection;
 import com.mongodb.DBObject;
@@ -29,10 +29,9 @@ import com.mongodb.MongoException;
 import java.awt.event.ActionEvent;
 import lombok.Getter;
 import lombok.Setter;
-import org.bson.types.ObjectId;
 import org.jdesktop.swingx.treetable.TreeTableNode;
 import org.netbeans.modules.mongodb.ui.util.JsonPropertyEditor;
-import org.netbeans.modules.mongodb.ui.windows.CollectionView;
+import org.netbeans.modules.mongodb.ui.windows.QueryResultPanel;
 import org.netbeans.modules.mongodb.ui.windows.collectionview.treetable.DocumentNode;
 import org.netbeans.modules.mongodb.ui.windows.collectionview.treetable.JsonPropertyNode;
 import org.netbeans.modules.mongodb.util.JsonProperty;
@@ -49,14 +48,16 @@ import org.openide.util.NbBundle.Messages;
     "ACTION_editJsonProperty=Edit json property",
     "ACTION_editJsonProperty_tooltip=Edit Selected JSON Property"
 })
-public final class EditJsonPropertyNodeAction extends CollectionViewAction {
+public final class EditJsonPropertyNodeAction extends QueryResultPanelAction {
+
+    private static final long serialVersionUID = 1L;
 
     @Getter
     @Setter
     private JsonPropertyNode propertyNode;
-    
-    public EditJsonPropertyNodeAction(CollectionView view, JsonPropertyNode propertyNode) {
-        super(view,
+
+    public EditJsonPropertyNodeAction(QueryResultPanel resultPanel, JsonPropertyNode propertyNode) {
+        super(resultPanel,
             Bundle.ACTION_editJsonProperty(),
             null,
             Bundle.ACTION_editJsonProperty_tooltip());
@@ -70,7 +71,7 @@ public final class EditJsonPropertyNodeAction extends CollectionViewAction {
         if (newProperty == null) {
             return;
         }
-        getView().getTreeTableModel().setUserObject(propertyNode, newProperty);
+        getResultPanel().getTreeTableModel().setUserObject(propertyNode, newProperty);
         TreeTableNode parentNode = propertyNode.getParent();
         DBObject parent = (DBObject) parentNode.getUserObject();
         if (newProperty.getName().equals(property.getName()) == false) {
@@ -81,7 +82,7 @@ public final class EditJsonPropertyNodeAction extends CollectionViewAction {
             parentNode = parentNode.getParent();
         }
         try {
-            final DBCollection dbCollection = getView().getLookup().lookup(DBCollection.class);
+            final DBCollection dbCollection = getResultPanel().getLookup().lookup(DBCollection.class);
             dbCollection.save((DBObject) parentNode.getUserObject());
         } catch (MongoException ex) {
             DialogDisplayer.getDefault().notify(

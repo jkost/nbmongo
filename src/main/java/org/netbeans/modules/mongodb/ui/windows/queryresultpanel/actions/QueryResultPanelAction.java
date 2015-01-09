@@ -21,24 +21,37 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.netbeans.modules.mongodb.ui.windows.collectionview.actions;
+package org.netbeans.modules.mongodb.ui.windows.queryresultpanel.actions;
 
-import java.awt.event.ActionEvent;
-import org.netbeans.modules.mongodb.ui.windows.CollectionView;
+import javax.swing.AbstractAction;
+import static javax.swing.Action.SHORT_DESCRIPTION;
+import javax.swing.Icon;
+import lombok.Getter;
+import org.netbeans.modules.mongodb.ui.windows.QueryResultPanel;
 
 /**
  *
  * @author Yann D'Isanto
  */
-public final class EditSelectedDocumentAction extends EditDocumentAction {
+public abstract class QueryResultPanelAction extends AbstractAction {
+    
+    private static final long serialVersionUID = 1L;
 
-    public EditSelectedDocumentAction(CollectionView view) {
-        super(view);
+    @Getter
+    private final QueryResultPanel resultPanel;
+
+    public QueryResultPanelAction(QueryResultPanel resultPanel, String name) {
+        this(resultPanel, name, null, null);
+    }
+    
+    public QueryResultPanelAction(QueryResultPanel resultPanel, String name, Icon icon) {
+        this(resultPanel, name, icon, null);
     }
 
-    @Override
-    public void actionPerformed(ActionEvent e) {
-        setDocument(getView().getResultTableSelectedDocument());
-        super.actionPerformed(e);
+    public QueryResultPanelAction(QueryResultPanel resultPanel, String name, Icon icon, String shortDescription) {
+        super(name, icon);
+        putValue(SHORT_DESCRIPTION, shortDescription);
+        this.resultPanel = resultPanel;
     }
+
 }

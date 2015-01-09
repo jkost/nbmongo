@@ -21,13 +21,12 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.netbeans.modules.mongodb.ui.windows.collectionview.actions;
+package org.netbeans.modules.mongodb.ui.windows.queryresultpanel.actions;
 
 import java.awt.event.ActionEvent;
 import javax.swing.ImageIcon;
 import org.netbeans.modules.mongodb.resources.Images;
-import org.netbeans.modules.mongodb.ui.windows.CollectionView;
-import org.netbeans.modules.mongodb.ui.windows.collectionview.CollectionQueryResult;
+import org.netbeans.modules.mongodb.ui.windows.QueryResultPanel;
 import org.openide.util.NbBundle.Messages;
 
 /**
@@ -35,26 +34,23 @@ import org.openide.util.NbBundle.Messages;
  * @author Yann D'Isanto
  */
 @Messages({
-    "ACTION_navLeft=Previous Page",
-    "ACTION_navLeft_tooltip=Previous Page"
+    "ACTION_navRight=Next Page",
+    "ACTION_navRight_tooltip=Next Page"
 })
-public final class NavLeftAction extends CollectionViewAction {
+public final class NavRightAction extends QueryResultPanelAction {
+    
+    private static final long serialVersionUID = 1L;
 
-    public NavLeftAction(CollectionView view) {
-        super(view,
-            Bundle.ACTION_navLeft(),
-            new ImageIcon(Images.NAV_LEFT_ICON),
-            Bundle.ACTION_navLeft_tooltip());
+    public NavRightAction(QueryResultPanel resultPanel) {
+        super(resultPanel,
+            Bundle.ACTION_navRight(),
+            new ImageIcon(Images.NAV_RIGHT_ICON),
+            Bundle.ACTION_navRight_tooltip());
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        final CollectionQueryResult result = getView().getCollectionQueryResult();
-        int page = result.getPage();
-        if (page > 1) {
-            result.setPage(page - 1);
-            result.update();
-            getView().updatePagination();
-        }
+        getResultPanel().getResultPages().moveForward();
+        getResultPanel().updatePagination();
     }
 }

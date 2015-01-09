@@ -21,12 +21,12 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.netbeans.modules.mongodb.ui.windows.collectionview.actions;
+package org.netbeans.modules.mongodb.ui.windows.queryresultpanel.actions;
 
 import java.awt.event.ActionEvent;
 import javax.swing.ImageIcon;
 import org.netbeans.modules.mongodb.resources.Images;
-import org.netbeans.modules.mongodb.ui.windows.CollectionView;
+import org.netbeans.modules.mongodb.ui.windows.QueryResultPanel;
 import org.openide.util.NbBundle.Messages;
 
 /**
@@ -34,20 +34,23 @@ import org.openide.util.NbBundle.Messages;
  * @author Yann D'Isanto
  */
 @Messages({
-    "ACTION_refreshDocuments=Refresh",
-    "ACTION_refreshDocuments_tooltip=Refresh Documents"
+    "ACTION_expandDocuments=Expand All",
+    "ACTION_expandDocuments_tooltip=Expand all documents"
 })
-public final class RefreshDocumentsAction extends CollectionViewAction {
+public final class ExpandAllDocumentsAction extends QueryResultPanelAction {
+    
+    private static final long serialVersionUID = 1L;
 
-    public RefreshDocumentsAction(CollectionView view) {
-        super(view,
-            Bundle.ACTION_refreshDocuments(),
-            new ImageIcon(Images.REFRESH_ICON),
-            Bundle.ACTION_refreshDocuments_tooltip());
+    public ExpandAllDocumentsAction(QueryResultPanel resultPanel) {
+        super(resultPanel,
+            Bundle.ACTION_expandDocuments(),
+            new ImageIcon(Images.EXPAND_TREE_ICON),
+            Bundle.ACTION_expandDocuments_tooltip());
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        getView().refreshResults();
+        getResultPanel().getResultTreeTable().expandAll();
+
     }
 }

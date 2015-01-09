@@ -21,37 +21,36 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.netbeans.modules.mongodb.ui.windows.collectionview.actions;
+package org.netbeans.modules.mongodb.ui.actions;
 
-import java.awt.event.ActionEvent;
-import javax.swing.ImageIcon;
-import org.netbeans.modules.mongodb.resources.Images;
-import org.netbeans.modules.mongodb.ui.windows.CollectionView;
-import org.netbeans.modules.mongodb.ui.windows.collectionview.CollectionQueryResult;
+import com.mongodb.BasicDBObject;
+import com.mongodb.util.JSON;
+import java.awt.datatransfer.StringSelection;
+import java.util.Map;
 import org.openide.util.NbBundle.Messages;
 
 /**
  *
  * @author Yann D'Isanto
  */
-@Messages({
-    "ACTION_navLast=Last Page",
-    "ACTION_navLast_tooltip=Last Page"
-})
-public final class NavLastAction extends CollectionViewAction {
+@Messages({"ACTION_copyValueToClipboard=Copy value"})
+public final class CopyValueToClipboardAction extends CopyObjectToClipboardAction<Object> {
+    
+    private static final long serialVersionUID = 1L;
 
-    public NavLastAction(CollectionView view) {
-        super(view,
-            Bundle.ACTION_navLast(),
-            new ImageIcon(Images.NAV_LAST_ICON),
-            Bundle.ACTION_navLast_tooltip());
+    public CopyValueToClipboardAction(Object value) {
+        super(Bundle.ACTION_copyValueToClipboard(), value);
     }
 
     @Override
-    public void actionPerformed(ActionEvent e) {
-        final CollectionQueryResult result = getView().getCollectionQueryResult();
-        result.setPage(result.getPageCount());
-        result.update();
-        getView().updatePagination();
+    public StringSelection convertToStringSelection(Object object) {
+        return new StringSelection(convertToString(object));
+    }
+
+    private String convertToString(Object value) {
+        if (value instanceof Map) {
+            return JSON.serialize(new BasicDBObject((Map) value));
+        }
+        return value.toString();
     }
 }

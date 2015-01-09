@@ -21,33 +21,21 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.netbeans.modules.mongodb.ui.windows.collectionview.actions;
+package org.netbeans.modules.mongodb.ui.actions;
 
-import java.awt.event.ActionEvent;
-import javax.swing.ImageIcon;
-import org.netbeans.modules.mongodb.resources.Images;
-import org.netbeans.modules.mongodb.ui.windows.CollectionView;
+import org.netbeans.modules.mongodb.util.JsonProperty;
 import org.openide.util.NbBundle.Messages;
 
 /**
  *
  * @author Yann D'Isanto
  */
-@Messages({
-    "ACTION_navFirst=First Page",
-    "ACTION_navFirst_tooltip=First Page"
-})
-public final class NavFirstAction extends CollectionViewAction {
+@Messages({"ACTION_copyKeyToClipboard=Copy key"})
+public final class CopyKeyToClipboardAction extends CopyObjectToClipboardAction<String> {
+    
+    private static final long serialVersionUID = 1L;
 
-    public NavFirstAction(CollectionView view) {
-        super(view,
-            Bundle.ACTION_navFirst(),
-            new ImageIcon(Images.NAV_FIRST_ICON),
-            Bundle.ACTION_navFirst_tooltip());
-    }
-
-    @Override
-    public void actionPerformed(ActionEvent e) {
-        getView().refreshResults();
+    public CopyKeyToClipboardAction(JsonProperty property) {
+        super(Bundle.ACTION_copyKeyToClipboard(), property.getName());
     }
 }

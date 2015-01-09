@@ -21,35 +21,36 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.netbeans.modules.mongodb.ui.windows.collectionview.actions;
+package org.netbeans.modules.mongodb.ui.windows.queryresultpanel.actions;
 
-import com.mongodb.BasicDBObject;
-import com.mongodb.util.JSON;
-import java.awt.datatransfer.StringSelection;
-import java.util.Map;
-import org.netbeans.modules.mongodb.ui.actions.CopyObjectToClipboardAction;
+import java.awt.event.ActionEvent;
+import javax.swing.ImageIcon;
+import org.netbeans.modules.mongodb.resources.Images;
+import org.netbeans.modules.mongodb.ui.windows.QueryResultPanel;
 import org.openide.util.NbBundle.Messages;
 
 /**
  *
  * @author Yann D'Isanto
  */
-@Messages({"ACTION_copyValueToClipboard=Copy value"})
-public final class CopyValueToClipboardAction extends CopyObjectToClipboardAction<Object> {
+@Messages({
+    "ACTION_collapseAllDocuments=Collapse All",
+    "ACTION_collapseAllDocuments_tooltip=Collapse all documents"
+})
+public final class CollapseAllDocumentsAction extends QueryResultPanelAction {
+    
+    private static final long serialVersionUID = 1L;
 
-    public CopyValueToClipboardAction(Object value) {
-        super(Bundle.ACTION_copyValueToClipboard(), value);
+    public CollapseAllDocumentsAction(QueryResultPanel resultPanel) {
+        super(resultPanel,
+            Bundle.ACTION_collapseAllDocuments(),
+            new ImageIcon(Images.COLLAPSE_TREE_ICON),
+            Bundle.ACTION_collapseAllDocuments_tooltip());
     }
 
     @Override
-    public StringSelection convertToStringSelection(Object object) {
-        return new StringSelection(convertToString(object));
-    }
+    public void actionPerformed(ActionEvent e) {
+        getResultPanel().getResultTreeTable().collapseAll();
 
-    private String convertToString(Object value) {
-        if (value instanceof Map) {
-            return JSON.serialize(new BasicDBObject((Map) value));
-        }
-        return value.toString();
     }
 }

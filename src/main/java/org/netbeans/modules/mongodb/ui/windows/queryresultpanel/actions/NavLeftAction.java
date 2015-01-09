@@ -21,12 +21,12 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.netbeans.modules.mongodb.ui.windows.collectionview.actions;
+package org.netbeans.modules.mongodb.ui.windows.queryresultpanel.actions;
 
 import java.awt.event.ActionEvent;
 import javax.swing.ImageIcon;
 import org.netbeans.modules.mongodb.resources.Images;
-import org.netbeans.modules.mongodb.ui.windows.CollectionView;
+import org.netbeans.modules.mongodb.ui.windows.QueryResultPanel;
 import org.openide.util.NbBundle.Messages;
 
 /**
@@ -34,21 +34,23 @@ import org.openide.util.NbBundle.Messages;
  * @author Yann D'Isanto
  */
 @Messages({
-    "ACTION_collapseAllDocuments=Collapse All",
-    "ACTION_collapseAllDocuments_tooltip=Collapse all documents"
+    "ACTION_navLeft=Previous Page",
+    "ACTION_navLeft_tooltip=Previous Page"
 })
-public final class CollapseAllDocumentsAction extends CollectionViewAction {
+public final class NavLeftAction extends QueryResultPanelAction {
+    
+    private static final long serialVersionUID = 1L;
 
-    public CollapseAllDocumentsAction(CollectionView view) {
-        super(view,
-            Bundle.ACTION_collapseAllDocuments(),
-            new ImageIcon(Images.COLLAPSE_TREE_ICON),
-            Bundle.ACTION_collapseAllDocuments_tooltip());
+    public NavLeftAction(QueryResultPanel resultPanel) {
+        super(resultPanel,
+            Bundle.ACTION_navLeft(),
+            new ImageIcon(Images.NAV_LEFT_ICON),
+            Bundle.ACTION_navLeft_tooltip());
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        getView().getResultTreeTable().collapseAll();
-
+        getResultPanel().getResultPages().moveBackward();
+        getResultPanel().updatePagination();
     }
 }

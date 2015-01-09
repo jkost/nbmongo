@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.netbeans.modules.mongodb.ui.windows.collectionview.actions;
+package org.netbeans.modules.mongodb.ui.windows.queryresultpanel.actions;
 
 import com.mongodb.DBCollection;
 import com.mongodb.DBObject;
@@ -29,8 +29,7 @@ import com.mongodb.MongoException;
 import java.awt.event.ActionEvent;
 import javax.swing.ImageIcon;
 import org.netbeans.modules.mongodb.resources.Images;
-import org.netbeans.modules.mongodb.ui.util.JsonEditor;
-import org.netbeans.modules.mongodb.ui.windows.CollectionView;
+import org.netbeans.modules.mongodb.ui.windows.QueryResultPanel;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.util.NbBundle.Messages;
@@ -40,29 +39,31 @@ import org.openide.util.NbBundle.Messages;
  * @author Yann D'Isanto
  */
 @Messages({
-    "addDocumentTitle=Add new document",
-    "ACTION_addDocument=Add Document",
-    "ACTION_addDocument_tooltip=Add Document"
+    "confirmDocumentDeletionText=Delete document?",
+    "ACTION_deleteSelectedDocument=Delete document",
+    "ACTION_deleteSelectedDocument_tooltip=Delete Selected Document"
 })
-public final class AddDocumentAction extends CollectionViewAction {
+public final class DeleteSelectedDocumentAction extends QueryResultPanelAction {
+    
+    private static final long serialVersionUID = 1L;
 
-    public AddDocumentAction(CollectionView view) {
-        super(view, 
-            Bundle.ACTION_addDocument(), 
-            new ImageIcon(Images.ADD_DOCUMENT_ICON), 
-            Bundle.ACTION_addDocument_tooltip());
+    public DeleteSelectedDocumentAction(QueryResultPanel resultPanel) {
+        super(resultPanel,
+            Bundle.ACTION_deleteSelectedDocument(),
+            new ImageIcon(Images.DELETE_DOCUMENT_ICON),
+            Bundle.ACTION_deleteSelectedDocument_tooltip());
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        final DBObject document = JsonEditor.show(
-            Bundle.addDocumentTitle(),
-            "{}");
-        if (document != null) {
+        final DBObject document = getResultPanel().getResultTableSelectedDocument();
+        final Object dlgResult = DialogDisplayer.getDefault().notify(
+            new NotifyDescriptor.Confirmation(Bundle.confirmDocumentDeletionText(), NotifyDescriptor.YES_NO_OPTION));
+        if (dlgResult.equals(NotifyDescriptor.OK_OPTION)) {
             try {
-                final DBCollection dbCollection = getView().getLookup().lookup(DBCollection.class);
-                dbCollection.insert(document);
-                getView().refreshResults();
+                final DBCollection dbCollection = getResultPanel().getLookup().lookup(DBCollection.class);
+                dbCollection.remove(document);
+                getResultPanel().refreshResults();
             } catch (MongoException ex) {
                 DialogDisplayer.getDefault().notify(
                     new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE));
