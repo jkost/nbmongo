@@ -111,6 +111,7 @@ public final class QueryResultPanel extends javax.swing.JPanel implements Result
     @Getter
     private final Lookup lookup;
 
+    @Getter
     private final QueryResultWorkerFactory queryResultWorkerFactory;
 
     private final Map<ResultView, JToggleButton> resultViewButtons = new EnumMap<>(ResultView.class);
@@ -133,6 +134,7 @@ public final class QueryResultPanel extends javax.swing.JPanel implements Result
     @Setter
     private ResultCache resultCache = ResultCache.EMPTY;
 
+    @Getter
     private final boolean readOnly;
 
     /**

@@ -24,9 +24,17 @@
 package org.netbeans.modules.mongodb.ui.windows.queryresultpanel.actions;
 
 import java.awt.event.ActionEvent;
+import java.util.HashMap;
+import java.util.Map;
 import javax.swing.ImageIcon;
+import org.netbeans.modules.mongodb.CollectionInfo;
 import org.netbeans.modules.mongodb.resources.Images;
+import org.netbeans.modules.mongodb.ui.components.QueryEditor;
+import org.netbeans.modules.mongodb.ui.windows.CollectionView;
 import org.netbeans.modules.mongodb.ui.windows.QueryResultPanel;
+import org.netbeans.modules.mongodb.ui.windows.QueryResultPanel.QueryResultWorkerFactory;
+import org.netbeans.modules.mongodb.ui.wizards.ExportWizardAction;
+import org.openide.util.Lookup;
 import org.openide.util.NbBundle.Messages;
 
 /**
@@ -41,24 +49,32 @@ public final class ExportQueryResultAction extends QueryResultPanelAction {
     
     private static final long serialVersionUID = 1L;
 
+    private final QueryEditor queryEditor;
+    
     public ExportQueryResultAction(QueryResultPanel resultPanel) {
         super(resultPanel,
             Bundle.ACTION_exportQueryResult(),
             new ImageIcon(Images.EXPORT_COLLECTION_ICON),
             Bundle.ACTION_exportQueryResult_tooltip());
+        QueryResultWorkerFactory resultWorkerFactory = resultPanel.getQueryResultWorkerFactory();
+        if(resultWorkerFactory instanceof CollectionView) {
+            queryEditor = ((CollectionView) resultWorkerFactory).getQueryEditor();
+        } else {
+            queryEditor = null;
+            setEnabled(false);
+        }
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        throw new UnsupportedOperationException("not implemented yet");
-//        final Lookup lookup = getView().getLookup();
-//        final CollectionInfo collectionInfo = lookup.lookup(CollectionInfo.class);
+        final Lookup lookup = getResultPanel().getLookup();
+        final CollectionInfo collectionInfo = lookup.lookup(CollectionInfo.class);
 //        final QueryEditor queryEditor = getView().getQueryEditor();
-//        final Map<String, Object> properties = new HashMap<>();
-//        properties.put(ExportWizardAction.PROP_COLLECTION, collectionInfo.getName());
-//        properties.put("criteria", queryEditor.getCriteria());
-//        properties.put("projection", queryEditor.getProjection());
-//        properties.put("sort", queryEditor.getSort());
-//        new ExportWizardAction(lookup, properties).actionPerformed(e);
+        final Map<String, Object> properties = new HashMap<>();
+        properties.put(ExportWizardAction.PROP_COLLECTION, collectionInfo.getName());
+        properties.put("criteria", queryEditor.getCriteria());
+        properties.put("projection", queryEditor.getProjection());
+        properties.put("sort", queryEditor.getSort());
+        new ExportWizardAction(lookup, properties).actionPerformed(e);
     }
 }

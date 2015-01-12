@@ -256,17 +256,6 @@ public final class CollectionView extends TopComponent implements QueryResultWor
                     .addComponent(clearQueryButton)))
         );
 
-        javax.swing.GroupLayout resultPanelLayout = new javax.swing.GroupLayout(resultPanel);
-        resultPanel.setLayout(resultPanelLayout);
-        resultPanelLayout.setHorizontalGroup(
-            resultPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 0, Short.MAX_VALUE)
-        );
-        resultPanelLayout.setVerticalGroup(
-            resultPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 133, Short.MAX_VALUE)
-        );
-
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
