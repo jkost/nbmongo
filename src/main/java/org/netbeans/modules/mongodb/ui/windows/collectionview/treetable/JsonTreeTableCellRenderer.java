@@ -52,6 +52,8 @@ import org.netbeans.modules.mongodb.util.JsonProperty;
  */
 public final class JsonTreeTableCellRenderer extends JPanel implements TreeCellRenderer {
 
+    private static final long serialVersionUID = 1L;
+    
     private static final Map<Class<?>, LabelCategory> LABEL_CATEGORIES = new HashMap<>();
 
     static {
@@ -129,7 +131,12 @@ public final class JsonTreeTableCellRenderer extends JPanel implements TreeCellR
             valueLabel.setText("");
             if (isDocumentNode) {
                 final Object id = value.get("_id");
-                keyLabel.setText(String.valueOf(id));
+                if(id != null) {
+                    keyLabel.setText(String.valueOf(id));
+                } else {
+                    keyLabel.setText("");
+                    valueLabel.setText(OBJECT_COMMENT);
+                }
             } else {
                 keyLabel.setText("");
                 if (value instanceof List) {
@@ -163,18 +170,18 @@ public final class JsonTreeTableCellRenderer extends JPanel implements TreeCellR
     private void computeRendererForJsonPropertyNode(JsonPropertyNode node, boolean selected) {
         final JsonProperty property = node.getUserObject();
         final Object value = property.getValue();
-        final LabelFontConf keyFontConf;
-        final LabelFontConf valueFontConf;
-        if (node.isLeaf() && (value instanceof List) == false && (value instanceof Map) == false) {
+        LabelFontConf keyFontConf = options.getLabelFontConf(LabelCategory.KEY);
+        LabelFontConf valueFontConf = options.getLabelFontConf(LabelCategory.COMMENT);
+        if (node.isLeaf() && value != null && (value instanceof List) == false && (value instanceof Map) == false) {
             final LabelCategory valueLabelCategory = LABEL_CATEGORIES.get(value.getClass());
             keyFontConf = options.getLabelFontConf((value instanceof ObjectId) ? LabelCategory.ID : LabelCategory.KEY);
-            valueFontConf = options.getLabelFontConf(valueLabelCategory);
-
+            if(valueLabelCategory != null) {
+                valueFontConf = options.getLabelFontConf(valueLabelCategory);
+            }
+            
             keyLabel.setText(buildJsonKey(property.getName()));
             valueLabel.setText(value instanceof String ? buildJsonString(value) : value.toString());
         } else {
-            keyFontConf = options.getLabelFontConf(LabelCategory.KEY);
-            valueFontConf = options.getLabelFontConf(LabelCategory.COMMENT);
             keyLabel.setText(property.getName());
             if (value instanceof List) {
                 valueLabel.setText(ARRAY_COMMENT);
