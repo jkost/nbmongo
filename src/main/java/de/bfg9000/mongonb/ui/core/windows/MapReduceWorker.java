@@ -21,8 +21,8 @@ class MapReduceWorker extends QueryResultWorker implements QueryExecutor {
 
     private final String reduceFunction;
 
-    public MapReduceWorker(DBCollection collection, String map, String reduce, String name, int pageSize) {
-        super(name, pageSize);
+    public MapReduceWorker(DBCollection collection, String map, String reduce, String name, int cacheLoadingBlockSize) {
+        super(name, cacheLoadingBlockSize);
         this.collection = collection;
         this.mapFunction = map;
         this.reduceFunction = reduce;

@@ -64,7 +64,6 @@ import org.netbeans.modules.mongodb.options.JsonCellRenderingOptions;
 import org.netbeans.modules.mongodb.options.LabelCategory;
 import org.netbeans.modules.mongodb.resources.Images;
 import org.netbeans.modules.mongodb.ui.util.IntegerDocumentFilter;
-import static org.netbeans.modules.mongodb.ui.util.JsonPropertyEditor.isQuickEditableJsonValue;
 import org.netbeans.modules.mongodb.ui.actions.CopyDocumentToClipboardAction;
 import org.netbeans.modules.mongodb.ui.actions.CopyKeyToClipboardAction;
 import org.netbeans.modules.mongodb.ui.actions.CopyValueToClipboardAction;
@@ -140,11 +139,16 @@ public final class QueryResultPanel extends javax.swing.JPanel implements Result
     /**
      * Creates new form QueryResultPanel
      */
-    public QueryResultPanel(Lookup lookup, QueryResultWorkerFactory queryResultWorkerFactory, boolean readOnly) {
+    public QueryResultPanel(Lookup lookup, QueryResultWorkerFactory queryResultWorkerFactory, final boolean readOnly) {
         this.lookup = lookup;
         this.queryResultWorkerFactory = queryResultWorkerFactory;
         this.readOnly = readOnly;
         initComponents();
+
+        addButton.setVisible(readOnly == false);
+        deleteButton.setVisible(readOnly == false);
+        editButton.setVisible(readOnly == false);
+
         resultViewButtons.put(ResultView.FLAT_TABLE, flatTableViewButton);
         resultViewButtons.put(ResultView.TREE_TABLE, treeTableViewButton);
 
@@ -225,7 +229,15 @@ public final class QueryResultPanel extends javax.swing.JPanel implements Result
                 if (e.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(e)) {
                     final TreePath path = resultTreeTable.getPathForLocation(e.getX(), e.getY());
                     final TreeTableNode node = (TreeTableNode) path.getLastPathComponent();
-                    if ((e.getModifiersEx() & MouseEvent.CTRL_DOWN_MASK) == MouseEvent.CTRL_DOWN_MASK) {
+                    if (readOnly) {
+                        if (node.isLeaf() == false) {
+                            if (resultTreeTable.isCollapsed(path)) {
+                                resultTreeTable.expandPath(path);
+                            } else {
+                                resultTreeTable.collapsePath(path);
+                            }
+                        }
+                    } else if ((e.getModifiersEx() & MouseEvent.CTRL_DOWN_MASK) == MouseEvent.CTRL_DOWN_MASK) {
                         displayDocumentEditionShortcutHint = false;
                         final DocumentNode documentNode = (DocumentNode) path.getPathComponent(1);
                         editDocumentAction.setDocument(documentNode.getUserObject());
@@ -272,7 +284,7 @@ public final class QueryResultPanel extends javax.swing.JPanel implements Result
 
             @Override
             public void mouseClicked(MouseEvent e) {
-                if (e.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(e)) {
+                if (e.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(e) && readOnly == false) {
                     editSelectedDocumentAction.actionPerformed(null);
                 }
             }
@@ -671,6 +683,13 @@ public final class QueryResultPanel extends javax.swing.JPanel implements Result
     private javax.swing.JToggleButton treeTableViewButton;
     // End of variables declaration//GEN-END:variables
 
+    public boolean isQuickEditableJsonValue(Object value) {
+        if (readOnly) {
+            return false;
+        }
+        return !(value instanceof Map || value instanceof List || value instanceof ObjectId);
+    }
+
     private JPopupMenu createTreeTableContextMenu(TreePath treePath) {
         final JPopupMenu menu = new JPopupMenu();
         if (treePath != null) {
@@ -696,9 +715,11 @@ public final class QueryResultPanel extends javax.swing.JPanel implements Result
                     }
                 }
             }
-            menu.addSeparator();
-            menu.add(new JMenuItem(new EditSelectedDocumentAction(this)));
-            menu.add(new JMenuItem(new DeleteSelectedDocumentAction(this)));
+            if (readOnly == false) {
+                menu.addSeparator();
+                menu.add(new JMenuItem(new EditSelectedDocumentAction(this)));
+                menu.add(new JMenuItem(new DeleteSelectedDocumentAction(this)));
+            }
             menu.addSeparator();
         }
         menu.add(new JMenuItem(collapseTreeAction));
@@ -716,14 +737,16 @@ public final class QueryResultPanel extends javax.swing.JPanel implements Result
             model.getValueAt(row, column));
         menu.add(new JMenuItem(new CopyKeyToClipboardAction(property)));
         menu.add(new JMenuItem(new CopyValueToClipboardAction(property.getValue())));
-        menu.addSeparator();
-        menu.add(new JMenuItem(new EditSelectedDocumentAction(this)));
-        menu.add(new JMenuItem(new DeleteSelectedDocumentAction(this)));
+        if (readOnly == false) {
+            menu.addSeparator();
+            menu.add(new JMenuItem(new EditSelectedDocumentAction(this)));
+            menu.add(new JMenuItem(new DeleteSelectedDocumentAction(this)));
+        }
         return menu;
     }
 
     private void dislayDocumentEditionShortcutHintIfNecessary() {
-        if (displayDocumentEditionShortcutHint) {
+        if (displayDocumentEditionShortcutHint && readOnly == false) {
             NotificationDisplayer.getDefault().notify(
                 Bundle.documentEditionShortcutHintTitle(),
                 new ImageIcon(Images.EDIT_DOCUMENT_ICON),
@@ -738,7 +761,7 @@ public final class QueryResultPanel extends javax.swing.JPanel implements Result
             );
         }
     }
-    
+
     public Preferences prefs() {
         return NbPreferences.forModule(QueryResultPanel.class).node(QueryResultPanel.class.getName());
     }

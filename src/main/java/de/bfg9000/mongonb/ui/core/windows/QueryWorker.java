@@ -22,8 +22,8 @@ public final class QueryWorker extends QueryResultWorker implements QueryExecuto
 
     private final DBObject sort;
 
-    public QueryWorker(String name, DBCollection collection, DBObject criteria, DBObject projection, DBObject sort, int pageSize) {
-        super(name, pageSize);
+    public QueryWorker(String name, DBCollection collection, DBObject criteria, DBObject projection, DBObject sort, int cacheLoadingBlockSize) {
+        super(name, cacheLoadingBlockSize);
         this.collection = collection;
         this.criteria = criteria;
         this.projection = projection;

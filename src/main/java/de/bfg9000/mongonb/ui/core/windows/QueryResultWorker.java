@@ -68,7 +68,6 @@ public abstract class QueryResultWorker extends SwingWorker<QueryResult, Void> i
             final QueryResult queryResult = get();
             
             if (null == queryResult) {
-                Bundle.queryExecFailure(duration);
                 io.getOut().println(Bundle.queryExecFailure(duration));
                 if (null != errorMessage) {
                     io.getErr().println("\n" + errorMessage.replaceAll("Source: java.io.StringReader@(.+?); ", ""));

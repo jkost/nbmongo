@@ -19,6 +19,9 @@ public class MongoExceptionUnwrapper {
             try {
                 DBObject jsonMsg = (DBObject) JSON.parse(ex.getMessage());
                 msgValue = (String) jsonMsg.get("err");
+                if(msgValue == null || msgValue.isEmpty()) {
+                    msgValue = (String) jsonMsg.get("errmsg");
+                }
             } catch(Exception ignored) { }
             message = msgValue;
         } else {

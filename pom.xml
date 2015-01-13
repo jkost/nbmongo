@@ -57,7 +57,11 @@
             <groupId>org.netbeans.api</groupId>
             <artifactId>org-netbeans-core-ide</artifactId>
             <version>${netbeans.target.version}</version>
-            <type>jar</type>
+        </dependency>
+        <dependency>
+            <groupId>org.netbeans.api</groupId>
+            <artifactId>org-netbeans-modules-editor-lib2</artifactId>
+            <version>${netbeans.target.version}</version>
         </dependency>
         <dependency>
             <groupId>org.netbeans.api</groupId>
@@ -114,7 +118,19 @@
         </dependency>
         <dependency>
             <groupId>org.netbeans.api</groupId>
+            <artifactId>org-openide-loaders</artifactId>
+            <version>${netbeans.target.version}</version>
+            <type>jar</type>
+        </dependency>
+        <dependency>
+            <groupId>org.netbeans.api</groupId>
             <artifactId>org-openide-nodes</artifactId>
+            <version>${netbeans.target.version}</version>
+            <type>jar</type>
+        </dependency>
+        <dependency>
+            <groupId>org.netbeans.api</groupId>
+            <artifactId>org-openide-text</artifactId>
             <version>${netbeans.target.version}</version>
             <type>jar</type>
         </dependency>
