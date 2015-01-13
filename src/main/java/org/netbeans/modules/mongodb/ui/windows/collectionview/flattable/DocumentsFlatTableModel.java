@@ -24,7 +24,8 @@
 package org.netbeans.modules.mongodb.ui.windows.collectionview.flattable;
 
 import com.mongodb.DBObject;
-import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 import javax.swing.table.AbstractTableModel;
 import org.netbeans.modules.mongodb.ui.windows.collectionview.CollectionQueryResult;
@@ -36,8 +37,10 @@ import org.netbeans.modules.mongodb.ui.windows.collectionview.CollectionQueryRes
  * @author Yann D'Isanto
  */
 public final class DocumentsFlatTableModel extends AbstractTableModel implements CollectionQueryResultView, CollectionQueryResultUpdateListener {
+    
+    private static final long serialVersionUID = 1L;
 
-    private final List<String> columns = new ArrayList<>();
+    private final List<String> columns = new LinkedList<>();
 
     private final CollectionQueryResult collectionQueryResult;
 
@@ -53,7 +56,6 @@ public final class DocumentsFlatTableModel extends AbstractTableModel implements
     @Override
     public void updateStarting(CollectionQueryResult source) {
         columns.clear();
-        columns.add("_id");
     }
 
     @Override
@@ -76,6 +78,10 @@ public final class DocumentsFlatTableModel extends AbstractTableModel implements
             if (columns.contains(field) == false) {
                 columns.add(field);
             }
+        }
+        int idIndex = columns.indexOf("_id");
+        if (idIndex > 0) {
+            Collections.swap(columns, idIndex, 0);
         }
     }
 
