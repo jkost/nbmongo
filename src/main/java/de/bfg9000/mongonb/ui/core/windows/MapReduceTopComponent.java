@@ -23,7 +23,6 @@ import lombok.Getter;
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.netbeans.api.editor.DialogBinding;
-import org.netbeans.api.settings.ConvertAsProperties;
 import org.netbeans.modules.mongodb.CollectionInfo;
 import org.netbeans.modules.mongodb.DbInfo;
 import org.netbeans.modules.mongodb.ui.windows.QueryResultPanel;
@@ -59,11 +58,8 @@ public final class MapReduceTopComponent extends TopComponent implements QueryRe
     private static final ResourceBundle bundle = NbBundle.getBundle(MapReduceTopComponent.class);
 
     private final QueryHistory queryHistory = new QueryHistory();
-//    private Collection collection;
     
     private final QueryResultPanel resultPanel;
-    
-//    private final ResultTable resultTable;
     
     public MapReduceTopComponent(Lookup lookup) {
         super(lookup);
@@ -98,8 +94,7 @@ public final class MapReduceTopComponent extends TopComponent implements QueryRe
     private void initComponents() {
 
         tbToolBar = new javax.swing.JToolBar();
-        lblConnectionInfo = new javax.swing.JLabel();
-        lblConnection = new javax.swing.JLabel();
+        lblCollection = new javax.swing.JLabel();
         btnRun = new javax.swing.JButton();
         cmbHistory = new javax.swing.JComboBox();
         spltInputOutput = new javax.swing.JSplitPane();
@@ -118,12 +113,7 @@ public final class MapReduceTopComponent extends TopComponent implements QueryRe
         setLayout(new java.awt.BorderLayout());
 
         tbToolBar.setRollover(true);
-
-        org.openide.awt.Mnemonics.setLocalizedText(lblConnectionInfo, org.openide.util.NbBundle.getMessage(MapReduceTopComponent.class, "MapReduceTopComponent.lblConnectionInfo.text")); // NOI18N
-        tbToolBar.add(lblConnectionInfo);
-
-        org.openide.awt.Mnemonics.setLocalizedText(lblConnection, org.openide.util.NbBundle.getMessage(MapReduceTopComponent.class, "MapReduceTopComponent.lblConnection.text")); // NOI18N
-        tbToolBar.add(lblConnection);
+        tbToolBar.add(lblCollection);
 
         btnRun.setIcon(new javax.swing.ImageIcon(getClass().getResource("/de/bfg9000/mongonb/ui/core/images/media-playback-start.png"))); // NOI18N
         btnRun.setFocusable(false);
@@ -192,13 +182,6 @@ public final class MapReduceTopComponent extends TopComponent implements QueryRe
 
     private void btnRunActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnRunActionPerformed
         resultPanel.refreshResults();
-//        final MapReduceWorker w = new MapReduceWorker(collection, epMap.getText(), epReduce.getText(), getName(),
-//                                  resultTable.getPageSize());
-//        
-//        w.setResultTable(resultTable);
-//        w.execute();
-//
-//        queryHistory.add(new MapReduceHistoryItem(epMap.getText(), epReduce.getText()));
     }//GEN-LAST:event_btnRunActionPerformed
 
     private void cmbHistoryActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmbHistoryActionPerformed
@@ -215,8 +198,7 @@ public final class MapReduceTopComponent extends TopComponent implements QueryRe
     private javax.swing.JComboBox cmbHistory;
     private javax.swing.JEditorPane epMap;
     private javax.swing.JEditorPane epReduce;
-    private javax.swing.JLabel lblConnection;
-    private javax.swing.JLabel lblConnectionInfo;
+    private javax.swing.JLabel lblCollection;
     private javax.swing.JLabel lblMap;
     private javax.swing.JLabel lblReduce;
     private javax.swing.JPanel pnlFunctions;
@@ -235,32 +217,26 @@ public final class MapReduceTopComponent extends TopComponent implements QueryRe
         initWindowName();
         initEditor(epMap);
         initEditor(epReduce);
-        initConnectionLabel();
+        initCollectionLabel();
     }
 
-    void writeProperties(java.util.Properties p) {
-        p.setProperty("version", "1.0");
-    }
-
-    void readProperties(java.util.Properties p) {
-        // String version = p.getProperty("version");
-    }
-
-//    public void setCollection(Collection collection) {
-//        this.collection = collection;
-//        resultTable.setCollection(collection);
+//    void writeProperties(java.util.Properties p) {
+//        p.setProperty("version", "1.0");
+//    }
+//
+//    void readProperties(java.util.Properties p) {
+//        // String version = p.getProperty("version");
 //    }
 
-    private void initConnectionLabel() {
+    private void initCollectionLabel() {
         Lookup lookup = getLookup();
-//        final ConnectionInfo connectionInfo = lookup.lookup(ConnectionInfo.class);
         final DbInfo dbInfo = lookup.lookup(DbInfo.class);
         final CollectionInfo collectionInfo = lookup.lookup(CollectionInfo.class);
         final StringBuilder builder = new StringBuilder();
         builder.append(dbInfo.getDbName())
                .append(".")
                .append(collectionInfo.getName());
-        lblConnection.setText(builder.toString());
+        lblCollection.setText(builder.toString());
     }
 
     private void initWindowName() {
@@ -282,7 +258,6 @@ public final class MapReduceTopComponent extends TopComponent implements QueryRe
         }
 
         setName(name);
-//        resultTable.setName(name);
     }
 
     private void initEditor(JEditorPane epEditor) {
