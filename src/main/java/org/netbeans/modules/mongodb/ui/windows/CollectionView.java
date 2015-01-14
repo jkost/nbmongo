@@ -306,6 +306,7 @@ public final class CollectionView extends TopComponent {
             }
 
         });
+        loadPreferences();
     }
 
     public void setLookup(Lookup lookup) {
@@ -326,7 +327,6 @@ public final class CollectionView extends TopComponent {
 
     @Override
     protected void componentShowing() {
-        loadPreferences();
     }
 
     @Override
