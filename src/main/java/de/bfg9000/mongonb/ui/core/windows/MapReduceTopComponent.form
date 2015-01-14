@@ -28,19 +28,7 @@
 
       <Layout class="org.netbeans.modules.form.compat2.layouts.DesignBoxLayout"/>
       <SubComponents>
-        <Component class="javax.swing.JLabel" name="lblConnectionInfo">
-          <Properties>
-            <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-              <ResourceString bundle="de/bfg9000/mongonb/ui/core/windows/Bundle.properties" key="MapReduceTopComponent.lblConnectionInfo.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
-            </Property>
-          </Properties>
-        </Component>
-        <Component class="javax.swing.JLabel" name="lblConnection">
-          <Properties>
-            <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-              <ResourceString bundle="de/bfg9000/mongonb/ui/core/windows/Bundle.properties" key="MapReduceTopComponent.lblConnection.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
-            </Property>
-          </Properties>
+        <Component class="javax.swing.JLabel" name="lblCollection">
         </Component>
         <Component class="javax.swing.JButton" name="btnRun">
           <Properties>
