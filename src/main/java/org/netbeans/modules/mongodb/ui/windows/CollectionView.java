@@ -96,8 +96,8 @@ public final class CollectionView extends TopComponent implements QueryResultWor
         setIcon(isSystemCollection
             ? Images.SYSTEM_COLLECTION_ICON
             : Images.COLLECTION_ICON);
-        getResultPanel().refreshResults();
         loadPreferences();
+        getResultPanel().refreshResults();
     }
 
     public void setLookup(Lookup lookup) {

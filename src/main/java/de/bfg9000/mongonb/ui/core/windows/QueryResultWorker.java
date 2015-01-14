@@ -86,6 +86,7 @@ public abstract class QueryResultWorker extends SwingWorker<QueryResult, Void> i
                 resultDisplayer.updateData(cache, true);
             }
         } catch (Exception ignored) {
+            ignored.printStackTrace();
         } finally {
             io.select();
             io.getErr().close();

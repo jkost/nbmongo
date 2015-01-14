@@ -303,12 +303,14 @@ public final class QueryResultPanel extends javax.swing.JPanel implements Result
             }
 
         });
+        updatePagination();
+        updateDocumentButtonsState();
     }
 
     public void refreshResults() {
         QueryResultWorker worker = queryResultWorkerFactory.createWorker();
-        worker.setResultDisplayer(this);
         worker.execute();
+        worker.setResultDisplayer(this);
     }
 
     @Override
@@ -500,7 +502,6 @@ public final class QueryResultPanel extends javax.swing.JPanel implements Result
         documentsToolBar.add(addButton);
 
         deleteButton.setAction(getDeleteSelectedDocumentAction());
-        deleteButton.setEnabled(false);
         deleteButton.setFocusable(false);
         deleteButton.setHideActionText(true);
         deleteButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
@@ -508,7 +509,6 @@ public final class QueryResultPanel extends javax.swing.JPanel implements Result
         documentsToolBar.add(deleteButton);
 
         editButton.setAction(getEditSelectedDocumentAction());
-        editButton.setEnabled(false);
         editButton.setFocusable(false);
         editButton.setHideActionText(true);
         editButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
