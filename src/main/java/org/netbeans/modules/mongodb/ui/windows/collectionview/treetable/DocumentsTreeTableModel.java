@@ -32,6 +32,7 @@ import javax.swing.tree.TreePath;
 import lombok.Getter;
 import org.jdesktop.swingx.treetable.DefaultTreeTableModel;
 import org.jdesktop.swingx.treetable.TreeTableNode;
+import org.netbeans.lib.editor.util.swing.DocumentListenerPriority;
 
 /**
  *
@@ -51,6 +52,11 @@ public final class DocumentsTreeTableModel extends DefaultTreeTableModel impleme
     @Override
     public void pageChanged(ResultPages source, int pageIndex, List<DBObject> page) {
         buildFromPage();
+    }
+
+    @Override
+    public void pageObjectUpdated(int index, DBObject oldValue, DBObject newValue) {
+        documentUpdated(newValue, index);
     }
 
     @Override
