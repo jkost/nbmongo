@@ -24,6 +24,7 @@
 package org.netbeans.modules.mongodb.ui.windows;
 
 import com.mongodb.DBObject;
+import com.mongodb.util.JSON;
 import de.bfg9000.mongonb.ui.core.windows.QueryResultWorker;
 import de.bfg9000.mongonb.ui.core.windows.ResultCache;
 import de.bfg9000.mongonb.ui.core.windows.ResultDisplayer;
@@ -67,6 +68,7 @@ import org.netbeans.modules.mongodb.ui.util.IntegerDocumentFilter;
 import org.netbeans.modules.mongodb.ui.actions.CopyDocumentToClipboardAction;
 import org.netbeans.modules.mongodb.ui.actions.CopyKeyToClipboardAction;
 import org.netbeans.modules.mongodb.ui.actions.CopyValueToClipboardAction;
+import org.netbeans.modules.mongodb.ui.util.JsonEditor;
 import org.netbeans.modules.mongodb.ui.windows.queryresultpanel.actions.AddDocumentAction;
 import org.netbeans.modules.mongodb.ui.windows.queryresultpanel.actions.ChangeResultViewAction;
 import org.netbeans.modules.mongodb.ui.windows.queryresultpanel.actions.CollapseAllDocumentsAction;
@@ -95,12 +97,16 @@ import org.netbeans.modules.mongodb.util.JsonProperty;
 import org.openide.awt.NotificationDisplayer;
 import org.openide.util.Exceptions;
 import org.openide.util.Lookup;
+import org.openide.util.NbBundle.Messages;
 import org.openide.util.NbPreferences;
 
 /**
  *
  * @author Yann D'Isanto
  */
+@Messages({
+    "displayDocumentTitle=Display document"
+})
 public final class QueryResultPanel extends javax.swing.JPanel implements ResultDisplayer {
 
     private static final long serialVersionUID = 1L;
@@ -229,31 +235,31 @@ public final class QueryResultPanel extends javax.swing.JPanel implements Result
                 if (e.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(e)) {
                     final TreePath path = resultTreeTable.getPathForLocation(e.getX(), e.getY());
                     final TreeTableNode node = (TreeTableNode) path.getLastPathComponent();
-                    if (readOnly) {
-                        if (node.isLeaf() == false) {
-                            if (resultTreeTable.isCollapsed(path)) {
-                                resultTreeTable.expandPath(path);
-                            } else {
-                                resultTreeTable.collapsePath(path);
-                            }
-                        }
-                    } else if ((e.getModifiersEx() & MouseEvent.CTRL_DOWN_MASK) == MouseEvent.CTRL_DOWN_MASK) {
-                        displayDocumentEditionShortcutHint = false;
+
+                    if ((e.getModifiersEx() & MouseEvent.CTRL_DOWN_MASK) == MouseEvent.CTRL_DOWN_MASK) {
                         final DocumentNode documentNode = (DocumentNode) path.getPathComponent(1);
-                        editDocumentAction.setDocument(documentNode.getUserObject());
-                        editDocumentAction.actionPerformed(null);
+                        if (readOnly) {
+                            JsonEditor.showReadOnly(
+                                Bundle.displayDocumentTitle(),
+                                JSON.serialize(documentNode.getUserObject()));
+                        } else {
+                            editDocumentAction.setDocument(documentNode.getUserObject());
+                            editDocumentAction.actionPerformed(null);
+                        }
                     } else {
                         if (node.isLeaf()) {
-                            dislayDocumentEditionShortcutHintIfNecessary();
-                            if (node instanceof JsonPropertyNode) {
-                                JsonPropertyNode propertyNode = (JsonPropertyNode) node;
-                                if (!(propertyNode.getUserObject().getValue() instanceof ObjectId)) {
-                                    editJsonPropertyNodeAction.setPropertyNode(propertyNode);
-                                    editJsonPropertyNodeAction.actionPerformed(null);
+                            if (readOnly == false) {
+                                dislayDocumentEditionShortcutHintIfNecessary();
+                                if (node instanceof JsonPropertyNode) {
+                                    JsonPropertyNode propertyNode = (JsonPropertyNode) node;
+                                    if (!(propertyNode.getUserObject().getValue() instanceof ObjectId)) {
+                                        editJsonPropertyNodeAction.setPropertyNode(propertyNode);
+                                        editJsonPropertyNodeAction.actionPerformed(null);
+                                    }
+                                } else if (node instanceof JsonValueNode) {
+                                    editJsonValueNodeAction.setValueNode((JsonValueNode) node);
+                                    editJsonValueNodeAction.actionPerformed(null);
                                 }
-                            } else if (node instanceof JsonValueNode) {
-                                editJsonValueNodeAction.setValueNode((JsonValueNode) node);
-                                editJsonValueNodeAction.actionPerformed(null);
                             }
                         } else {
                             if (resultTreeTable.isCollapsed(path)) {
