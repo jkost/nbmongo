@@ -96,7 +96,7 @@ public final class MapReduceTopComponent extends TopComponent implements QueryRe
         tbToolBar = new javax.swing.JToolBar();
         lblCollection = new javax.swing.JLabel();
         btnRun = new javax.swing.JButton();
-        cmbHistory = new javax.swing.JComboBox();
+        cmbHistory = new javax.swing.JComboBox<MapReduceHistoryItem>();
         spltInputOutput = new javax.swing.JSplitPane();
         pnlResults = new javax.swing.JPanel();
         pnlFunctions = new javax.swing.JPanel();
@@ -195,7 +195,7 @@ public final class MapReduceTopComponent extends TopComponent implements QueryRe
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnRun;
-    private javax.swing.JComboBox cmbHistory;
+    private javax.swing.JComboBox<MapReduceHistoryItem> cmbHistory;
     private javax.swing.JEditorPane epMap;
     private javax.swing.JEditorPane epReduce;
     private javax.swing.JLabel lblCollection;

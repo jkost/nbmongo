@@ -66,6 +66,8 @@ import org.openide.util.NbBundle.Messages;
 })
 public class JsonEditor extends JPanel {
 
+    private static final long serialVersionUID = 1L;
+
     private static final KeyStroke ESCAPE_KEYSTROKE = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
 
     private static final KeyStroke SEARCH_KEYSTROKE = KeyStroke.getKeyStroke(KeyEvent.VK_F, KeyEvent.CTRL_DOWN_MASK);
@@ -173,7 +175,7 @@ public class JsonEditor extends JPanel {
     public void setNotificationLineSupport(NotificationLineSupport notificationLineSupport) {
         this.notificationLineSupport = notificationLineSupport;
         notificationLineSupport.clearMessages();
-        if(searchPane.isVisible() == false) {
+        if (searchPane.isVisible() == false) {
             notificationLineSupport.setInformationMessage(Bundle.HINT_search());
         }
     }
@@ -222,4 +224,22 @@ public class JsonEditor extends JPanel {
         return null;
     }
 
+    /**
+     * Displays a modal dialog to display json text.
+     *
+     * @param title the dialog title
+     * @param json the json to display
+     */
+    public static void showReadOnly(String title, String json) {
+        JsonEditor editor = new JsonEditor();
+        editor.editor.setEditable(false);
+        editor.setJson(Json.prettify(json));
+//            final DialogDescriptor desc = new DialogDescriptor(editor, title);
+        final DialogDescriptor desc = new DialogDescriptor(editor, title, true, NotifyDescriptor.PLAIN_MESSAGE, NotifyDescriptor.OK_OPTION, null);
+        editor.setNotificationLineSupport(desc.createNotificationLineSupport());
+        final JDialog dialog = (JDialog) DialogDisplayer.getDefault().createDialog(desc);
+        // escape key used to close search panel
+        dialog.getRootPane().getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).remove(ESCAPE_KEYSTROKE);
+        dialog.setVisible(true);
+    }
 }
