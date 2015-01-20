@@ -138,6 +138,11 @@ public final class DocumentsFlatTableModel extends AbstractTableModel implements
     }
 
     @Override
+    public void pageObjectUpdated(int index, DBObject oldValue, DBObject newValue) {
+        fireTableRowsUpdated(index, index);
+    }
+    
+    @Override
     public void refreshIfNecessary(boolean force) {
         if (force) {
             buildFromPage();

@@ -32,7 +32,7 @@ import lombok.Getter;
  *
  * @author Yann D'Isanto
  */
-public final class ResultPages {
+public final class ResultPages implements ResultCache.Listener {
 
     @Getter
     private ResultCache cache;
@@ -42,13 +42,26 @@ public final class ResultPages {
 
     private int pageFirstElementOffset = 0;
 
+    public ResultPages() {
+        this(ResultCache.EMPTY, 20);
+    }
+    
+    public ResultPages(int pageSize) {
+        this(ResultCache.EMPTY, pageSize);
+    }
+    
     public ResultPages(ResultCache cache, int pageSize) {
         this.cache = cache;
+        cache.addListener(this);
         this.pageSize = pageSize;
     }
 
     public void setCache(ResultCache cache) {
+        if(this.cache != null) {
+            this.cache.removeListener(this);
+        }
         this.cache = cache;
+        cache.addListener(this);
         if (pageFirstElementOffset > cache.getObjectsCount()) {
             pageFirstElementOffset = 0;
         }
@@ -145,8 +158,17 @@ public final class ResultPages {
         }
     }
 
+    @Override
+    public void objectUpdated(int index, DBObject oldValue, DBObject newValue) {
+        for (ResultPagesListener listener : listeners) {
+            listener.pageObjectUpdated(index, oldValue, newValue);
+        }
+    }
+    
     public static interface ResultPagesListener {
 
         void pageChanged(ResultPages source, int pageIndex, List<DBObject> page);
+        
+        void pageObjectUpdated(int index, DBObject oldValue, DBObject newValue);
     }
 }

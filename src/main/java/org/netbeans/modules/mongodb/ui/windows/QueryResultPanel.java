@@ -138,7 +138,7 @@ public final class QueryResultPanel extends javax.swing.JPanel implements Result
     @Getter
     @Setter
     private ResultCache resultCache = ResultCache.EMPTY;
-
+    
     @Getter
     private final boolean readOnly;
 
@@ -170,6 +170,11 @@ public final class QueryResultPanel extends javax.swing.JPanel implements Result
                 updatePagination();
                 updateDocumentButtonsState();
             }
+
+            @Override
+            public void pageObjectUpdated(int index, DBObject oldValue, DBObject newValue) {
+            }
+            
         };
         getTreeTablePages().addResultPagesListener(pagesListener);
 

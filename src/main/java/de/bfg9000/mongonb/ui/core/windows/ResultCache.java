@@ -29,6 +29,8 @@ public final class ResultCache {
     @Getter
     @Setter
     private int loadingBlockSize;
+    
+    private final List<Listener> listeners = new ArrayList<>();
 
     public ResultCache(QueryResult queryResult, int loadingBlockSize) {
         this.queryResult = queryResult;
@@ -52,7 +54,8 @@ public final class ResultCache {
     
     public void editObject(int index, DBObject object) {
         if(index < cache.size()) {
-            cache.set(index, object);
+            DBObject oldValue = cache.set(index, object);
+            fireObjectUpdated(index, oldValue, object);
         }
     }
 
@@ -70,6 +73,25 @@ public final class ResultCache {
                 cache.add(queryResult.next());
             }
         }
+    }
+    
+    public void addListener(Listener listener) {
+        listeners.add(listener);
+    }
+    
+    public void removeListener(Listener listener) {
+        listeners.remove(listener);
+    }
+    
+    private void fireObjectUpdated(int index, DBObject oldValue, DBObject newValue) {
+        for (Listener listener : listeners) {
+            listener.objectUpdated(index, oldValue, newValue);
+        }
+    }
+    
+    public static interface Listener {
+        
+        void objectUpdated(int index, DBObject oldValue, DBObject newValue);
     }
 
 }
