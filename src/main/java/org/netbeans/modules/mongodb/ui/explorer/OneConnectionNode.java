@@ -32,6 +32,7 @@ import org.netbeans.modules.mongodb.resources.Images;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
 import com.mongodb.MongoException;
+import de.bfg9000.mongonb.ui.core.windows.MapReduceTopComponent;
 import org.netbeans.modules.mongodb.ui.util.TopComponentUtils;
 import java.awt.Image;
 import java.awt.event.ActionEvent;
@@ -353,7 +354,7 @@ final class OneConnectionNode extends AbstractNode implements PropertyChangeList
 
                     @Override
                     public void run() {
-                        for (TopComponent topComponent : TopComponentUtils.findAll(CollectionView.class, info)) {
+                        for (TopComponent topComponent : TopComponentUtils.findAll(info, CollectionView.class, MapReduceTopComponent.class)) {
                             topComponent.close();
                         }
                     }
@@ -390,7 +391,7 @@ final class OneConnectionNode extends AbstractNode implements PropertyChangeList
     }
 
     private final class DeleteAction extends AbstractAction {
-
+        
         public DeleteAction() {
             super(Bundle.ACTION_Delete());
         }
@@ -400,7 +401,7 @@ final class OneConnectionNode extends AbstractNode implements PropertyChangeList
             final ConnectionInfo info = getLookup().lookup(ConnectionInfo.class);
             disconnecter.close();
             info.delete();
-            for (TopComponent topComponent : TopComponentUtils.findAll(CollectionView.class, info)) {
+            for (TopComponent topComponent : TopComponentUtils.findAll(info, CollectionView.class, MapReduceTopComponent.class)) {
                 topComponent.close();
             }
             ((MongoServicesNode) getParentNode()).getChildrenFactory().refresh();

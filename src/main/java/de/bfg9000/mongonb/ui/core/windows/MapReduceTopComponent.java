@@ -20,6 +20,7 @@ import javax.swing.ListCellRenderer;
 import javax.swing.border.EmptyBorder;
 import javax.swing.text.Document;
 import lombok.Getter;
+import lombok.Setter;
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.netbeans.api.editor.DialogBinding;
@@ -61,8 +62,13 @@ public final class MapReduceTopComponent extends TopComponent implements QueryRe
     
     private final QueryResultPanel resultPanel;
     
+    @Getter
+    @Setter
+    private Lookup lookup;
+    
     public MapReduceTopComponent(Lookup lookup) {
-        super(lookup);
+        super();
+        setLookup(lookup);
         initComponents();
         cmbHistory.setModel(new MapReduceHistoryModel(queryHistory));
         cmbHistory.setRenderer(new MapReduceHistoryItemRenderer());
@@ -217,7 +223,7 @@ public final class MapReduceTopComponent extends TopComponent implements QueryRe
         initWindowName();
         initEditor(epMap);
         initEditor(epReduce);
-        initCollectionLabel();
+        updateCollectionLabel();
     }
 
 //    void writeProperties(java.util.Properties p) {
@@ -228,7 +234,7 @@ public final class MapReduceTopComponent extends TopComponent implements QueryRe
 //        // String version = p.getProperty("version");
 //    }
 
-    private void initCollectionLabel() {
+    public void updateCollectionLabel() {
         Lookup lookup = getLookup();
         final DbInfo dbInfo = lookup.lookup(DbInfo.class);
         final CollectionInfo collectionInfo = lookup.lookup(CollectionInfo.class);
