@@ -30,6 +30,7 @@ import com.mongodb.DBObject;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoException;
 import de.bfg9000.mongonb.core.DatabaseStats;
+import de.bfg9000.mongonb.ui.core.windows.MapReduceTopComponent;
 import java.awt.event.ActionEvent;
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -210,7 +211,7 @@ final class OneDbNode extends AbstractNode {
     }
 
     public final class DropDatabaseAction extends AbstractAction {
-
+        
         public DropDatabaseAction() {
             super(Bundle.ACTION_DropDatabase());
         }
@@ -227,7 +228,7 @@ final class OneDbNode extends AbstractNode {
                     db.dropDatabase();
                     ((OneConnectionNode) getParentNode()).refreshChildren();
                     final DbInfo dbInfo = getLookup().lookup(DbInfo.class);
-                    for (TopComponent topComponent : TopComponentUtils.findAll(CollectionView.class, dbInfo)) {
+                    for (TopComponent topComponent : TopComponentUtils.findAll(dbInfo, CollectionView.class, MapReduceTopComponent.class)) {
                         topComponent.close();
                     }
                 } catch (MongoException ex) {

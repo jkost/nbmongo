@@ -63,6 +63,30 @@ public class TopComponentUtils {
         return result;
     }
 
+    @SuppressWarnings("unchecked")
+    public static Collection<TopComponent> findAll(Object data, Class<? extends TopComponent>... topComponentTypes) {
+        final List<TopComponent> result = new ArrayList<>();
+        final Set<TopComponent> openTopComponents = WindowManager.getDefault().getRegistry().getOpened();
+        for (TopComponent tc : openTopComponents) {
+            if(checkType(tc.getClass(), topComponentTypes) && tc.getLookup().lookup(data.getClass()) == data) {
+                result.add(tc);
+            }
+        }
+        return result;
+    }
+
+    private static boolean checkType(Class<?> c, Class<?>... types) {
+        if(types.length == 0) {
+            return true;
+        }
+        for (Class<?> type : types) {
+            if(type.isAssignableFrom(c)) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
     private TopComponentUtils() {
     }
 
