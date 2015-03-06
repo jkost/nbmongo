@@ -4,7 +4,7 @@
 
     <groupId>org.netbeans.modules</groupId>
     <artifactId>nbmongo</artifactId>
-    <version>8.0.1</version>
+    <version>8.0.2</version>
     <packaging>nbm</packaging>
 
     <name>NBMongo</name>
@@ -135,7 +135,7 @@
         <dependency>
             <groupId>org.mongodb</groupId>
             <artifactId>mongo-java-driver</artifactId>
-            <version>2.11.4</version>
+            <version>2.13.0</version>
             <type>jar</type>
         </dependency>
         
