@@ -63,7 +63,7 @@ public class TopComponentUtils {
         return result;
     }
 
-    @SuppressWarnings("unchecked")
+    @SafeVarargs
     public static Collection<TopComponent> findAll(Object data, Class<? extends TopComponent>... topComponentTypes) {
         final List<TopComponent> result = new ArrayList<>();
         final Set<TopComponent> openTopComponents = WindowManager.getDefault().getRegistry().getOpened();

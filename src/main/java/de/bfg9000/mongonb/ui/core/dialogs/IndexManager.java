@@ -1,6 +1,7 @@
 package de.bfg9000.mongonb.ui.core.dialogs;
 
 import com.mongodb.BasicDBObject;
+import com.mongodb.DuplicateKeyException;
 import com.mongodb.MongoException;
 import de.bfg9000.mongonb.core.Index;
 import de.bfg9000.mongonb.core.Index.Key;
@@ -127,7 +128,7 @@ class IndexManager {
         for (Index index : model.getIndexesToCreate()) {
             try {
                 createIndex(index);
-            } catch (MongoException.DuplicateKey dke) {
+            } catch (DuplicateKeyException dke) {
                 final StringBuilder builder = new StringBuilder();
                 int keyCount = 0;
                 final Iterator<Key> iterator = index.getKeys().iterator();
@@ -170,7 +171,7 @@ class IndexManager {
         if (index.isDropDuplicates()) {
             options.append("dropDups", true);
         }
-        model.getCollection().ensureIndex(keys, options);
+        model.getCollection().createIndex(keys, options);
     }
 
     public void dropIndex(Index index) {
