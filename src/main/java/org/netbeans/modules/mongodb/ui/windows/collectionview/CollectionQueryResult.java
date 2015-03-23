@@ -26,10 +26,13 @@ package org.netbeans.modules.mongodb.ui.windows.collectionview;
 import com.mongodb.DBCollection;
 import com.mongodb.DBCursor;
 import com.mongodb.DBObject;
+import com.mongodb.MongoException;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
+import org.openide.DialogDisplayer;
+import org.openide.NotifyDescriptor;
 
 /**
  *
@@ -96,14 +99,18 @@ public final class CollectionQueryResult {
                     fireDocumentAdded(document);
                 }
             }
+        } catch (MongoException ex) {
+            DialogDisplayer.getDefault().notify(
+                new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE));
+
         }
         fireUpdateFinished();
         viewRefreshNecessary = true;
     }
-    
+
     public void updateDocument(DBObject oldDocument, DBObject newDocument) {
         int index = documents.indexOf(oldDocument);
-        if(index == -1) {
+        if (index == -1) {
             throw new IllegalArgumentException("try to updated unknown document");
         }
         documents.set(index, newDocument);
@@ -111,7 +118,7 @@ public final class CollectionQueryResult {
     }
 
     public void refreshViewIfNecessary() {
-        if(viewRefreshNecessary == false) {
+        if (viewRefreshNecessary == false) {
             return;
         }
         fireUpdateStarting();
