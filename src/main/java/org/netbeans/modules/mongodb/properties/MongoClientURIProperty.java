@@ -24,6 +24,7 @@
 package org.netbeans.modules.mongodb.properties;
 
 import com.mongodb.MongoClientURI;
+import java.beans.PropertyEditor;
 import java.lang.reflect.InvocationTargetException;
 import org.netbeans.modules.mongodb.ConnectionInfo;
 import org.openide.nodes.PropertySupport;
@@ -53,5 +54,12 @@ public final class MongoClientURIProperty extends PropertySupport.ReadOnly<Mongo
     
     public static String displayName() {
         return Bundle.LABEL_mongoURI();
+    } 
+
+    @Override
+    public PropertyEditor getPropertyEditor() {
+        return new MongoClientURIPropertyEditor(false);
     }
+    
+    
 }

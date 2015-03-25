@@ -40,6 +40,18 @@ public final class MongoClientURIPropertyEditor extends PropertyEditorSupport im
 
     private PropertyEnv env;
 
+    private final boolean rw;
+
+    public MongoClientURIPropertyEditor() {
+        this(true);
+    }
+
+    
+    public MongoClientURIPropertyEditor(boolean rw) {
+        this.rw = rw;
+    }
+    
+    
     @Override
     public String getAsText() {
         final MongoClientURI uri = (MongoClientURI) getValue();
@@ -71,7 +83,7 @@ public final class MongoClientURIPropertyEditor extends PropertyEditorSupport im
 
     @Override
     public boolean supportsCustomEditor() {
-        return true;
+        return rw;
     }
 
     @Override
