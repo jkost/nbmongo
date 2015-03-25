@@ -28,6 +28,7 @@ import org.netbeans.modules.mongodb.CollectionInfo;
 import org.netbeans.modules.mongodb.DbInfo;
 import org.netbeans.modules.mongodb.ui.windows.QueryResultPanel;
 import org.netbeans.modules.mongodb.ui.windows.QueryResultPanel.QueryResultWorkerFactory;
+import org.netbeans.modules.mongodb.ui.windows.QueryResultPanelContainer;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
 import org.openide.loaders.DataObject;
@@ -52,7 +53,7 @@ import org.openide.windows.WindowManager;
     "CTL_MapReduceTopComponent=MapReduce Window",
     "HINT_MapReduceTopComponent=This is a MapReduce window"
 })
-public final class MapReduceTopComponent extends TopComponent implements QueryResultWorkerFactory {
+public final class MapReduceTopComponent extends TopComponent implements QueryResultWorkerFactory, QueryResultPanelContainer {
 
     private static final long serialVersionUID = 1L;
 
@@ -60,6 +61,7 @@ public final class MapReduceTopComponent extends TopComponent implements QueryRe
 
     private final QueryHistory queryHistory = new QueryHistory();
     
+    @Getter
     private final QueryResultPanel resultPanel;
     
     @Getter

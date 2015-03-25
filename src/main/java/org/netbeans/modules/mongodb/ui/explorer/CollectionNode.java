@@ -23,6 +23,7 @@
  */
 package org.netbeans.modules.mongodb.ui.explorer;
 
+import com.mongodb.BasicDBObject;
 import org.netbeans.modules.mongodb.resources.Images;
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
@@ -46,6 +47,7 @@ import org.netbeans.modules.mongodb.native_tools.MongoNativeToolsAction;
 import org.netbeans.modules.mongodb.ui.util.CollectionNameValidator;
 import org.netbeans.modules.mongodb.ui.util.ValidatingInputLine;
 import org.netbeans.modules.mongodb.ui.windows.CollectionView;
+import org.netbeans.modules.mongodb.ui.windows.QueryResultPanelContainer;
 import org.netbeans.modules.mongodb.ui.wizards.ExportWizardAction;
 import org.netbeans.modules.mongodb.ui.wizards.ImportWizardAction;
 import org.netbeans.modules.mongodb.util.SystemCollectionPredicate;
@@ -73,10 +75,13 @@ import org.openide.windows.TopComponent;
 @Messages({
     "ACTION_DropCollection=Drop Collection",
     "ACTION_RenameCollection=Rename Collection",
+    "ACTION_ClearCollection=Clear Collection",
     "# {0} - collection name",
     "dropCollectionConfirmText=Permanently drop ''{0}'' collection?",
     "# {0} - collection name",
-    "renameCollectionText=rename ''{0}'' to:"})
+    "renameCollectionText=Rename ''{0}'' to:",
+    "# {0} - collection name",
+    "clearCollectionConfirmText=Remove all documents of ''{0}'' collection?"})
 final class CollectionNode extends AbstractNode {
 
     private final CollectionInfo collection;
@@ -155,10 +160,12 @@ final class CollectionNode extends AbstractNode {
         final Action importAction = new ImportWizardAction(getLookup(), properties);
         final Action renameAction = new RenameCollectionAction();
         final Action dropAction = new DropCollectionAction();
+        final Action clearAction = new ClearCollectionAction();
         if (SystemCollectionPredicate.get().eval(collection.getName())) {
             importAction.setEnabled(false);
             renameAction.setEnabled(false);
             dropAction.setEnabled(false);
+            clearAction.setEnabled(false);
         }
         final List<Action> actions = new LinkedList<>();
         actions.add(SystemAction.get(OpenAction.class));
@@ -166,6 +173,7 @@ final class CollectionNode extends AbstractNode {
         actions.add(null);
         actions.add(new ManageIndexesAction(getLookup()));
         actions.add(null);
+        actions.add(clearAction);
         actions.add(dropAction);
         actions.add(renameAction);
         actions.add(null);
@@ -280,4 +288,32 @@ final class CollectionNode extends AbstractNode {
             }
         }
     }
+    
+    public class ClearCollectionAction extends AbstractAction {
+
+        public ClearCollectionAction() {
+            super(Bundle.ACTION_ClearCollection());
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            final CollectionInfo ci = getLookup().lookup(CollectionInfo.class);
+            final Object dlgResult = DialogDisplayer.getDefault().notify(new NotifyDescriptor.Confirmation(
+                Bundle.clearCollectionConfirmText(ci.getName()),
+                NotifyDescriptor.YES_NO_OPTION));
+            if (dlgResult.equals(NotifyDescriptor.OK_OPTION)) {
+                try {
+                    getLookup().lookup(DBCollection.class).remove(new BasicDBObject());
+                    for (TopComponent topComponent : TopComponentUtils.findAll(ci, CollectionView.class, MapReduceTopComponent.class)) {
+                        ((QueryResultPanelContainer) topComponent).getResultPanel().refreshResults();
+                        
+                    }
+                } catch (MongoException ex) {
+                    DialogDisplayer.getDefault().notify(
+                        new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE));
+                }
+            }
+        }
+    }
+
 }

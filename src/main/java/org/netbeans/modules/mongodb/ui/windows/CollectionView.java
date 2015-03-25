@@ -69,7 +69,7 @@ import org.openide.windows.TopComponent;
     "documentEditionShortcutHintTitle=Use CTRL + doubleclick to edit full document",
     "documentEditionShortcutHintDetails=Click here or use shortcut so this message won't show again."
 })
-public final class CollectionView extends TopComponent implements QueryResultWorkerFactory {
+public final class CollectionView extends TopComponent implements QueryResultWorkerFactory, QueryResultPanelContainer {
 
     private static final long serialVersionUID = 1L;
 
@@ -123,6 +123,7 @@ public final class CollectionView extends TopComponent implements QueryResultWor
         writePreferences();
     }
 
+    @Override
     public QueryResultPanel getResultPanel() {
         return (QueryResultPanel) resultPanel;
     }
