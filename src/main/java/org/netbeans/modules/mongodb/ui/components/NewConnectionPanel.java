@@ -58,6 +58,7 @@ public class NewConnectionPanel extends javax.swing.JPanel implements DocumentLi
     public NewConnectionPanel() {
         initComponents();
         nameField.addFocusListener(this);
+        nameField.getDocument().addDocumentListener(this);
         uriField.addFocusListener(this);
         uriField.getDocument().addDocumentListener(this);
         performValidation();
