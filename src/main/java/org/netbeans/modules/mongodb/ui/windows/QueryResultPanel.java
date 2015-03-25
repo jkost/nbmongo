@@ -397,9 +397,10 @@ public final class QueryResultPanel extends javax.swing.JPanel implements Result
             @Override
             public void run() {
                 ResultPages pages = getResultPages();
+                int documentCount = pages.getTotalElementsCount();
                 totalDocumentsLabel.setText(
-                    Bundle.totalDocuments(pages.getTotalElementsCount()));
-                int page = pages.getPageIndex();
+                    Bundle.totalDocuments(documentCount));
+                int page = documentCount == 0 ? 0 : pages.getPageIndex();
                 int pageCount = pages.getPageCount();
                 pageCountLabel.setText(Bundle.pageCountLabel(page, pageCount));
                 navFirstAction.setEnabled(pages.canMoveBackward());
