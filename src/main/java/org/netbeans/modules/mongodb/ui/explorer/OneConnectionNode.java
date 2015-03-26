@@ -42,15 +42,12 @@ import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.Callable;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.SwingUtilities;
 import org.netbeans.api.progress.ProgressUtils;
 import org.netbeans.modules.mongodb.ConnectionInfo;
-import org.netbeans.modules.mongodb.ConnectionProblems;
 import org.netbeans.modules.mongodb.MongoDisconnect;
 import org.netbeans.modules.mongodb.native_tools.MongoNativeToolsAction;
 import org.netbeans.modules.mongodb.properties.MongoClientURIPropertyEditor;
@@ -59,7 +56,6 @@ import org.netbeans.modules.mongodb.ui.util.ValidatingInputLine;
 import org.netbeans.modules.mongodb.ui.windows.CollectionView;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
-import org.openide.awt.StatusDisplayer;
 import org.openide.nodes.AbstractNode;
 import org.openide.nodes.Children;
 import org.openide.nodes.PropertySupport;
@@ -93,17 +89,13 @@ final class OneConnectionNode extends AbstractNode implements PropertyChangeList
 
     private MongoClient mongo;
 
-    private final Object lock = new Object();
+    private final Object connectionLock = new Object();
 
     private final Disconnecter disconnecter = new Disconnecter();
 
     private final InstanceContent content;
 
-    private final Problems problems = new Problems();
-
     private final ConnectionConverter converter = new ConnectionConverter();
-
-    private volatile boolean problem;
 
     private OneConnectionChildren childFactory;
 
@@ -123,7 +115,6 @@ final class OneConnectionNode extends AbstractNode implements PropertyChangeList
         super(Children.create(childFactory, true), lkp);
         this.childFactory = childFactory;
         this.content = content;
-        content.add(problems);
         content.add(connection, converter);
         setDisplayName(connection.getDisplayName());
         setName(connection.getId().toString());
@@ -131,16 +122,8 @@ final class OneConnectionNode extends AbstractNode implements PropertyChangeList
         connection.addPropertyChangeListener(WeakListeners.propertyChange(this, connection));
     }
 
-    private void setProblem(boolean problem) {
-        this.problem = problem;
-    }
-
     private boolean isConnected() {
-        return mongo != null && mongo.getConnector().isOpen() && isProblem() == false;
-    }
-
-    protected boolean isProblem() {
-        return problem;
+        return mongo != null;
     }
 
     @Override
@@ -199,7 +182,7 @@ final class OneConnectionNode extends AbstractNode implements PropertyChangeList
     }
 
     private MongoClient connect(final boolean create) {
-        synchronized (lock) {
+        synchronized (connectionLock) {
             if (create && isConnected() == false) {
                 ProgressUtils.showProgressDialogAndRun(new Runnable() {
 
@@ -210,18 +193,18 @@ final class OneConnectionNode extends AbstractNode implements PropertyChangeList
                             mongo = new MongoClient(connection.getMongoURI());
                             mongo.getDatabaseNames();  // ensure connection works
                             content.add(disconnecter);
-                            setProblem(false);
                             fireIconChange();
                             childFactory.refresh();
                             updateSheet();
                         } catch (MongoException ex) {
-                            setProblem(true);
+                            disconnecter.close();
                             DialogDisplayer.getDefault().notify(
                                 new NotifyDescriptor.Message(
                                     "error connectiong to mongo database: " + ex.getLocalizedMessage(),
                                     NotifyDescriptor.ERROR_MESSAGE));
+                            
                         } catch (UnknownHostException ex) {
-                            setProblem(true);
+                            disconnecter.close();
                             DialogDisplayer.getDefault().notify(
                                 new NotifyDescriptor.Message(
                                     "unknown server: " + ex.getLocalizedMessage(),
@@ -233,51 +216,6 @@ final class OneConnectionNode extends AbstractNode implements PropertyChangeList
             }
         }
         return mongo;
-    }
-
-    private final class Problems extends ConnectionProblems {
-
-        @Override
-        public void handleException(Exception ex, String logMessage) {
-            ConnectionInfo connection = getLookup().lookup(ConnectionInfo.class);
-            if (logMessage == null) {
-                logMessage = ex.getMessage();
-            }
-            if (logMessage == null) {
-                logMessage = "Problem connecting to " + connection;
-            }
-            LOG.log(Level.FINE, logMessage, ex); //NOI18N
-            String msg = ex.getLocalizedMessage();
-            if (msg != null) {
-                setShortDescription(msg);
-            }
-            setProblem(true);
-            StatusDisplayer.getDefault().setStatusText(logMessage);
-            fireIconChange();
-        }
-
-        @Override
-        protected <T> T retry(Callable<T> callable, Exception ex) throws Exception {
-            try {
-                MongoClient client;
-                synchronized (lock) {
-                    client = mongo;
-                    mongo = null;
-                }
-                if (client != null && client.getConnector().isOpen()) {
-                    client.close();
-                }
-            } catch (Exception e) {
-                disconnecter.close();
-                LOG.log(Level.INFO, "Reconnecting", e);
-            } finally {
-                ConnectionInfo info = getLookup().lookup(ConnectionInfo.class);
-                content.remove(info, converter);
-                content.add(info, converter);
-            }
-            connect(true);
-            return callable.call();
-        }
     }
 
     @Override
@@ -332,15 +270,13 @@ final class OneConnectionNode extends AbstractNode implements PropertyChangeList
         @Override
         public void close() {
             RequestProcessor.getDefault().post(this);
-            setProblem(false);
-            setShortDescription("");
         }
 
         @Override
         public void run() {
             MongoClient client;
             try {
-                synchronized (lock) {
+                synchronized (connectionLock) {
                     client = mongo;
                     mongo = null;
                     updateSheet();

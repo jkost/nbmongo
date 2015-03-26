@@ -24,11 +24,11 @@
 package org.netbeans.modules.mongodb.ui.explorer;
 
 import com.mongodb.MongoClient;
+import com.mongodb.MongoSocketException;
 import java.util.List;
-import java.util.concurrent.Callable;
 import org.netbeans.modules.mongodb.ConnectionInfo;
-import org.netbeans.modules.mongodb.ConnectionProblems;
 import org.netbeans.modules.mongodb.DbInfo;
+import org.netbeans.modules.mongodb.MongoDisconnect;
 import org.openide.nodes.Node;
 import org.openide.util.Lookup;
 
@@ -49,28 +49,24 @@ final class OneConnectionChildren extends RefreshableChildFactory<DbInfo> {
 
     @Override
     protected boolean createKeys(final List<DbInfo> list) {
-        if(parentNode == null) {
+        if (parentNode == null) {
             return true;
         }
-        final ConnectionProblems problems = lookup.lookup(ConnectionProblems.class);
-        final ConnectionInfo connectionInfo = lookup.lookup(ConnectionInfo.class);
-        final MongoClient client = lookup.lookup(MongoClient.class);
-       
-        if (client != null && client.getConnector().isOpen() && parentNode.isProblem() == false) {
-            problems.invoke(new Callable<Void>() {
-                @Override
-                public Void call() throws Exception {
-                    final String connectionDBName = connectionInfo.getMongoURI().getDatabase();
-                    if (connectionDBName != null) {
-                        list.add(new DbInfo(connectionDBName, lookup));
-                    } else {
-                        for (String dbName : client.getDatabaseNames()) {
-                            list.add(new DbInfo(dbName, lookup));
-                        }
+        ConnectionInfo connectionInfo = lookup.lookup(ConnectionInfo.class);
+        MongoClient mongo = lookup.lookup(MongoClient.class);
+        try {
+            if (mongo != null) {
+                final String connectionDBName = connectionInfo.getMongoURI().getDatabase();
+                if (connectionDBName != null) {
+                    list.add(new DbInfo(connectionDBName, lookup));
+                } else {
+                    for (String dbName : mongo.getDatabaseNames()) {
+                        list.add(new DbInfo(dbName, lookup));
                     }
-                    return null;
                 }
-            });
+            }
+        } catch (MongoSocketException ex) {
+            lookup.lookup(MongoDisconnect.class).close();
         }
         return true;
     }
