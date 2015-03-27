@@ -67,6 +67,7 @@ import org.netbeans.modules.mongodb.resources.Images;
 import org.netbeans.modules.mongodb.ui.util.IntegerDocumentFilter;
 import org.netbeans.modules.mongodb.ui.actions.CopyDocumentToClipboardAction;
 import org.netbeans.modules.mongodb.ui.actions.CopyKeyToClipboardAction;
+import org.netbeans.modules.mongodb.ui.actions.CopyKeyValuePairToClipboardAction;
 import org.netbeans.modules.mongodb.ui.actions.CopyValueToClipboardAction;
 import org.netbeans.modules.mongodb.ui.util.JsonEditor;
 import org.netbeans.modules.mongodb.ui.windows.queryresultpanel.actions.AddDocumentAction;
@@ -712,6 +713,7 @@ public final class QueryResultPanel extends javax.swing.JPanel implements Result
                 if (node instanceof JsonPropertyNode) {
                     JsonPropertyNode propertyNode = (JsonPropertyNode) node;
                     JsonProperty property = propertyNode.getUserObject();
+                    menu.add(new JMenuItem(new CopyKeyValuePairToClipboardAction(property)));
                     menu.add(new JMenuItem(new CopyKeyToClipboardAction(property)));
                     menu.add(new JMenuItem(new CopyValueToClipboardAction(property.getValue())));
                     if (isQuickEditableJsonValue(property.getValue())) {
@@ -747,6 +749,7 @@ public final class QueryResultPanel extends javax.swing.JPanel implements Result
         final JsonProperty property = new JsonProperty(
             model.getColumnName(column),
             model.getValueAt(row, column));
+        menu.add(new JMenuItem(new CopyKeyValuePairToClipboardAction(property)));
         menu.add(new JMenuItem(new CopyKeyToClipboardAction(property)));
         menu.add(new JMenuItem(new CopyValueToClipboardAction(property.getValue())));
         if (readOnly == false) {
