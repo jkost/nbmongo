@@ -23,7 +23,7 @@
  */
 package org.netbeans.modules.mongodb.ui.util;
 
-import com.mongodb.MongoClient;
+import org.netbeans.modules.mongodb.MongoConnection;
 import org.openide.util.Lookup;
 
 /**
@@ -59,7 +59,8 @@ public final class DatabaseNameValidator implements ValidatingInputLine.InputVal
                     Bundle.VALIDATION_forbidden_character(character));
             }
         }
-        for (String dbName : lookup.lookup(MongoClient.class).getDatabaseNames()) {
+        MongoConnection connection = lookup.lookup(MongoConnection.class);
+        for (String dbName : connection.getClient().getDatabaseNames()) {
             if (dbName.equalsIgnoreCase(value)) {
                 throw new IllegalArgumentException(
                     Bundle.VALIDATION_exists("database", value));

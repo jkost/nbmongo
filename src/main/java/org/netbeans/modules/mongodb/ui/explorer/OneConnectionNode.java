@@ -38,17 +38,15 @@ import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
-import javax.swing.SwingUtilities;
-import org.netbeans.api.progress.ProgressUtils;
 import org.netbeans.modules.mongodb.ConnectionInfo;
-import org.netbeans.modules.mongodb.MongoDisconnect;
+import org.netbeans.modules.mongodb.MongoConnection;
+import org.netbeans.modules.mongodb.MongoConnection.ConnectionState;
 import org.netbeans.modules.mongodb.native_tools.MongoNativeToolsAction;
 import org.netbeans.modules.mongodb.properties.MongoClientURIPropertyEditor;
 import org.netbeans.modules.mongodb.ui.util.DatabaseNameValidator;
@@ -62,7 +60,6 @@ import org.openide.nodes.PropertySupport;
 import org.openide.nodes.Sheet;
 import org.openide.util.Exceptions;
 import org.openide.util.NbBundle.Messages;
-import org.openide.util.RequestProcessor;
 import org.openide.util.WeakListeners;
 import org.openide.util.lookup.AbstractLookup;
 import org.openide.util.lookup.InstanceContent;
@@ -87,13 +84,7 @@ final class OneConnectionNode extends AbstractNode implements PropertyChangeList
 
     private static final Logger LOG = Logger.getLogger(OneConnectionNode.class.getName());
 
-    private MongoClient mongo;
-
-    private final Object connectionLock = new Object();
-
-    private final Disconnecter disconnecter = new Disconnecter();
-
-    private final InstanceContent content;
+    private final MongoConnection connectionHandler;
 
     private final ConnectionConverter converter = new ConnectionConverter();
 
@@ -111,19 +102,33 @@ final class OneConnectionNode extends AbstractNode implements PropertyChangeList
         this(connection, content, lkp, new OneConnectionChildren(lkp));
     }
 
-    OneConnectionNode(ConnectionInfo connection, InstanceContent content, ProxyLookup lkp, OneConnectionChildren childFactory) {
+    OneConnectionNode(final ConnectionInfo connection, InstanceContent content, ProxyLookup lkp, final OneConnectionChildren childFactory) {
         super(Children.create(childFactory, true), lkp);
         this.childFactory = childFactory;
-        this.content = content;
-        content.add(connection, converter);
         setDisplayName(connection.getDisplayName());
         setName(connection.getId().toString());
         childFactory.setParentNode(this);
         connection.addPropertyChangeListener(WeakListeners.propertyChange(this, connection));
+        connectionHandler = new MongoConnection(lkp);
+        connectionHandler.addConnectionStateListener(new MongoConnection.ConnectionStateListener() {
+
+            @Override
+            public void connectionStateChanged(MongoConnection.ConnectionState newState) {
+                fireIconChange();
+                childFactory.refresh();
+                updateSheet();
+                if (newState == ConnectionState.DISCONNECTED) {
+                    for (TopComponent topComponent : TopComponentUtils.findAll(connection, CollectionView.class, MapReduceTopComponent.class)) {
+                        topComponent.close();
+                    }
+                }
+            }
+        });
+        content.add(connectionHandler);
     }
 
-    private boolean isConnected() {
-        return mongo != null;
+    public boolean isConnected() {
+        return connectionHandler.isConnected();
     }
 
     @Override
@@ -154,7 +159,7 @@ final class OneConnectionNode extends AbstractNode implements PropertyChangeList
         createDatabaseAction.setEnabled(isConnected());
         connectAction.setEnabled(isConnected() == false);
         disconnectAction.setEnabled(isConnected());
-        
+
         final List<Action> actions = new LinkedList<>();
         actions.add(connectAction);
         actions.add(disconnectAction);
@@ -179,43 +184,6 @@ final class OneConnectionNode extends AbstractNode implements PropertyChangeList
 
     public void refreshChildren() {
         childFactory.refresh();
-    }
-
-    private MongoClient connect(final boolean create) {
-        synchronized (connectionLock) {
-            if (create && isConnected() == false) {
-                ProgressUtils.showProgressDialogAndRun(new Runnable() {
-
-                    @Override
-                    public void run() {
-                        final ConnectionInfo connection = getLookup().lookup(ConnectionInfo.class);
-                        try {
-                            mongo = new MongoClient(connection.getMongoURI());
-                            mongo.getDatabaseNames();  // ensure connection works
-                            content.add(disconnecter);
-                            fireIconChange();
-                            childFactory.refresh();
-                            updateSheet();
-                        } catch (MongoException ex) {
-                            disconnecter.close();
-                            DialogDisplayer.getDefault().notify(
-                                new NotifyDescriptor.Message(
-                                    "error connectiong to mongo database: " + ex.getLocalizedMessage(),
-                                    NotifyDescriptor.ERROR_MESSAGE));
-                            
-                        } catch (UnknownHostException ex) {
-                            disconnecter.close();
-                            DialogDisplayer.getDefault().notify(
-                                new NotifyDescriptor.Message(
-                                    "unknown server: " + ex.getLocalizedMessage(),
-                                    NotifyDescriptor.ERROR_MESSAGE));
-                        }
-
-                    }
-                }, Bundle.waitWhileConnecting());
-            }
-        }
-        return mongo;
     }
 
     @Override
@@ -257,49 +225,8 @@ final class OneConnectionNode extends AbstractNode implements PropertyChangeList
                 setDisplayName((String) evt.getNewValue());
                 break;
             case ConnectionInfo.PREFS_KEY_URI:
-                MongoDisconnect disconnect = getLookup().lookup(MongoDisconnect.class);
-                if (disconnect != null) {
-                    disconnect.close();
-                }
+                connectionHandler.disconnect();
                 break;
-        }
-    }
-
-    private final class Disconnecter extends MongoDisconnect implements Runnable {
-
-        @Override
-        public void close() {
-            RequestProcessor.getDefault().post(this);
-        }
-
-        @Override
-        public void run() {
-            MongoClient client;
-            try {
-                synchronized (connectionLock) {
-                    client = mongo;
-                    mongo = null;
-                    updateSheet();
-                }
-                if (client != null) {
-                    client.close();
-                }
-            } finally {
-                final ConnectionInfo info = getLookup().lookup(ConnectionInfo.class);
-                SwingUtilities.invokeLater(new Runnable() {
-
-                    @Override
-                    public void run() {
-                        for (TopComponent topComponent : TopComponentUtils.findAll(info, CollectionView.class, MapReduceTopComponent.class)) {
-                            topComponent.close();
-                        }
-                    }
-                });
-                content.remove(info, converter);
-                content.add(info, converter);
-            }
-            fireIconChange();
-            childFactory.refresh();
         }
     }
 
@@ -307,7 +234,7 @@ final class OneConnectionNode extends AbstractNode implements PropertyChangeList
 
         @Override
         public MongoClient convert(ConnectionInfo t) {
-            return connect(false);
+            return connectionHandler.getClient();
         }
 
         @Override
@@ -327,7 +254,7 @@ final class OneConnectionNode extends AbstractNode implements PropertyChangeList
     }
 
     private final class DeleteAction extends AbstractAction {
-        
+
         public DeleteAction() {
             super(Bundle.ACTION_Delete());
         }
@@ -335,11 +262,8 @@ final class OneConnectionNode extends AbstractNode implements PropertyChangeList
         @Override
         public void actionPerformed(ActionEvent e) {
             final ConnectionInfo info = getLookup().lookup(ConnectionInfo.class);
-            disconnecter.close();
+            connectionHandler.disconnect();
             info.delete();
-            for (TopComponent topComponent : TopComponentUtils.findAll(info, CollectionView.class, MapReduceTopComponent.class)) {
-                topComponent.close();
-            }
             ((MongoServicesNode) getParentNode()).getChildrenFactory().refresh();
         }
     }
@@ -352,7 +276,8 @@ final class OneConnectionNode extends AbstractNode implements PropertyChangeList
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            connect(true);
+//            connect(true);
+            connectionHandler.connect();
         }
 
     }
@@ -365,7 +290,8 @@ final class OneConnectionNode extends AbstractNode implements PropertyChangeList
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            disconnecter.close();
+//            disconnecter.close();
+            connectionHandler.disconnect();
         }
 
     }
@@ -385,9 +311,9 @@ final class OneConnectionNode extends AbstractNode implements PropertyChangeList
             final Object dlgResult = DialogDisplayer.getDefault().notify(input);
             if (dlgResult.equals(NotifyDescriptor.OK_OPTION)) {
                 final String dbName = input.getInputText().trim();
-                final MongoClient client = getLookup().lookup(MongoClient.class);
+                MongoConnection connection = getLookup().lookup(MongoConnection.class);
                 try {
-                    final DB db = client.getDB(dbName);
+                    final DB db = connection.getClient().getDB(dbName);
                     final DBObject collectionOptions = new BasicDBObject("capped", false);
                     db.createCollection("default", collectionOptions);
                     refreshChildren();

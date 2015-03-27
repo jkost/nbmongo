@@ -28,11 +28,9 @@ import com.mongodb.MongoClient;
 import com.mongodb.MongoSocketException;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.Callable;
 import org.netbeans.modules.mongodb.CollectionInfo;
-import org.netbeans.modules.mongodb.ConnectionProblems;
 import org.netbeans.modules.mongodb.DbInfo;
-import org.netbeans.modules.mongodb.MongoDisconnect;
+import org.netbeans.modules.mongodb.MongoConnection;
 import org.openide.nodes.Node;
 import org.openide.util.Lookup;
 
@@ -50,16 +48,16 @@ final class OneDBChildren extends RefreshableChildFactory<CollectionInfo> {
 
     @Override
     protected boolean createKeys(final List<CollectionInfo> list) {
-        MongoClient mongo = lookup.lookup(MongoClient.class);
+        MongoConnection connection = lookup.lookup(MongoConnection.class);
         DbInfo info = lookup.lookup(DbInfo.class);
         try {
-            final DB db = mongo.getDB(info.getDbName());
+            final DB db = connection.getClient().getDB(info.getDbName());
             List<String> names = new LinkedList<>(db.getCollectionNames());
             for (String name : names) {
                 list.add(new CollectionInfo(name, lookup));
             }
         } catch (MongoSocketException ex) {
-            lookup.lookup(MongoDisconnect.class).close();
+            lookup.lookup(MongoConnection.class).disconnect();
         }
         return true;
     }

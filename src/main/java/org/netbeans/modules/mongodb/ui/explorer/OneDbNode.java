@@ -38,6 +38,7 @@ import java.util.List;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import org.netbeans.modules.mongodb.DbInfo;
+import org.netbeans.modules.mongodb.MongoConnection;
 import org.netbeans.modules.mongodb.native_tools.MongoNativeToolsAction;
 import org.netbeans.modules.mongodb.ui.util.CollectionNameValidator;
 import org.netbeans.modules.mongodb.ui.util.TopComponentUtils;
@@ -161,8 +162,8 @@ final class OneDbNode extends AbstractNode {
         @Override
         public DB convert(DbInfo t) {
             DbInfo info = getLookup().lookup(DbInfo.class);
-            MongoClient client = getLookup().lookup(MongoClient.class);
-            return client.getDB(info.getDbName());
+            MongoConnection connection = getLookup().lookup(MongoConnection.class);
+            return connection.getClient().getDB(info.getDbName());
         }
 
         @Override

@@ -28,7 +28,7 @@ import com.mongodb.MongoSocketException;
 import java.util.List;
 import org.netbeans.modules.mongodb.ConnectionInfo;
 import org.netbeans.modules.mongodb.DbInfo;
-import org.netbeans.modules.mongodb.MongoDisconnect;
+import org.netbeans.modules.mongodb.MongoConnection;
 import org.openide.nodes.Node;
 import org.openide.util.Lookup;
 
@@ -53,9 +53,10 @@ final class OneConnectionChildren extends RefreshableChildFactory<DbInfo> {
             return true;
         }
         ConnectionInfo connectionInfo = lookup.lookup(ConnectionInfo.class);
-        MongoClient mongo = lookup.lookup(MongoClient.class);
+        MongoConnection connection = lookup.lookup(MongoConnection.class);
         try {
-            if (mongo != null) {
+            if (connection.isConnected()) {
+                MongoClient mongo = connection.getClient();
                 final String connectionDBName = connectionInfo.getMongoURI().getDatabase();
                 if (connectionDBName != null) {
                     list.add(new DbInfo(connectionDBName, lookup));
@@ -66,7 +67,7 @@ final class OneConnectionChildren extends RefreshableChildFactory<DbInfo> {
                 }
             }
         } catch (MongoSocketException ex) {
-            lookup.lookup(MongoDisconnect.class).close();
+            connection.disconnect();
         }
         return true;
     }
