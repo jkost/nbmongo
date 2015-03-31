@@ -85,6 +85,27 @@ public interface Images {
     @StaticResource
     String COLLAPSE_TREE_PATH = "org/netbeans/modules/mongodb/images/collapseTree.png"; //NOI18N
 
+    @StaticResource
+    String SORT_ASC_ICON_PATH = "org/netbeans/modules/mongodb/images/sort_asc.png"; //NOI18N
+
+    @StaticResource
+    String SORT_ASC_SMALL_ICON_PATH = "org/netbeans/modules/mongodb/images/sort_asc_small.png"; //NOI18N
+
+    @StaticResource
+    String SORT_DESC_ICON_PATH = "org/netbeans/modules/mongodb/images/sort_desc.png"; //NOI18N
+
+    @StaticResource
+    String SORT_DESC_SMALL_ICON_PATH = "org/netbeans/modules/mongodb/images/sort_desc_small.png"; //NOI18N
+
+    @StaticResource
+    String KEY_ICON_PATH = "org/netbeans/modules/mongodb/images/key.png"; //NOI18N
+
+    @StaticResource
+    String KEY_ADD_ICON_PATH = "org/netbeans/modules/mongodb/images/key_add.png"; //NOI18N
+
+    @StaticResource
+    String KEY_DELETE_ICON_PATH = "org/netbeans/modules/mongodb/images/key_delete.png"; //NOI18N
+
     Image COLLECTION_ICON = ImageUtilities.loadImage(COLLECTION_ICON_PATH);
 
     Image SYSTEM_COLLECTION_ICON = ImageUtilities.loadImage(SYSTEM_COLLECTION_ICON_PATH);
@@ -118,5 +139,19 @@ public interface Images {
     Image EXPAND_TREE_ICON = ImageUtilities.loadImage(EXPAND_TREE_PATH);
 
     Image COLLAPSE_TREE_ICON = ImageUtilities.loadImage(COLLAPSE_TREE_PATH);
+
+    Image SORT_ASC_ICON = ImageUtilities.loadImage(SORT_ASC_ICON_PATH);
+
+    Image SORT_ASC_SMALL_ICON = ImageUtilities.loadImage(SORT_ASC_SMALL_ICON_PATH);
+
+    Image SORT_DESC_ICON = ImageUtilities.loadImage(SORT_DESC_ICON_PATH);
+
+    Image SORT_DESC_SMALL_ICON = ImageUtilities.loadImage(SORT_DESC_SMALL_ICON_PATH);
+
+    Image KEY_ICON = ImageUtilities.loadImage(KEY_ICON_PATH);
+
+    Image KEY_ADD_ICON = ImageUtilities.loadImage(KEY_ADD_ICON_PATH);
+
+    Image KEY_DELETE_ICON = ImageUtilities.loadImage(KEY_DELETE_ICON_PATH);
 
 }

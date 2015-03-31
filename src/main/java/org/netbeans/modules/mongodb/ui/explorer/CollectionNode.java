@@ -23,10 +23,8 @@ import com.mongodb.DB;
 import com.mongodb.DBCollection;
 import com.mongodb.MongoException;
 import de.bfg9000.mongonb.core.CollectionStats;
-import de.bfg9000.mongonb.ui.core.actions.ManageIndexesAction;
 import de.bfg9000.mongonb.ui.core.actions.OpenMapReduceWindowAction;
 import de.bfg9000.mongonb.ui.core.windows.MapReduceTopComponent;
-import java.awt.Image;
 import org.netbeans.modules.mongodb.ui.util.TopComponentUtils;
 import java.awt.event.ActionEvent;
 import java.util.Arrays;
@@ -37,6 +35,8 @@ import java.util.Map;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import org.netbeans.modules.mongodb.CollectionInfo;
+import org.netbeans.modules.mongodb.indexes.CreateIndexPanel;
+import org.netbeans.modules.mongodb.indexes.Index;
 import org.netbeans.modules.mongodb.native_tools.MongoNativeToolsAction;
 import org.netbeans.modules.mongodb.ui.util.CollectionNameValidator;
 import org.netbeans.modules.mongodb.ui.util.ValidatingInputLine;
@@ -70,6 +70,8 @@ import org.openide.windows.TopComponent;
     "ACTION_DropCollection=Drop Collection",
     "ACTION_RenameCollection=Rename Collection",
     "ACTION_ClearCollection=Clear Collection",
+    "ACTION_RefreshIndexes=Refresh Indexes",
+    "ACTION_CreateIndex=Create Index",
     "# {0} - collection name",
     "dropCollectionConfirmText=Permanently drop ''{0}'' collection?",
     "# {0} - collection name",
@@ -77,6 +79,8 @@ import org.openide.windows.TopComponent;
     "# {0} - collection name",
     "clearCollectionConfirmText=Remove all documents of ''{0}'' collection?"})
 final class CollectionNode extends AbstractNode {
+
+    private final CollectionChildFactory childFactory;
 
     private final CollectionInfo collection;
 
@@ -89,8 +93,13 @@ final class CollectionNode extends AbstractNode {
     }
 
     CollectionNode(final CollectionInfo collection, final InstanceContent content, final Lookup lookup) {
-        super(Children.LEAF, lookup);
+        this(collection, new CollectionChildFactory(lookup), content, lookup);
+    }
+
+    CollectionNode(final CollectionInfo collection, CollectionChildFactory childFactory, final InstanceContent content, final Lookup lookup) {
+        super(Children.create(childFactory, true), lookup);
         this.collection = collection;
+        this.childFactory = childFactory;
         content.add(collection);
         content.add(collection, new CollectionConverter());
         content.add(new OpenCookie() {
@@ -104,20 +113,14 @@ final class CollectionNode extends AbstractNode {
                 tc.requestActive();
             }
         });
+        setIconBaseWithExtension(SystemCollectionPredicate.get().eval(collection.getName())
+            ? Images.SYSTEM_COLLECTION_ICON_PATH
+            : Images.COLLECTION_ICON_PATH);
     }
 
     @Override
     public String getName() {
         return collection.getName();
-    }
-
-    @Override
-    public Image getIcon(int ignored) {
-        if (SystemCollectionPredicate.get().eval(collection.getName())) {
-            return Images.SYSTEM_COLLECTION_ICON;
-        } else {
-            return Images.COLLECTION_ICON;
-        }
     }
 
     @Override
@@ -165,7 +168,8 @@ final class CollectionNode extends AbstractNode {
         actions.add(SystemAction.get(OpenAction.class));
         actions.add(new OpenMapReduceWindowAction(getLookup()));
         actions.add(null);
-        actions.add(new ManageIndexesAction(getLookup()));
+        actions.add(new RefreshChildrenAction(Bundle.ACTION_RefreshIndexes(), childFactory));
+        actions.add(new CreateIndexAction());
         actions.add(null);
         actions.add(clearAction);
         actions.add(dropAction);
@@ -186,6 +190,10 @@ final class CollectionNode extends AbstractNode {
     @Override
     public Action getPreferredAction() {
         return SystemAction.get(OpenAction.class);
+    }
+
+    public void refreshChildren() {
+        childFactory.refresh();
     }
 
     private class CollectionConverter implements InstanceContent.Convertor<CollectionInfo, DBCollection> {
@@ -282,7 +290,7 @@ final class CollectionNode extends AbstractNode {
             }
         }
     }
-    
+
     public class ClearCollectionAction extends AbstractAction {
 
         public ClearCollectionAction() {
@@ -300,12 +308,44 @@ final class CollectionNode extends AbstractNode {
                     getLookup().lookup(DBCollection.class).remove(new BasicDBObject());
                     for (TopComponent topComponent : TopComponentUtils.findAll(ci, CollectionView.class, MapReduceTopComponent.class)) {
                         ((QueryResultPanelContainer) topComponent).getResultPanel().refreshResults();
-                        
+
                     }
                 } catch (MongoException ex) {
                     DialogDisplayer.getDefault().notify(
                         new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE));
                 }
+            }
+        }
+    }
+
+    public class CreateIndexAction extends AbstractAction {
+
+        public CreateIndexAction() {
+            super(Bundle.ACTION_CreateIndex());
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            Index index = CreateIndexPanel.showDialog();
+            if (index != null) {
+                DBCollection collection = getLookup().lookup(DBCollection.class);
+                final BasicDBObject keys = new BasicDBObject();
+                for (Index.Key key : index.getKeys()) {
+                    keys.append(key.getField(), key.getSort().getValue());
+                }
+                final BasicDBObject options = new BasicDBObject();
+                options.append("name", index.getName());
+                if (index.isSparse()) {
+                    options.append("sparse", true);
+                }
+                if (index.isUnique()) {
+                    options.append("unique", true);
+                }
+                if (index.isDropDuplicates()) {
+                    options.append("dropDups", true);
+                }
+                collection.createIndex(keys, options);
+                refreshChildren();
             }
         }
     }

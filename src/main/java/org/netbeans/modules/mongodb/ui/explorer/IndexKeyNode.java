@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2015 Yann D'Isanto
  *
  * This program is free software; you can redistribute it and/or
@@ -17,30 +17,39 @@
  */
 package org.netbeans.modules.mongodb.ui.explorer;
 
-import java.awt.event.ActionEvent;
-import javax.swing.AbstractAction;
-import org.openide.util.NbBundle.Messages;
+import org.netbeans.modules.mongodb.indexes.Index;
+import org.netbeans.modules.mongodb.resources.Images;
+import org.openide.nodes.AbstractNode;
+import org.openide.nodes.Children;
+import org.openide.util.Lookup;
 
 /**
  *
  * @author Yann D'Isanto
  */
-@Messages("LBL_refresh=Refresh")
-final class RefreshChildrenAction extends AbstractAction {
+final class IndexKeyNode extends AbstractNode {
 
-    private final RefreshableChildFactory<?> childFactory;
+    private final Index.Key key;
 
-    public RefreshChildrenAction(RefreshableChildFactory<?> childFactory) {
-        this(Bundle.LBL_refresh(), childFactory);
+    public IndexKeyNode(Index.Key key, Lookup lookup) {
+        super(Children.LEAF, lookup);
+        this.key = key;
+        setIconBaseWithExtension(getIconPath());
     }
-    
-    public RefreshChildrenAction(String name, RefreshableChildFactory<?> childFactory) {
-        super(name);
-        this.childFactory = childFactory;
-    }
-    
+
     @Override
-    public void actionPerformed(ActionEvent e) {
-        childFactory.refresh();
+    public String getName() {
+        return key.getField();
+    }
+
+    public String getIconPath() {
+        switch (key.getSort()) {
+            case ASCENDING:
+                return Images.SORT_ASC_ICON_PATH;
+            case DESCENDING:
+                return Images.SORT_DESC_ICON_PATH;
+            default:
+                throw new AssertionError();
+        }
     }
 }

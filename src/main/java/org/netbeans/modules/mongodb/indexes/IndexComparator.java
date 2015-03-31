@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2015 Yann D'Isanto
  *
  * This program is free software; you can redistribute it and/or
@@ -15,32 +15,23 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-package org.netbeans.modules.mongodb.ui.explorer;
+package org.netbeans.modules.mongodb.indexes;
 
-import java.awt.event.ActionEvent;
-import javax.swing.AbstractAction;
-import org.openide.util.NbBundle.Messages;
+import java.util.Comparator;
 
 /**
  *
+ * @author thomaswerner35
  * @author Yann D'Isanto
  */
-@Messages("LBL_refresh=Refresh")
-final class RefreshChildrenAction extends AbstractAction {
+public class IndexComparator implements Comparator<Index> {
 
-    private final RefreshableChildFactory<?> childFactory;
-
-    public RefreshChildrenAction(RefreshableChildFactory<?> childFactory) {
-        this(Bundle.LBL_refresh(), childFactory);
-    }
-    
-    public RefreshChildrenAction(String name, RefreshableChildFactory<?> childFactory) {
-        super(name);
-        this.childFactory = childFactory;
-    }
-    
     @Override
-    public void actionPerformed(ActionEvent e) {
-        childFactory.refresh();
+    public int compare(Index index1, Index index2) {
+        if ("_id_".equals(index1.getName())) {
+            return "_id_".equals(index2.getName()) ? 0 : -1;
+        }
+        return index1.getName().compareTo(index2.getName());
     }
+
 }

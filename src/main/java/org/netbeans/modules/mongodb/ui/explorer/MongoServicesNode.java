@@ -101,7 +101,7 @@ public final class MongoServicesNode extends AbstractNode {
             panel.addChangeListener(new ChangeListener() {
                 @Override
                 public void stateChanged(ChangeEvent e) {
-                    desc.setValid(panel.isOk());
+                    desc.setValid(panel.isValidationSuccess());
                 }
             });
             if (NotifyDescriptor.OK_OPTION.equals(DialogDisplayer.getDefault().notify(desc))) {
