@@ -25,44 +25,57 @@ import org.openide.util.NbBundle;
 /**
  * Read-Only property that uses localized strings from the bundle file.
  */
-class LocalizedProperty extends PropertySupport.ReadOnly<String> {
+class LocalizedProperty<T> extends PropertySupport.ReadOnly<T> {
 
     private static final ResourceBundle bundle = NbBundle.getBundle(LocalizedProperty.class);
 
     @Getter
-    private final String value;
+    private final T value;
 
-    public LocalizedProperty(String prefix, String propertyName, String value) {
+    public LocalizedProperty(String prefix, String propertyName, Class<T> propertyType, T value) {
         super(
             bundle.getString(nameKey(prefix, propertyName)),
-            String.class,
+            propertyType,
             bundle.getString(dislayNameKey(prefix, propertyName)),
             bundle.getString(shortDescriptionKey(prefix, propertyName))
         );
         this.value = value;
     }
+    
+    public static LocalizedProperty<Boolean> booleanProperty(String prefix, String propertyName, boolean value) {
+        return new LocalizedProperty<>(prefix, propertyName, Boolean.class, value);
+    }
+
+    public static LocalizedProperty<Integer> intProperty(String prefix, String propertyName, int value) {
+        return new LocalizedProperty<>(prefix, propertyName, Integer.class, value);
+    }
+
+    public static LocalizedProperty<String> stringProperty(String prefix, String propertyName, String value) {
+        return new LocalizedProperty<>(prefix, propertyName, String.class, value);
+    }
+
+    public static LocalizedProperty<String> objectStringProperty(String prefix, String propertyName, Object value) {
+        return new LocalizedProperty<>(prefix, propertyName, String.class, String.valueOf(value));
+    }
 
     private static String nameKey(String prefix, String propertyName) {
-        return new StringBuilder(prefix)
-            .append('.')
-            .append(propertyName)
-            .append(".name")
-            .toString();
+        return buildKey(prefix, propertyName, "name");
     }
 
     private static String dislayNameKey(String prefix, String propertyName) {
-        return new StringBuilder(prefix)
-            .append('.')
-            .append(propertyName)
-            .append(".displayname")
-            .toString();
+        return buildKey(prefix, propertyName, "displayname");
     }
 
     private static String shortDescriptionKey(String prefix, String propertyName) {
+        return buildKey(prefix, propertyName, "shortdesc");
+    }
+    
+    private static String buildKey(String prefix, String propertyName, String key) {
         return new StringBuilder(prefix)
             .append('.')
             .append(propertyName)
-            .append(".shortdesc")
+            .append('.')
+            .append(key)
             .toString();
     }
 }

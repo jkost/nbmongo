@@ -23,6 +23,7 @@ import java.util.Enumeration;
 import java.util.List;
 import javax.swing.DefaultListModel;
 import javax.swing.ListSelectionModel;
+import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.DocumentEvent;
@@ -108,13 +109,17 @@ public class CreateIndexPanel extends ValidablePanel {
             public void contentsChanged(ListDataEvent e) {
             }
         });
+        SwingUtilities.invokeLater(new Runnable() {
+
+            @Override
+            public void run() {
+                performValidation();
+            }
+        });
     }
 
     @Override
     protected String computeValidationProblem() {
-        if(nameField.getText().isEmpty()) {
-            return Bundle.VALIDATION_emptyName();
-        }
         if(keyFieldsListModel.getSize() == 0) {
             return Bundle.VALIDATION_noKey();
         }
@@ -122,8 +127,9 @@ public class CreateIndexPanel extends ValidablePanel {
     }
 
     Index getIndex() {
+        String name = nameField.getText();
         return new Index(
-            nameField.getText(),
+            name.isEmpty() ? null : name,
             null,
             Collections.list(keyFieldsListModel.elements()),
             sparseCheckBox.isSelected(),

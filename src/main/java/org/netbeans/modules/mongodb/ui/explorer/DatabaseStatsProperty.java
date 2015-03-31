@@ -21,10 +21,10 @@ package org.netbeans.modules.mongodb.ui.explorer;
  *
  * @author Yann D'Isanto
  */
-final class DatabaseStatsProperty extends LocalizedProperty {
+final class DatabaseStatsProperty extends LocalizedProperty<String> {
 
     public DatabaseStatsProperty(String propertyName, String value) {
-        super("DatabaseStats", propertyName, value);
+        super("DatabaseStats", propertyName, String.class, value);
     }
     
 }

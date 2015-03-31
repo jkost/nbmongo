@@ -102,7 +102,28 @@
     "DatabaseStats.dataFileVersion.shortdesc=Data File Version",
     "DatabaseStats.ok.name=OK",
     "DatabaseStats.ok.displayname=OK",
-    "DatabaseStats.ok.shortdesc=OK"
+    "DatabaseStats.ok.shortdesc=OK",
+    "IndexNodeProperties.name.name=Name",
+    "IndexNodeProperties.name.displayname=Name",
+    "IndexNodeProperties.name.shortdesc=Index name",
+    "IndexNodeProperties.nameSpace.name=Namespace",
+    "IndexNodeProperties.nameSpace.displayname=Namespace",
+    "IndexNodeProperties.nameSpace.shortdesc=Index namespace",
+    "IndexNodeProperties.sparse.name=Sparse",
+    "IndexNodeProperties.sparse.displayname=Sparse",
+    "IndexNodeProperties.sparse.shortdesc=Index sparse flag",
+    "IndexNodeProperties.unique.name=Unique",
+    "IndexNodeProperties.unique.displayname=Unique",
+    "IndexNodeProperties.unique.shortdesc=Index unique flag",
+    "IndexNodeProperties.dropDuplicates.name=Drop duplicates",
+    "IndexNodeProperties.dropDuplicates.displayname=Drop duplicates",
+    "IndexNodeProperties.dropDuplicates.shortdesc=Index drop duplicates flag",
+    "IndexKeyNodeProperties.field.name=Key field",
+    "IndexKeyNodeProperties.field.displayname=Key field",
+    "IndexKeyNodeProperties.field.shortdesc=Index key field name",
+    "IndexKeyNodeProperties.sort.name=Sort",
+    "IndexKeyNodeProperties.sort.displayname=Sort",
+    "IndexKeyNodeProperties.sort.shortdesc=Index key field sort"
 })
 package org.netbeans.modules.mongodb.ui.explorer;
 

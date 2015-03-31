@@ -19,8 +19,11 @@ package org.netbeans.modules.mongodb.ui.explorer;
 
 import org.netbeans.modules.mongodb.indexes.Index;
 import org.netbeans.modules.mongodb.resources.Images;
+import static org.netbeans.modules.mongodb.ui.explorer.LocalizedProperty.objectStringProperty;
+import static org.netbeans.modules.mongodb.ui.explorer.LocalizedProperty.stringProperty;
 import org.openide.nodes.AbstractNode;
 import org.openide.nodes.Children;
+import org.openide.nodes.Sheet;
 import org.openide.util.Lookup;
 
 /**
@@ -40,6 +43,16 @@ final class IndexKeyNode extends AbstractNode {
     @Override
     public String getName() {
         return key.getField();
+    }
+
+    @Override
+    protected Sheet createSheet() {
+        Sheet sheet = Sheet.createDefault();
+        Sheet.Set set = Sheet.createPropertiesSet();
+        set.put(stringProperty("IndexKeyNodeProperties", "field", key.getField()));
+        set.put(objectStringProperty("IndexKeyNodeProperties", "sort", key.getSort()));
+        sheet.put(set);
+        return sheet;
     }
 
     public String getIconPath() {

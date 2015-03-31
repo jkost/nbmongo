@@ -27,11 +27,14 @@ import javax.swing.Action;
 import lombok.AllArgsConstructor;
 import org.netbeans.modules.mongodb.indexes.Index;
 import org.netbeans.modules.mongodb.resources.Images;
+import static org.netbeans.modules.mongodb.ui.explorer.LocalizedProperty.booleanProperty;
+import static org.netbeans.modules.mongodb.ui.explorer.LocalizedProperty.stringProperty;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.nodes.AbstractNode;
 import org.openide.nodes.Children;
 import org.openide.nodes.Node;
+import org.openide.nodes.Sheet;
 import org.openide.util.Lookup;
 import org.openide.util.NbBundle;
 
@@ -78,6 +81,19 @@ class IndexNode extends AbstractNode {
         }
         actions.addAll(Arrays.asList(orig));
         return actions.toArray(new Action[actions.size()]);
+    }
+    
+    @Override
+    protected Sheet createSheet() {
+        Sheet sheet = Sheet.createDefault();
+        Sheet.Set set = Sheet.createPropertiesSet();
+        set.put(stringProperty("IndexNodeProperties", "name", index.getName()));
+        set.put(stringProperty("IndexNodeProperties", "nameSpace", index.getNameSpace()));
+        set.put(booleanProperty("IndexNodeProperties", "sparse", index.isSparse()));
+        set.put(booleanProperty("IndexNodeProperties", "unique", index.isUnique()));
+        set.put(booleanProperty("IndexNodeProperties", "dropDuplicates", index.isDropDuplicates()));
+        sheet.put(set);
+        return sheet;
     }
 
     public void refreshChildren() {

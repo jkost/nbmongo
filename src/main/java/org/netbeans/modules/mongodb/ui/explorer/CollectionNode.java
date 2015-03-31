@@ -334,7 +334,9 @@ final class CollectionNode extends AbstractNode {
                     keys.append(key.getField(), key.getSort().getValue());
                 }
                 final BasicDBObject options = new BasicDBObject();
-                options.append("name", index.getName());
+                if(index.getName() != null) {
+                    options.append("name", index.getName());
+                }
                 if (index.isSparse()) {
                     options.append("sparse", true);
                 }
