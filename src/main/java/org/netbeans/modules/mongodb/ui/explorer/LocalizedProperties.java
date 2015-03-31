@@ -22,11 +22,16 @@ import java.util.List;
 import java.util.ResourceBundle;
 import org.openide.nodes.Node.Property;
 import org.openide.util.NbBundle;
+import org.openide.util.NbBundle.Messages;
 
 /**
  *
  * @author Yann D'Isanto
  */
+@Messages({
+    "yes=Yes",
+    "no=No"
+})
 class LocalizedProperties {
 
     private final ResourceBundle bundle;
@@ -68,9 +73,12 @@ class LocalizedProperties {
         return localizedProperty(propertyName, String.class, String.valueOf(value));
     }
 
+    public LocalizedProperties yesNoProperty(String propertyName, boolean value) {
+        return localizedProperty(propertyName, String.class, value ? Bundle.yes():  Bundle.no());
+    }
+
     private <T> LocalizedProperties localizedProperty(String propertyName, Class<T> propertyType, T value) {
         properties.add(new LocalizedProperty<>(bundle, prefix, propertyName, propertyType, value));
         return this;
     }
-
 }

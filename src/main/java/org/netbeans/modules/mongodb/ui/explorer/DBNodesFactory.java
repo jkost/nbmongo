@@ -20,6 +20,7 @@ package org.netbeans.modules.mongodb.ui.explorer;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoSocketException;
 import java.util.List;
+import lombok.AllArgsConstructor;
 import org.netbeans.modules.mongodb.ConnectionInfo;
 import org.netbeans.modules.mongodb.DbInfo;
 import org.netbeans.modules.mongodb.MongoConnection;
@@ -30,21 +31,13 @@ import org.openide.util.Lookup;
  * @author Tim Boudreau
  * @author Yann D'Isanto
  */
+@AllArgsConstructor
 final class DBNodesFactory extends RefreshableChildFactory<DbInfo> {
-
-    private ConnectionNode parentNode;
 
     private final Lookup lookup;
 
-    public DBNodesFactory(Lookup lookup) {
-        this.lookup = lookup;
-    }
-
     @Override
     protected boolean createKeys(final List<DbInfo> list) {
-        if (parentNode == null) {
-            return true;
-        }
         ConnectionInfo connectionInfo = lookup.lookup(ConnectionInfo.class);
         MongoConnection connection = lookup.lookup(MongoConnection.class);
         try {
