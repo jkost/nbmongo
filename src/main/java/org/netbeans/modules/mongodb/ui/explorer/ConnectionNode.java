@@ -74,34 +74,31 @@ import org.openide.windows.TopComponent;
     "createDatabaseText=Database name:",
     "waitWhileConnecting=Please wait while connecting to mongo database"
 })
-final class OneConnectionNode extends AbstractNode implements PropertyChangeListener {
+class ConnectionNode extends AbstractNode implements PropertyChangeListener {
 
-    private static final Logger LOG = Logger.getLogger(OneConnectionNode.class.getName());
+    private static final Logger LOG = Logger.getLogger(ConnectionNode.class.getName());
 
     private final MongoConnection connectionHandler;
 
-    private final ConnectionConverter converter = new ConnectionConverter();
+    private DBNodesFactory childFactory;
 
-    private OneConnectionChildren childFactory;
-
-    OneConnectionNode(ConnectionInfo connection) {
+    ConnectionNode(ConnectionInfo connection) {
         this(connection, new InstanceContent());
     }
 
-    OneConnectionNode(ConnectionInfo connection, InstanceContent content) {
+    ConnectionNode(ConnectionInfo connection, InstanceContent content) {
         this(connection, content, new ProxyLookup(new AbstractLookup(content), Lookups.fixed(connection)));
     }
 
-    OneConnectionNode(ConnectionInfo connection, InstanceContent content, ProxyLookup lkp) {
-        this(connection, content, lkp, new OneConnectionChildren(lkp));
+    ConnectionNode(ConnectionInfo connection, InstanceContent content, ProxyLookup lkp) {
+        this(connection, content, lkp, new DBNodesFactory(lkp));
     }
 
-    OneConnectionNode(final ConnectionInfo connection, InstanceContent content, ProxyLookup lkp, final OneConnectionChildren childFactory) {
+    ConnectionNode(final ConnectionInfo connection, InstanceContent content, ProxyLookup lkp, final DBNodesFactory childFactory) {
         super(Children.create(childFactory, true), lkp);
         this.childFactory = childFactory;
         setDisplayName(connection.getDisplayName());
         setName(connection.getId().toString());
-        childFactory.setParentNode(this);
         connection.addPropertyChangeListener(WeakListeners.propertyChange(this, connection));
         connectionHandler = new MongoConnection(lkp);
         connectionHandler.addConnectionStateListener(new MongoConnection.ConnectionStateListener() {

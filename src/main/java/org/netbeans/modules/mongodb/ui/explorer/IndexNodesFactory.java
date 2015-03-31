@@ -25,15 +25,14 @@ import java.util.List;
 import lombok.AllArgsConstructor;
 import org.netbeans.modules.mongodb.indexes.Index;
 import org.netbeans.modules.mongodb.indexes.IndexComparator;
-import org.openide.nodes.Node;
 import org.openide.util.Lookup;
 
 /**
  *
- * @author Tim Boudreau
+ * @author Yann D'Isanto
  */
 @AllArgsConstructor
-final class CollectionChildFactory extends RefreshableChildFactory<Index> {
+class IndexNodesFactory extends RefreshableChildFactory<Index> {
 
     private final Lookup lookup;
 
@@ -51,7 +50,7 @@ final class CollectionChildFactory extends RefreshableChildFactory<Index> {
     }
 
     @Override
-    protected Node createNodeForKey(Index index) {
+    protected IndexNode createNodeForKey(Index index) {
         return new IndexNode(index, lookup);
     }
 }

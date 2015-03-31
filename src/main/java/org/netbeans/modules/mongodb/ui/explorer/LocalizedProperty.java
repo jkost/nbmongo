@@ -20,19 +20,16 @@ package org.netbeans.modules.mongodb.ui.explorer;
 import java.util.ResourceBundle;
 import lombok.Getter;
 import org.openide.nodes.PropertySupport;
-import org.openide.util.NbBundle;
 
 /**
  * Read-Only property that uses localized strings from the bundle file.
  */
 class LocalizedProperty<T> extends PropertySupport.ReadOnly<T> {
 
-    private static final ResourceBundle bundle = NbBundle.getBundle(LocalizedProperty.class);
-
     @Getter
     private final T value;
 
-    public LocalizedProperty(String prefix, String propertyName, Class<T> propertyType, T value) {
+    public LocalizedProperty(ResourceBundle bundle, String prefix, String propertyName, Class<T> propertyType, T value) {
         super(
             bundle.getString(nameKey(prefix, propertyName)),
             propertyType,
@@ -42,22 +39,6 @@ class LocalizedProperty<T> extends PropertySupport.ReadOnly<T> {
         this.value = value;
     }
     
-    public static LocalizedProperty<Boolean> booleanProperty(String prefix, String propertyName, boolean value) {
-        return new LocalizedProperty<>(prefix, propertyName, Boolean.class, value);
-    }
-
-    public static LocalizedProperty<Integer> intProperty(String prefix, String propertyName, int value) {
-        return new LocalizedProperty<>(prefix, propertyName, Integer.class, value);
-    }
-
-    public static LocalizedProperty<String> stringProperty(String prefix, String propertyName, String value) {
-        return new LocalizedProperty<>(prefix, propertyName, String.class, value);
-    }
-
-    public static LocalizedProperty<String> objectStringProperty(String prefix, String propertyName, Object value) {
-        return new LocalizedProperty<>(prefix, propertyName, String.class, String.valueOf(value));
-    }
-
     private static String nameKey(String prefix, String propertyName) {
         return buildKey(prefix, propertyName, "name");
     }

@@ -80,7 +80,7 @@ import org.openide.windows.TopComponent;
     "clearCollectionConfirmText=Remove all documents of ''{0}'' collection?"})
 final class CollectionNode extends AbstractNode {
 
-    private final CollectionChildFactory childFactory;
+    private final IndexNodesFactory childFactory;
 
     private final CollectionInfo collection;
 
@@ -93,10 +93,10 @@ final class CollectionNode extends AbstractNode {
     }
 
     CollectionNode(final CollectionInfo collection, final InstanceContent content, final Lookup lookup) {
-        this(collection, new CollectionChildFactory(lookup), content, lookup);
+        this(collection, new IndexNodesFactory(lookup), content, lookup);
     }
 
-    CollectionNode(final CollectionInfo collection, CollectionChildFactory childFactory, final InstanceContent content, final Lookup lookup) {
+    CollectionNode(final CollectionInfo collection, IndexNodesFactory childFactory, final InstanceContent content, final Lookup lookup) {
         super(Children.create(childFactory, true), lookup);
         this.collection = collection;
         this.childFactory = childFactory;
@@ -114,8 +114,8 @@ final class CollectionNode extends AbstractNode {
             }
         });
         setIconBaseWithExtension(SystemCollectionPredicate.get().eval(collection.getName())
-            ? Images.SYSTEM_COLLECTION_ICON_PATH
-            : Images.COLLECTION_ICON_PATH);
+                ? Images.SYSTEM_COLLECTION_ICON_PATH
+                : Images.COLLECTION_ICON_PATH);
     }
 
     @Override
@@ -129,22 +129,23 @@ final class CollectionNode extends AbstractNode {
         Sheet.Set set = Sheet.createPropertiesSet();
         DBCollection col = getLookup().lookup(DBCollection.class);
         final CollectionStats stats = new CollectionStats(col.isCapped(), col.getStats());
-
-        set.put(new CollectionStatsProperty("serverUsed", stats.getServerUsed()));
-        set.put(new CollectionStatsProperty("ns", stats.getNs()));
-        set.put(new CollectionStatsProperty("capped", stats.getCapped()));
-        set.put(new CollectionStatsProperty("count", stats.getCount()));
-        set.put(new CollectionStatsProperty("size", stats.getSize()));
-        set.put(new CollectionStatsProperty("storageSize", stats.getStorageSize()));
-        set.put(new CollectionStatsProperty("numExtents", stats.getNumExtents()));
-        set.put(new CollectionStatsProperty("nindexes", stats.getNindexes()));
-        set.put(new CollectionStatsProperty("lastExtentSize", stats.getLastExtentSize()));
-        set.put(new CollectionStatsProperty("paddingFactor", stats.getPaddingFactor()));
-        set.put(new CollectionStatsProperty("systemFlags", stats.getSystemFlags()));
-        set.put(new CollectionStatsProperty("userFlags", stats.getUserFlags()));
-        set.put(new CollectionStatsProperty("totalIndexSize", stats.getTotalIndexSize()));
-        set.put(new CollectionStatsProperty("ok", stats.getOk()));
-
+        set.put(new LocalizedProperties(CollectionNode.class)
+                .stringProperty("serverUsed", stats.getServerUsed())
+                .stringProperty("serverUsed", stats.getServerUsed())
+                .stringProperty("ns", stats.getNs())
+                .stringProperty("capped", stats.getCapped())
+                .stringProperty("count", stats.getCount())
+                .stringProperty("size", stats.getSize())
+                .stringProperty("storageSize", stats.getStorageSize())
+                .stringProperty("numExtents", stats.getNumExtents())
+                .stringProperty("nindexes", stats.getNindexes())
+                .stringProperty("lastExtentSize", stats.getLastExtentSize())
+                .stringProperty("paddingFactor", stats.getPaddingFactor())
+                .stringProperty("systemFlags", stats.getSystemFlags())
+                .stringProperty("userFlags", stats.getUserFlags())
+                .stringProperty("totalIndexSize", stats.getTotalIndexSize())
+                .stringProperty("ok", stats.getOk())
+                .toArray());
         sheet.put(set);
         return sheet;
     }
@@ -230,18 +231,18 @@ final class CollectionNode extends AbstractNode {
         public void actionPerformed(ActionEvent e) {
             final CollectionInfo ci = getLookup().lookup(CollectionInfo.class);
             final Object dlgResult = DialogDisplayer.getDefault().notify(new NotifyDescriptor.Confirmation(
-                Bundle.dropCollectionConfirmText(ci.getName()),
-                NotifyDescriptor.YES_NO_OPTION));
+                    Bundle.dropCollectionConfirmText(ci.getName()),
+                    NotifyDescriptor.YES_NO_OPTION));
             if (dlgResult.equals(NotifyDescriptor.OK_OPTION)) {
                 try {
                     getLookup().lookup(DBCollection.class).drop();
-                    ((OneDbNode) getParentNode()).refreshChildren();
+                    ((DBNode) getParentNode()).refreshChildren();
                     for (TopComponent topComponent : TopComponentUtils.findAll(ci, CollectionView.class, MapReduceTopComponent.class)) {
                         topComponent.close();
                     }
                 } catch (MongoException ex) {
                     DialogDisplayer.getDefault().notify(
-                        new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE));
+                            new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE));
                 }
             }
         }
@@ -256,16 +257,16 @@ final class CollectionNode extends AbstractNode {
         @Override
         public void actionPerformed(ActionEvent e) {
             final NotifyDescriptor.InputLine input = new ValidatingInputLine(
-                Bundle.renameCollectionText(collection.getName()),
-                Bundle.ACTION_RenameCollection(),
-                new CollectionNameValidator(getLookup()));
+                    Bundle.renameCollectionText(collection.getName()),
+                    Bundle.ACTION_RenameCollection(),
+                    new CollectionNameValidator(getLookup()));
             input.setInputText(collection.getName());
             final Object dlgResult = DialogDisplayer.getDefault().notify(input);
             if (dlgResult.equals(NotifyDescriptor.OK_OPTION)) {
                 try {
                     final String name = input.getInputText().trim();
                     getLookup().lookup(DBCollection.class).rename(name);
-                    final OneDbNode parentNode = (OneDbNode) getParentNode();
+                    final DBNode parentNode = (DBNode) getParentNode();
                     parentNode.refreshChildren();
 
                     CollectionNode node = (CollectionNode) parentNode.getChildren().findChild(name);
@@ -285,7 +286,7 @@ final class CollectionNode extends AbstractNode {
                     }
                 } catch (MongoException ex) {
                     DialogDisplayer.getDefault().notify(
-                        new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE));
+                            new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE));
                 }
             }
         }
@@ -301,8 +302,8 @@ final class CollectionNode extends AbstractNode {
         public void actionPerformed(ActionEvent e) {
             final CollectionInfo ci = getLookup().lookup(CollectionInfo.class);
             final Object dlgResult = DialogDisplayer.getDefault().notify(new NotifyDescriptor.Confirmation(
-                Bundle.clearCollectionConfirmText(ci.getName()),
-                NotifyDescriptor.YES_NO_OPTION));
+                    Bundle.clearCollectionConfirmText(ci.getName()),
+                    NotifyDescriptor.YES_NO_OPTION));
             if (dlgResult.equals(NotifyDescriptor.OK_OPTION)) {
                 try {
                     getLookup().lookup(DBCollection.class).remove(new BasicDBObject());
@@ -312,7 +313,7 @@ final class CollectionNode extends AbstractNode {
                     }
                 } catch (MongoException ex) {
                     DialogDisplayer.getDefault().notify(
-                        new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE));
+                            new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE));
                 }
             }
         }
@@ -334,7 +335,7 @@ final class CollectionNode extends AbstractNode {
                     keys.append(key.getField(), key.getSort().getValue());
                 }
                 final BasicDBObject options = new BasicDBObject();
-                if(index.getName() != null) {
+                if (index.getName() != null) {
                     options.append("name", index.getName());
                 }
                 if (index.isSparse()) {

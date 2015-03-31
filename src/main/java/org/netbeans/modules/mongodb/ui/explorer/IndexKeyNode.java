@@ -19,8 +19,6 @@ package org.netbeans.modules.mongodb.ui.explorer;
 
 import org.netbeans.modules.mongodb.indexes.Index;
 import org.netbeans.modules.mongodb.resources.Images;
-import static org.netbeans.modules.mongodb.ui.explorer.LocalizedProperty.objectStringProperty;
-import static org.netbeans.modules.mongodb.ui.explorer.LocalizedProperty.stringProperty;
 import org.openide.nodes.AbstractNode;
 import org.openide.nodes.Children;
 import org.openide.nodes.Sheet;
@@ -49,8 +47,10 @@ final class IndexKeyNode extends AbstractNode {
     protected Sheet createSheet() {
         Sheet sheet = Sheet.createDefault();
         Sheet.Set set = Sheet.createPropertiesSet();
-        set.put(stringProperty("IndexKeyNodeProperties", "field", key.getField()));
-        set.put(objectStringProperty("IndexKeyNodeProperties", "sort", key.getSort()));
+        set.put(new LocalizedProperties(IndexKeyNode.class)
+                .stringProperty("field", key.getField())
+                .objectStringProperty("sort", key.getSort())
+                .toArray());
         sheet.put(set);
         return sheet;
     }

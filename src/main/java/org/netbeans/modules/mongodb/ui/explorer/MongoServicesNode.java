@@ -48,13 +48,13 @@ import org.openide.util.NbPreferences;
 @Messages("MongoNodeName=Mongo DB")
 public final class MongoServicesNode extends AbstractNode {
 
-    private final ConnectionChildFactory factory;
+    private final ConnectionNodesFactory factory;
 
     public MongoServicesNode() {
-        this(new ConnectionChildFactory());
+        this(new ConnectionNodesFactory());
     }
 
-    MongoServicesNode(ConnectionChildFactory factory) {
+    MongoServicesNode(ConnectionNodesFactory factory) {
         super(Children.create(factory, false));
         this.factory = factory;
         setDisplayName(Bundle.MongoNodeName());
@@ -68,7 +68,7 @@ public final class MongoServicesNode extends AbstractNode {
         mongoLogger.setUseParentHandlers(false);
     }
 
-    ConnectionChildFactory getChildrenFactory() {
+    ConnectionNodesFactory getChildrenFactory() {
         return factory;
     }
 

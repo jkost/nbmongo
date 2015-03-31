@@ -17,47 +17,56 @@
  */
 package org.netbeans.modules.mongodb.ui.explorer;
 
-import com.mongodb.DB;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoSocketException;
-import java.util.LinkedList;
 import java.util.List;
-import org.netbeans.modules.mongodb.CollectionInfo;
+import org.netbeans.modules.mongodb.ConnectionInfo;
 import org.netbeans.modules.mongodb.DbInfo;
 import org.netbeans.modules.mongodb.MongoConnection;
-import org.openide.nodes.Node;
 import org.openide.util.Lookup;
 
 /**
+ *
  * @author Tim Boudreau
  * @author Yann D'Isanto
  */
-final class OneDBChildren extends RefreshableChildFactory<CollectionInfo> {
+final class DBNodesFactory extends RefreshableChildFactory<DbInfo> {
+
+    private ConnectionNode parentNode;
 
     private final Lookup lookup;
 
-    public OneDBChildren(Lookup lookup) {
+    public DBNodesFactory(Lookup lookup) {
         this.lookup = lookup;
     }
 
     @Override
-    protected boolean createKeys(final List<CollectionInfo> list) {
+    protected boolean createKeys(final List<DbInfo> list) {
+        if (parentNode == null) {
+            return true;
+        }
+        ConnectionInfo connectionInfo = lookup.lookup(ConnectionInfo.class);
         MongoConnection connection = lookup.lookup(MongoConnection.class);
-        DbInfo info = lookup.lookup(DbInfo.class);
         try {
-            final DB db = connection.getClient().getDB(info.getDbName());
-            List<String> names = new LinkedList<>(db.getCollectionNames());
-            for (String name : names) {
-                list.add(new CollectionInfo(name, lookup));
+            if (connection.isConnected()) {
+                MongoClient mongo = connection.getClient();
+                final String connectionDBName = connectionInfo.getMongoURI().getDatabase();
+                if (connectionDBName != null) {
+                    list.add(new DbInfo(connectionDBName, lookup));
+                } else {
+                    for (String dbName : mongo.getDatabaseNames()) {
+                        list.add(new DbInfo(dbName, lookup));
+                    }
+                }
             }
         } catch (MongoSocketException ex) {
-            lookup.lookup(MongoConnection.class).disconnect();
+            connection.disconnect();
         }
         return true;
     }
 
     @Override
-    protected Node createNodeForKey(CollectionInfo key) {
-        return new CollectionNode(key);
+    protected DBNode createNodeForKey(DbInfo key) {
+        return new DBNode(key);
     }
 }

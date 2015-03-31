@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2015 Yann D'Isanto
  *
  * This program is free software; you can redistribute it and/or
@@ -17,14 +17,31 @@
  */
 package org.netbeans.modules.mongodb.ui.explorer;
 
+import java.util.List;
+import lombok.AllArgsConstructor;
+import org.netbeans.modules.mongodb.indexes.Index;
+import org.openide.util.Lookup;
+
 /**
  *
  * @author Yann D'Isanto
  */
-final class CollectionStatsProperty extends LocalizedProperty<String> {
+@AllArgsConstructor
+class IndexKeyNodesFactory extends RefreshableChildFactory<Index.Key> {
 
-    public CollectionStatsProperty(String propertyName, String value) {
-        super("CollectionStats", propertyName, String.class, value);
-    }
+    private final Lookup lookup;
     
+    private final Index index;
+
+    @Override
+    protected boolean createKeys(List<Index.Key> list) {
+        list.addAll(index.getKeys());
+        return true;
+    }
+
+    @Override
+    protected IndexKeyNode createNodeForKey(Index.Key indexKey) {
+        return new IndexKeyNode(indexKey, lookup);
+    }
+
 }

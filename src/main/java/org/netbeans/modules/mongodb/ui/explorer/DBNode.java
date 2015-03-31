@@ -67,27 +67,27 @@ import org.openide.windows.TopComponent;
     "collectionAlreadyExists=Collection ''{0}'' already exists",
     "# {0} - database name",
     "dropDatabaseConfirmText=Permanently drop ''{0}'' database?"})
-final class OneDbNode extends AbstractNode {
+final class DBNode extends AbstractNode {
 
-    private final OneDBChildren childFactory;
+    private final CollectionNodesFactory childFactory;
 
-    OneDbNode(DbInfo info) {
+    DBNode(DbInfo info) {
         this(info, new InstanceContent());
     }
 
-    OneDbNode(DbInfo info, InstanceContent content) {
+    DBNode(DbInfo info, InstanceContent content) {
         this(info, content, new AbstractLookup(content));
     }
 
-    OneDbNode(DbInfo info, InstanceContent content, AbstractLookup lkp) {
+    DBNode(DbInfo info, InstanceContent content, AbstractLookup lkp) {
         this(info, content, new ProxyLookup(info.getLookup(), lkp, Lookups.fixed(info)));
     }
 
-    OneDbNode(DbInfo info, InstanceContent content, ProxyLookup lkp) {
-        this(info, content, lkp, new OneDBChildren(lkp));
+    DBNode(DbInfo info, InstanceContent content, ProxyLookup lkp) {
+        this(info, content, lkp, new CollectionNodesFactory(lkp));
     }
 
-    OneDbNode(DbInfo info, InstanceContent content, ProxyLookup lookup, OneDBChildren childFactory) {
+    DBNode(DbInfo info, InstanceContent content, ProxyLookup lookup, CollectionNodesFactory childFactory) {
         super(Children.create(childFactory, true), lookup);
         this.childFactory = childFactory;
         content.add(info, new DBConverter());
@@ -103,20 +103,22 @@ final class OneDbNode extends AbstractNode {
         DB db = getLookup().lookup(DB.class);
         if (db != null) {
             final DatabaseStats stats = new DatabaseStats(db.getStats());
-            set.put(new DatabaseStatsProperty("serverUsed", stats.getServerUsed()));
-            set.put(new DatabaseStatsProperty("db", stats.getDb()));
-            set.put(new DatabaseStatsProperty("collections", stats.getCollections()));
-            set.put(new DatabaseStatsProperty("objects", stats.getObjects()));
-            set.put(new DatabaseStatsProperty("avgObjSize", stats.getAvgObjSize()));
-            set.put(new DatabaseStatsProperty("dataSize", stats.getDataSize()));
-            set.put(new DatabaseStatsProperty("storageSize", stats.getStorageSize()));
-            set.put(new DatabaseStatsProperty("numExtents", stats.getNumExtents()));
-            set.put(new DatabaseStatsProperty("indexes", stats.getIndexes()));
-            set.put(new DatabaseStatsProperty("indexSize", stats.getIndexSize()));
-            set.put(new DatabaseStatsProperty("fileSize", stats.getFileSize()));
-            set.put(new DatabaseStatsProperty("nsSizeMB", stats.getNsSizeMB()));
-            set.put(new DatabaseStatsProperty("dataFileVersion", stats.getDataFileVersion()));
-            set.put(new DatabaseStatsProperty("ok", stats.getOk()));
+            set.put(new LocalizedProperties(DBNode.class)
+                .stringProperty("serverUsed", stats.getServerUsed())
+                .stringProperty("db", stats.getDb())
+                .stringProperty("collections", stats.getCollections())
+                .stringProperty("objects", stats.getObjects())
+                .stringProperty("avgObjSize", stats.getAvgObjSize())
+                .stringProperty("dataSize", stats.getDataSize())
+                .stringProperty("storageSize", stats.getStorageSize())
+                .stringProperty("numExtents", stats.getNumExtents())
+                .stringProperty("indexes", stats.getIndexes())
+                .stringProperty("indexSize", stats.getIndexSize())
+                .stringProperty("fileSize", stats.getFileSize())
+                .stringProperty("nsSizeMB", stats.getNsSizeMB())
+                .stringProperty("dataFileVersion", stats.getDataFileVersion())
+                .stringProperty("ok", stats.getOk())
+                .toArray());
         }
         sheet.put(set);
         return sheet;
@@ -221,7 +223,7 @@ final class OneDbNode extends AbstractNode {
             if (dlgResult.equals(NotifyDescriptor.OK_OPTION)) {
                 try {
                     db.dropDatabase();
-                    ((OneConnectionNode) getParentNode()).refreshChildren();
+                    ((ConnectionNode) getParentNode()).refreshChildren();
                     final DbInfo dbInfo = getLookup().lookup(DbInfo.class);
                     for (TopComponent topComponent : TopComponentUtils.findAll(dbInfo, CollectionView.class, MapReduceTopComponent.class)) {
                         topComponent.close();

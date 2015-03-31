@@ -23,14 +23,13 @@ import java.util.UUID;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 import org.netbeans.modules.mongodb.ConnectionInfo;
-import org.openide.nodes.Node;
 import org.openide.util.Exceptions;
 
 /**
  *
  * @author Tim Boudreau
  */
-final class ConnectionChildFactory extends RefreshableChildFactory<ConnectionInfo> {
+class ConnectionNodesFactory extends RefreshableChildFactory<ConnectionInfo> {
 
     private ConnectionInfo[] connections() {
         try {
@@ -71,7 +70,7 @@ final class ConnectionChildFactory extends RefreshableChildFactory<ConnectionInf
     }
 
     @Override
-    protected Node createNodeForKey(ConnectionInfo key) {
-        return new OneConnectionNode(key);
+    protected ConnectionNode createNodeForKey(ConnectionInfo key) {
+        return new ConnectionNode(key);
     }
 }

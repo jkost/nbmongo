@@ -27,8 +27,6 @@ import javax.swing.Action;
 import lombok.AllArgsConstructor;
 import org.netbeans.modules.mongodb.indexes.Index;
 import org.netbeans.modules.mongodb.resources.Images;
-import static org.netbeans.modules.mongodb.ui.explorer.LocalizedProperty.booleanProperty;
-import static org.netbeans.modules.mongodb.ui.explorer.LocalizedProperty.stringProperty;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.nodes.AbstractNode;
@@ -49,15 +47,15 @@ import org.openide.util.NbBundle;
 })
 class IndexNode extends AbstractNode {
 
-    private final ChildFactory childFactory;
-    
+    private final IndexKeyNodesFactory childFactory;
+
     private final Index index;
 
     IndexNode(Index index, Lookup lookup) {
-        this(index, new ChildFactory(lookup, index), lookup);
+        this(index, new IndexKeyNodesFactory(lookup, index), lookup);
     }
-    
-    IndexNode(Index index, ChildFactory childFactory, Lookup lookup) {
+
+    private IndexNode(Index index, IndexKeyNodesFactory childFactory, Lookup lookup) {
         super(Children.create(childFactory, true), lookup);
         this.index = index;
         this.childFactory = childFactory;
@@ -72,7 +70,7 @@ class IndexNode extends AbstractNode {
     @Override
     public Action[] getActions(boolean ignored) {
         final List<Action> actions = new LinkedList<>();
-        if("_id_".equals(index.getName()) == false) {
+        if ("_id_".equals(index.getName()) == false) {
             actions.add(new DropIndexAction());
         }
         final Action[] orig = super.getActions(ignored);
@@ -82,16 +80,18 @@ class IndexNode extends AbstractNode {
         actions.addAll(Arrays.asList(orig));
         return actions.toArray(new Action[actions.size()]);
     }
-    
+
     @Override
     protected Sheet createSheet() {
         Sheet sheet = Sheet.createDefault();
         Sheet.Set set = Sheet.createPropertiesSet();
-        set.put(stringProperty("IndexNodeProperties", "name", index.getName()));
-        set.put(stringProperty("IndexNodeProperties", "nameSpace", index.getNameSpace()));
-        set.put(booleanProperty("IndexNodeProperties", "sparse", index.isSparse()));
-        set.put(booleanProperty("IndexNodeProperties", "unique", index.isUnique()));
-        set.put(booleanProperty("IndexNodeProperties", "dropDuplicates", index.isDropDuplicates()));
+        set.put(new LocalizedProperties(IndexNode.class)
+                .stringProperty("name", index.getName())
+                .stringProperty("nameSpace", index.getNameSpace())
+                .booleanProperty("sparse", index.isSparse())
+                .booleanProperty("unique", index.isUnique())
+                .booleanProperty("dropDuplicates", index.isDropDuplicates())
+                .toArray());
         sheet.put(set);
         return sheet;
     }
@@ -110,8 +110,8 @@ class IndexNode extends AbstractNode {
         public void actionPerformed(ActionEvent e) {
             DBCollection collection = getLookup().lookup(DBCollection.class);
             final Object dlgResult = DialogDisplayer.getDefault().notify(new NotifyDescriptor.Confirmation(
-                Bundle.dropIndexConfirmText(index.getName()),
-                NotifyDescriptor.YES_NO_OPTION));
+                    Bundle.dropIndexConfirmText(index.getName()),
+                    NotifyDescriptor.YES_NO_OPTION));
             if (dlgResult.equals(NotifyDescriptor.OK_OPTION)) {
                 collection.dropIndex(index.getName());
                 ((CollectionNode) getParentNode()).refreshChildren();
@@ -119,22 +119,4 @@ class IndexNode extends AbstractNode {
         }
     }
 
-    @AllArgsConstructor
-    static class ChildFactory extends RefreshableChildFactory<Index.Key> {
-
-        private final Lookup lookup;
-
-        private final Index index;
-
-        @Override
-        protected boolean createKeys(List<Index.Key> list) {
-            list.addAll(index.getKeys());
-            return true;
-        }
-
-        @Override
-        protected Node createNodeForKey(Index.Key indexKey) {
-            return new IndexKeyNode(indexKey, lookup);
-        }
-    }
 }
