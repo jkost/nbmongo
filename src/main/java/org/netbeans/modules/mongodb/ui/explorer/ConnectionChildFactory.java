@@ -35,7 +35,6 @@ final class ConnectionChildFactory extends RefreshableChildFactory<ConnectionInf
     private ConnectionInfo[] connections() {
         try {
             Preferences prefs = MongoServicesNode.prefs();
-            System.out.println("PREFS PATH: " + prefs.absolutePath());
             String[] kids = prefs.childrenNames();
             ConnectionInfo[] result = new ConnectionInfo[kids.length];
             for (int i = 0; i < kids.length; i++) {
