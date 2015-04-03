@@ -33,7 +33,7 @@
         <Component class="javax.swing.JButton" name="btnRun">
           <Properties>
             <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-              <Image iconType="3" name="/de/bfg9000/mongonb/ui/core/images/media-playback-start.png"/>
+              <Image iconType="3" name="/org/netbeans/modules/mongodb/images/media-playback-start.png"/>
             </Property>
             <Property name="focusable" type="boolean" value="false"/>
             <Property name="horizontalTextPosition" type="int" value="0"/>

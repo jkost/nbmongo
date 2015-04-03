@@ -52,7 +52,6 @@ import org.openide.filesystems.FileUtil;
 import org.openide.loaders.DataObject;
 import org.openide.text.CloneableEditorSupport;
 import org.openide.util.Lookup;
-import org.openide.util.NbBundle;
 import org.openide.util.NbBundle.Messages;
 import org.openide.windows.Mode;
 import org.openide.windows.TopComponent;
@@ -67,13 +66,13 @@ import org.openide.windows.WindowManager;
 @TopComponent.Registration(mode = "editor", openAtStartup = false)
 @Messages({
     "CTL_MapReduceTopComponent=MapReduce Window",
-    "HINT_MapReduceTopComponent=This is a MapReduce window"
+    "HINT_MapReduceTopComponent=This is a MapReduce window",
+    "# {0} - map reduce top component id",
+    "MapReduceTopComponent_title=MongoDB Map Reduce {0}"
 })
 public final class MapReduceTopComponent extends TopComponent implements QueryResultWorkerFactory, QueryResultPanelContainer {
 
     private static final long serialVersionUID = 1L;
-
-    private static final ResourceBundle bundle = NbBundle.getBundle(MapReduceTopComponent.class);
 
     private final QueryHistory queryHistory = new QueryHistory();
     
@@ -139,7 +138,7 @@ public final class MapReduceTopComponent extends TopComponent implements QueryRe
         tbToolBar.setRollover(true);
         tbToolBar.add(lblCollection);
 
-        btnRun.setIcon(new javax.swing.ImageIcon(getClass().getResource("/de/bfg9000/mongonb/ui/core/images/media-playback-start.png"))); // NOI18N
+        btnRun.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/netbeans/modules/mongodb/images/media-playback-start.png"))); // NOI18N
         btnRun.setFocusable(false);
         btnRun.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         btnRun.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
@@ -264,23 +263,20 @@ public final class MapReduceTopComponent extends TopComponent implements QueryRe
     }
 
     private void initWindowName() {
-        final String nameTemplate = bundle.getString("MapReduceTopComponent.name");
         final Mode editorMode = WindowManager.getDefault().findMode("editor");
         final TopComponent[] openedTopComponents = WindowManager.getDefault().getOpenedTopComponents(editorMode);
-
         String name = "";
         int counter = 0;
         boolean found = true;
         while(found) {
             found = false;
-            name = MessageFormat.format(nameTemplate, ++counter);
+            name = Bundle.MapReduceTopComponent_title(++ counter);
             for(TopComponent tc: openedTopComponents)
                 if(name.equals(tc.getName())) {
                     found = true;
                     break;
                 }
         }
-
         setName(name);
     }
 
