@@ -42,7 +42,7 @@ If you want to try the development version, as it's a Maven project built using 
 In NetBeans, install using Tools | Plugins on the Downloaded tab.
 
 
-License
+Licenses
 -------
- * GPLv2 license
- * MIT license
+ * GPLv2
+ * MIT
