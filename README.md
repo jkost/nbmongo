@@ -44,5 +44,5 @@ In NetBeans, install using Tools | Plugins on the Downloaded tab.
 
 License
 -------
-GPLv2 license
-MIT license
+ * GPLv2 license
+ * MIT license
