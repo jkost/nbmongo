@@ -23,14 +23,12 @@
  */
 package org.netbeans.modules.mongodb.ui.explorer;
 
+import com.mongodb.BasicDBObject;
 import org.netbeans.modules.mongodb.resources.Images;
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
 import com.mongodb.MongoException;
-import de.bfg9000.mongonb.core.CollectionStats;
-import de.bfg9000.mongonb.ui.core.actions.ManageIndexesAction;
-import de.bfg9000.mongonb.ui.core.actions.OpenMapReduceWindowAction;
-import java.awt.Image;
+import org.netbeans.modules.mongodb.ui.windows.MapReduceTopComponent;
 import org.netbeans.modules.mongodb.ui.util.TopComponentUtils;
 import java.awt.event.ActionEvent;
 import java.util.Arrays;
@@ -41,10 +39,15 @@ import java.util.Map;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import org.netbeans.modules.mongodb.CollectionInfo;
+import org.netbeans.modules.mongodb.CollectionStats;
+import org.netbeans.modules.mongodb.indexes.CreateIndexPanel;
+import org.netbeans.modules.mongodb.indexes.Index;
 import org.netbeans.modules.mongodb.native_tools.MongoNativeToolsAction;
+import org.netbeans.modules.mongodb.ui.actions.OpenMapReduceWindowAction;
 import org.netbeans.modules.mongodb.ui.util.CollectionNameValidator;
 import org.netbeans.modules.mongodb.ui.util.ValidatingInputLine;
 import org.netbeans.modules.mongodb.ui.windows.CollectionView;
+import org.netbeans.modules.mongodb.ui.windows.QueryResultPanelContainer;
 import org.netbeans.modules.mongodb.ui.wizards.ExportWizardAction;
 import org.netbeans.modules.mongodb.ui.wizards.ImportWizardAction;
 import org.netbeans.modules.mongodb.util.SystemCollectionPredicate;
@@ -72,11 +75,18 @@ import org.openide.windows.TopComponent;
 @Messages({
     "ACTION_DropCollection=Drop Collection",
     "ACTION_RenameCollection=Rename Collection",
+    "ACTION_ClearCollection=Clear Collection",
+    "ACTION_RefreshIndexes=Refresh Indexes",
+    "ACTION_CreateIndex=Create Index",
     "# {0} - collection name",
     "dropCollectionConfirmText=Permanently drop ''{0}'' collection?",
     "# {0} - collection name",
-    "renameCollectionText=rename ''{0}'' to:"})
+    "renameCollectionText=Rename ''{0}'' to:",
+    "# {0} - collection name",
+    "clearCollectionConfirmText=Remove all documents of ''{0}'' collection?"})
 final class CollectionNode extends AbstractNode {
+
+    private final IndexNodesFactory childFactory;
 
     private final CollectionInfo collection;
 
@@ -89,8 +99,13 @@ final class CollectionNode extends AbstractNode {
     }
 
     CollectionNode(final CollectionInfo collection, final InstanceContent content, final Lookup lookup) {
-        super(Children.LEAF, lookup);
+        this(collection, new IndexNodesFactory(lookup), content, lookup);
+    }
+
+    CollectionNode(final CollectionInfo collection, IndexNodesFactory childFactory, final InstanceContent content, final Lookup lookup) {
+        super(Children.create(childFactory, true), lookup);
         this.collection = collection;
+        this.childFactory = childFactory;
         content.add(collection);
         content.add(collection, new CollectionConverter());
         content.add(new OpenCookie() {
@@ -104,6 +119,9 @@ final class CollectionNode extends AbstractNode {
                 tc.requestActive();
             }
         });
+        setIconBaseWithExtension(SystemCollectionPredicate.get().eval(collection.getName())
+                ? Images.SYSTEM_COLLECTION_ICON_PATH
+                : Images.COLLECTION_ICON_PATH);
     }
 
     @Override
@@ -112,36 +130,28 @@ final class CollectionNode extends AbstractNode {
     }
 
     @Override
-    public Image getIcon(int ignored) {
-        if (SystemCollectionPredicate.get().eval(collection.getName())) {
-            return Images.SYSTEM_COLLECTION_ICON;
-        } else {
-            return Images.COLLECTION_ICON;
-        }
-    }
-
-    @Override
     protected Sheet createSheet() {
         Sheet sheet = Sheet.createDefault();
         Sheet.Set set = Sheet.createPropertiesSet();
         DBCollection col = getLookup().lookup(DBCollection.class);
         final CollectionStats stats = new CollectionStats(col.isCapped(), col.getStats());
-        
-        set.put(new CollectionStatsProperty("serverUsed", stats.getServerUsed()));
-        set.put(new CollectionStatsProperty("ns", stats.getNs()));
-        set.put(new CollectionStatsProperty("capped", stats.getCapped()));
-        set.put(new CollectionStatsProperty("count", stats.getCount()));
-        set.put(new CollectionStatsProperty("size", stats.getSize()));
-        set.put(new CollectionStatsProperty("storageSize", stats.getStorageSize()));
-        set.put(new CollectionStatsProperty("numExtents", stats.getNumExtents()));
-        set.put(new CollectionStatsProperty("nindexes", stats.getNindexes()));
-        set.put(new CollectionStatsProperty("lastExtentSize", stats.getLastExtentSize()));
-        set.put(new CollectionStatsProperty("paddingFactor", stats.getPaddingFactor()));
-        set.put(new CollectionStatsProperty("systemFlags", stats.getSystemFlags()));
-        set.put(new CollectionStatsProperty("userFlags", stats.getUserFlags()));
-        set.put(new CollectionStatsProperty("totalIndexSize", stats.getTotalIndexSize()));
-        set.put(new CollectionStatsProperty("ok", stats.getOk()));
-        
+        set.put(new LocalizedProperties(CollectionNode.class)
+                .stringProperty("serverUsed", stats.getServerUsed())
+                .stringProperty("serverUsed", stats.getServerUsed())
+                .stringProperty("ns", stats.getNs())
+                .stringProperty("capped", stats.getCapped())
+                .stringProperty("count", stats.getCount())
+                .stringProperty("size", stats.getSize())
+                .stringProperty("storageSize", stats.getStorageSize())
+                .stringProperty("numExtents", stats.getNumExtents())
+                .stringProperty("nindexes", stats.getNindexes())
+                .stringProperty("lastExtentSize", stats.getLastExtentSize())
+                .stringProperty("paddingFactor", stats.getPaddingFactor())
+                .stringProperty("systemFlags", stats.getSystemFlags())
+                .stringProperty("userFlags", stats.getUserFlags())
+                .stringProperty("totalIndexSize", stats.getTotalIndexSize())
+                .stringProperty("ok", stats.getOk())
+                .toArray());
         sheet.put(set);
         return sheet;
     }
@@ -154,17 +164,21 @@ final class CollectionNode extends AbstractNode {
         final Action importAction = new ImportWizardAction(getLookup(), properties);
         final Action renameAction = new RenameCollectionAction();
         final Action dropAction = new DropCollectionAction();
+        final Action clearAction = new ClearCollectionAction();
         if (SystemCollectionPredicate.get().eval(collection.getName())) {
             importAction.setEnabled(false);
             renameAction.setEnabled(false);
             dropAction.setEnabled(false);
+            clearAction.setEnabled(false);
         }
         final List<Action> actions = new LinkedList<>();
         actions.add(SystemAction.get(OpenAction.class));
         actions.add(new OpenMapReduceWindowAction(getLookup()));
         actions.add(null);
-        actions.add(new ManageIndexesAction(getLookup()));
+        actions.add(new RefreshChildrenAction(Bundle.ACTION_RefreshIndexes(), childFactory));
+        actions.add(new CreateIndexAction());
         actions.add(null);
+        actions.add(clearAction);
         actions.add(dropAction);
         actions.add(renameAction);
         actions.add(null);
@@ -173,7 +187,7 @@ final class CollectionNode extends AbstractNode {
         actions.add(new ExportWizardAction(getLookup(), properties));
         actions.add(importAction);
         final Action[] orig = super.getActions(ignored);
-        if(orig.length > 0) {
+        if (orig.length > 0) {
             actions.add(null);
         }
         actions.addAll(Arrays.asList(orig));
@@ -183,6 +197,10 @@ final class CollectionNode extends AbstractNode {
     @Override
     public Action getPreferredAction() {
         return SystemAction.get(OpenAction.class);
+    }
+
+    public void refreshChildren() {
+        childFactory.refresh();
     }
 
     private class CollectionConverter implements InstanceContent.Convertor<CollectionInfo, DBCollection> {
@@ -224,10 +242,9 @@ final class CollectionNode extends AbstractNode {
             if (dlgResult.equals(NotifyDescriptor.OK_OPTION)) {
                 try {
                     getLookup().lookup(DBCollection.class).drop();
-                    ((OneDbNode) getParentNode()).refreshChildren();
-                    final TopComponent tc = TopComponentUtils.find(CollectionView.class, ci);
-                    if (tc != null) {
-                        tc.close();
+                    ((DBNode) getParentNode()).refreshChildren();
+                    for (TopComponent topComponent : TopComponentUtils.findAll(ci, CollectionView.class, MapReduceTopComponent.class)) {
+                        topComponent.close();
                     }
                 } catch (MongoException ex) {
                     DialogDisplayer.getDefault().notify(
@@ -255,15 +272,22 @@ final class CollectionNode extends AbstractNode {
                 try {
                     final String name = input.getInputText().trim();
                     getLookup().lookup(DBCollection.class).rename(name);
-                    final OneDbNode parentNode = (OneDbNode) getParentNode();
+                    final DBNode parentNode = (DBNode) getParentNode();
                     parentNode.refreshChildren();
 
+                    CollectionNode node = (CollectionNode) parentNode.getChildren().findChild(name);
+                    Lookup lookup = node != null ? node.getLookup() : null;
                     final CollectionView view = TopComponentUtils.find(CollectionView.class, collection);
                     if (view != null) {
-                        final CollectionNode node = (CollectionNode) parentNode.getChildren().findChild(name);
-                        if (node != null) {
-                            view.setLookup(node.getLookup());
+                        if (lookup != null) {
+                            view.setLookup(lookup);
                             view.updateTitle();
+                        }
+                    }
+                    for (MapReduceTopComponent mapReduceComponent : TopComponentUtils.findAll(MapReduceTopComponent.class, collection)) {
+                        if (lookup != null) {
+                            mapReduceComponent.setLookup(lookup);
+                            mapReduceComponent.updateCollectionLabel();
                         }
                     }
                 } catch (MongoException ex) {
@@ -273,4 +297,66 @@ final class CollectionNode extends AbstractNode {
             }
         }
     }
+
+    public class ClearCollectionAction extends AbstractAction {
+
+        public ClearCollectionAction() {
+            super(Bundle.ACTION_ClearCollection());
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            final CollectionInfo ci = getLookup().lookup(CollectionInfo.class);
+            final Object dlgResult = DialogDisplayer.getDefault().notify(new NotifyDescriptor.Confirmation(
+                    Bundle.clearCollectionConfirmText(ci.getName()),
+                    NotifyDescriptor.YES_NO_OPTION));
+            if (dlgResult.equals(NotifyDescriptor.OK_OPTION)) {
+                try {
+                    getLookup().lookup(DBCollection.class).remove(new BasicDBObject());
+                    for (TopComponent topComponent : TopComponentUtils.findAll(ci, CollectionView.class, MapReduceTopComponent.class)) {
+                        ((QueryResultPanelContainer) topComponent).getResultPanel().refreshResults();
+
+                    }
+                } catch (MongoException ex) {
+                    DialogDisplayer.getDefault().notify(
+                            new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE));
+                }
+            }
+        }
+    }
+
+    public class CreateIndexAction extends AbstractAction {
+
+        public CreateIndexAction() {
+            super(Bundle.ACTION_CreateIndex());
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            Index index = CreateIndexPanel.showDialog();
+            if (index != null) {
+                DBCollection collection = getLookup().lookup(DBCollection.class);
+                final BasicDBObject keys = new BasicDBObject();
+                for (Index.Key key : index.getKeys()) {
+                    keys.append(key.getField(), key.getSort().getValue());
+                }
+                final BasicDBObject options = new BasicDBObject();
+                if (index.getName() != null) {
+                    options.append("name", index.getName());
+                }
+                if (index.isSparse()) {
+                    options.append("sparse", true);
+                }
+                if (index.isUnique()) {
+                    options.append("unique", true);
+                }
+                if (index.isDropDuplicates()) {
+                    options.append("dropDups", true);
+                }
+                collection.createIndex(keys, options);
+                refreshChildren();
+            }
+        }
+    }
+
 }

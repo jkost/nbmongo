@@ -1,27 +1,20 @@
-/*
- * The MIT License
+/* 
+ * Copyright (C) 2015 Yann D'Isanto
  *
- * Copyright 2014 Yann D'Isanto.
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-
 package org.netbeans.modules.mongodb.resources;
 
 import java.awt.Image;
@@ -92,6 +85,27 @@ public interface Images {
     @StaticResource
     String COLLAPSE_TREE_PATH = "org/netbeans/modules/mongodb/images/collapseTree.png"; //NOI18N
 
+    @StaticResource
+    String SORT_ASC_ICON_PATH = "org/netbeans/modules/mongodb/images/sort_asc.png"; //NOI18N
+
+    @StaticResource
+    String SORT_ASC_SMALL_ICON_PATH = "org/netbeans/modules/mongodb/images/sort_asc_small.png"; //NOI18N
+
+    @StaticResource
+    String SORT_DESC_ICON_PATH = "org/netbeans/modules/mongodb/images/sort_desc.png"; //NOI18N
+
+    @StaticResource
+    String SORT_DESC_SMALL_ICON_PATH = "org/netbeans/modules/mongodb/images/sort_desc_small.png"; //NOI18N
+
+    @StaticResource
+    String KEY_ICON_PATH = "org/netbeans/modules/mongodb/images/key.png"; //NOI18N
+
+    @StaticResource
+    String KEY_ADD_ICON_PATH = "org/netbeans/modules/mongodb/images/key_add.png"; //NOI18N
+
+    @StaticResource
+    String KEY_DELETE_ICON_PATH = "org/netbeans/modules/mongodb/images/key_delete.png"; //NOI18N
+
     Image COLLECTION_ICON = ImageUtilities.loadImage(COLLECTION_ICON_PATH);
 
     Image SYSTEM_COLLECTION_ICON = ImageUtilities.loadImage(SYSTEM_COLLECTION_ICON_PATH);
@@ -125,5 +139,19 @@ public interface Images {
     Image EXPAND_TREE_ICON = ImageUtilities.loadImage(EXPAND_TREE_PATH);
 
     Image COLLAPSE_TREE_ICON = ImageUtilities.loadImage(COLLAPSE_TREE_PATH);
+
+    Image SORT_ASC_ICON = ImageUtilities.loadImage(SORT_ASC_ICON_PATH);
+
+    Image SORT_ASC_SMALL_ICON = ImageUtilities.loadImage(SORT_ASC_SMALL_ICON_PATH);
+
+    Image SORT_DESC_ICON = ImageUtilities.loadImage(SORT_DESC_ICON_PATH);
+
+    Image SORT_DESC_SMALL_ICON = ImageUtilities.loadImage(SORT_DESC_SMALL_ICON_PATH);
+
+    Image KEY_ICON = ImageUtilities.loadImage(KEY_ICON_PATH);
+
+    Image KEY_ADD_ICON = ImageUtilities.loadImage(KEY_ADD_ICON_PATH);
+
+    Image KEY_DELETE_ICON = ImageUtilities.loadImage(KEY_DELETE_ICON_PATH);
 
 }

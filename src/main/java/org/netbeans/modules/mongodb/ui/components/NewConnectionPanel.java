@@ -31,11 +31,10 @@ import javax.swing.event.ChangeListener;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.JTextComponent;
+import org.netbeans.modules.mongodb.ui.util.ValidablePanel;
 import org.openide.DialogDescriptor;
 import org.openide.DialogDisplayer;
-import org.openide.NotificationLineSupport;
 import org.openide.NotifyDescriptor;
-import org.openide.util.ChangeSupport;
 import org.openide.util.NbBundle.Messages;
 
 /**
@@ -44,12 +43,10 @@ import org.openide.util.NbBundle.Messages;
  * @author Yann D'Isanto
  */
 @Messages("ConnectionNameNotSet=Specify the connection name")
-public class NewConnectionPanel extends javax.swing.JPanel implements DocumentListener, FocusListener {
+public class NewConnectionPanel extends ValidablePanel implements DocumentListener, FocusListener {
 
-    private final ChangeSupport supp = new ChangeSupport(this);
+    private static final long serialVersionUID = 1L;
 
-    private NotificationLineSupport notificationLineSupport;
-    
     private MongoClientURI lastValidURI;
 
     /**
@@ -58,17 +55,10 @@ public class NewConnectionPanel extends javax.swing.JPanel implements DocumentLi
     public NewConnectionPanel() {
         initComponents();
         nameField.addFocusListener(this);
+        nameField.getDocument().addDocumentListener(this);
         uriField.addFocusListener(this);
         uriField.getDocument().addDocumentListener(this);
         performValidation();
-    }
-
-    public void addChangeListener(ChangeListener listener) {
-        supp.addChangeListener(listener);
-    }
-
-    public void removeChangeListener(ChangeListener listener) {
-        supp.removeChangeListener(listener);
     }
 
     public String getConnectionName() {
@@ -93,42 +83,18 @@ public class NewConnectionPanel extends javax.swing.JPanel implements DocumentLi
     public void changedUpdate(DocumentEvent e) {
     }
 
-    private void performValidation() {
+    @Override
+    protected String computeValidationProblem() {
         final String name = getConnectionName();
         if (name.isEmpty()) {
-            setProblem(Bundle.ConnectionNameNotSet());
-            return;
+            return Bundle.ConnectionNameNotSet();
         }
         try {
             lastValidURI = new MongoClientURI(uriField.getText());
         } catch (IllegalArgumentException ex) {
-            setProblem(ex.getLocalizedMessage());
-            return;
+            return ex.getLocalizedMessage();
         }
-        setProblem(null);
-    }
-
-    private boolean ok = true;
-
-    private void setOk(boolean ok) {
-        if (ok != this.ok) {
-            this.ok = ok;
-            supp.fireChange();
-        }
-    }
-
-    public boolean isOk() {
-        return ok;
-    }
-
-    private void setProblem(String problem) {
-        if (problem == null) {
-            clearNotificationLineSupport();
-            setOk(true);
-        } else {
-            error(problem);
-            setOk(false);
-        }
+        return null;
     }
 
     @Override
@@ -139,38 +105,6 @@ public class NewConnectionPanel extends javax.swing.JPanel implements DocumentLi
     @Override
     public void focusLost(FocusEvent e) {
         // do nothing
-    }
-
-    public NotificationLineSupport getNotificationLineSupport() {
-        return notificationLineSupport;
-    }
-
-    public void setNotificationLineSupport(NotificationLineSupport notificationLineSupport) {
-        this.notificationLineSupport = notificationLineSupport;
-    }
-
-    private void clearNotificationLineSupport() {
-        if (notificationLineSupport != null) {
-            notificationLineSupport.clearMessages();
-        }
-    }
-
-    private void info(String message) {
-        if (notificationLineSupport != null) {
-            notificationLineSupport.setInformationMessage(message);
-        }
-    }
-
-    private void error(String message) {
-        if (notificationLineSupport != null) {
-            notificationLineSupport.setErrorMessage(message);
-        }
-    }
-
-    private void warn(String message) {
-        if (notificationLineSupport != null) {
-            notificationLineSupport.setWarningMessage(message);
-        }
     }
 
     /**
@@ -241,7 +175,7 @@ public class NewConnectionPanel extends javax.swing.JPanel implements DocumentLi
     }// </editor-fold>//GEN-END:initComponents
 
     private void openURIEditorButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_openURIEditorButtonActionPerformed
-        
+
         final MongoURIEditorPanel editor = new MongoURIEditorPanel(lastValidURI);
         final DialogDescriptor desc = new DialogDescriptor(editor, "Mongo URI Editor");
         editor.setNotificationLineSupport(desc.createNotificationLineSupport());
@@ -251,7 +185,7 @@ public class NewConnectionPanel extends javax.swing.JPanel implements DocumentLi
                 desc.setValid(editor.valid());
             }
         });
-        if(NotifyDescriptor.OK_OPTION.equals(DialogDisplayer.getDefault().notify(desc))) {
+        if (NotifyDescriptor.OK_OPTION.equals(DialogDisplayer.getDefault().notify(desc))) {
             uriField.setText(editor.getMongoURI().getURI());
         }
     }//GEN-LAST:event_openURIEditorButtonActionPerformed

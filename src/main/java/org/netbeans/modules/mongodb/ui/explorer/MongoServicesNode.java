@@ -25,10 +25,8 @@ package org.netbeans.modules.mongodb.ui.explorer;
 
 import org.netbeans.modules.mongodb.resources.Images;
 import org.netbeans.modules.mongodb.ui.components.NewConnectionPanel;
-import com.mongodb.DBTCPConnector;
 import com.mongodb.MongoClientURI;
 import java.awt.event.ActionEvent;
-import java.lang.reflect.Field;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
 import javax.swing.AbstractAction;
@@ -56,13 +54,13 @@ import org.openide.util.NbPreferences;
 @Messages("MongoNodeName=Mongo DB")
 public final class MongoServicesNode extends AbstractNode {
 
-    private final ConnectionChildFactory factory;
+    private final ConnectionNodesFactory factory;
 
     public MongoServicesNode() {
-        this(new ConnectionChildFactory());
+        this(new ConnectionNodesFactory());
     }
 
-    MongoServicesNode(ConnectionChildFactory factory) {
+    MongoServicesNode(ConnectionNodesFactory factory) {
         super(Children.create(factory, false));
         this.factory = factory;
         setDisplayName(Bundle.MongoNodeName());
@@ -74,25 +72,9 @@ public final class MongoServicesNode extends AbstractNode {
         // popup dialog.  Try to crank down the volume.
         Logger mongoLogger = Logger.getLogger("com.mongodb");
         mongoLogger.setUseParentHandlers(false);
-        Class<DBTCPConnector> c = DBTCPConnector.class;
-        try {
-            Field field = c.getDeclaredField("_logger");
-            field.setAccessible(true);
-            Logger lggr = (Logger) field.get(null);
-            System.out.println("IT IS THE SAME? " + (lggr == mongoLogger));
-            mongoLogger = lggr;
-            if (mongoLogger != null) {
-                mongoLogger.setUseParentHandlers(false);
-            }
-        } catch (NoSuchFieldException 
-            | SecurityException 
-            | IllegalArgumentException 
-            | IllegalAccessException ex) {
-            ex.printStackTrace();
-        }
     }
 
-    ConnectionChildFactory getChildrenFactory() {
+    ConnectionNodesFactory getChildrenFactory() {
         return factory;
     }
 
@@ -125,7 +107,7 @@ public final class MongoServicesNode extends AbstractNode {
             panel.addChangeListener(new ChangeListener() {
                 @Override
                 public void stateChanged(ChangeEvent e) {
-                    desc.setValid(panel.isOk());
+                    desc.setValid(panel.isValidationSuccess());
                 }
             });
             if (NotifyDescriptor.OK_OPTION.equals(DialogDisplayer.getDefault().notify(desc))) {

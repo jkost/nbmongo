@@ -12,6 +12,10 @@
 
     <licenses>
         <license>
+            <name>General Public License 2.0</name>
+            <url>http://opensource.org/licenses/GPL-2.0</url>
+        </license>
+        <license>
             <name>MIT License</name>
             <url>http://www.opensource.org/licenses/mit-license.php</url>
         </license>

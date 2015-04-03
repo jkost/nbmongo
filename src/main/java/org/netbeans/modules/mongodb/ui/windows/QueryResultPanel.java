@@ -1,33 +1,28 @@
-/*
- * The MIT License
+/* 
+ * Copyright (C) 2015 Yann D'Isanto
  *
- * Copyright 2015 Yann D'Isanto.
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 package org.netbeans.modules.mongodb.ui.windows;
 
 import com.mongodb.DBObject;
-import de.bfg9000.mongonb.ui.core.windows.QueryResultWorker;
-import de.bfg9000.mongonb.ui.core.windows.ResultCache;
-import de.bfg9000.mongonb.ui.core.windows.ResultDisplayer;
-import de.bfg9000.mongonb.ui.core.windows.ResultPages;
+import com.mongodb.util.JSON;
+import org.netbeans.modules.mongodb.ui.QueryResultWorker;
+import org.netbeans.modules.mongodb.ui.ResultCache;
+import org.netbeans.modules.mongodb.ui.ResultDisplayer;
+import org.netbeans.modules.mongodb.ui.ResultPages;
 import java.awt.CardLayout;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
@@ -66,7 +61,9 @@ import org.netbeans.modules.mongodb.resources.Images;
 import org.netbeans.modules.mongodb.ui.util.IntegerDocumentFilter;
 import org.netbeans.modules.mongodb.ui.actions.CopyDocumentToClipboardAction;
 import org.netbeans.modules.mongodb.ui.actions.CopyKeyToClipboardAction;
+import org.netbeans.modules.mongodb.ui.actions.CopyKeyValuePairToClipboardAction;
 import org.netbeans.modules.mongodb.ui.actions.CopyValueToClipboardAction;
+import org.netbeans.modules.mongodb.ui.util.JsonEditor;
 import org.netbeans.modules.mongodb.ui.windows.queryresultpanel.actions.AddDocumentAction;
 import org.netbeans.modules.mongodb.ui.windows.queryresultpanel.actions.ChangeResultViewAction;
 import org.netbeans.modules.mongodb.ui.windows.queryresultpanel.actions.CollapseAllDocumentsAction;
@@ -95,12 +92,16 @@ import org.netbeans.modules.mongodb.util.JsonProperty;
 import org.openide.awt.NotificationDisplayer;
 import org.openide.util.Exceptions;
 import org.openide.util.Lookup;
+import org.openide.util.NbBundle.Messages;
 import org.openide.util.NbPreferences;
 
 /**
  *
  * @author Yann D'Isanto
  */
+@Messages({
+    "displayDocumentTitle=Display document"
+})
 public final class QueryResultPanel extends javax.swing.JPanel implements ResultDisplayer {
 
     private static final long serialVersionUID = 1L;
@@ -132,7 +133,7 @@ public final class QueryResultPanel extends javax.swing.JPanel implements Result
     @Getter
     @Setter
     private ResultCache resultCache = ResultCache.EMPTY;
-
+    
     @Getter
     private final boolean readOnly;
 
@@ -164,6 +165,11 @@ public final class QueryResultPanel extends javax.swing.JPanel implements Result
                 updatePagination();
                 updateDocumentButtonsState();
             }
+
+            @Override
+            public void pageObjectUpdated(int index, DBObject oldValue, DBObject newValue) {
+            }
+            
         };
         getTreeTablePages().addResultPagesListener(pagesListener);
 
@@ -229,31 +235,31 @@ public final class QueryResultPanel extends javax.swing.JPanel implements Result
                 if (e.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(e)) {
                     final TreePath path = resultTreeTable.getPathForLocation(e.getX(), e.getY());
                     final TreeTableNode node = (TreeTableNode) path.getLastPathComponent();
-                    if (readOnly) {
-                        if (node.isLeaf() == false) {
-                            if (resultTreeTable.isCollapsed(path)) {
-                                resultTreeTable.expandPath(path);
-                            } else {
-                                resultTreeTable.collapsePath(path);
-                            }
-                        }
-                    } else if ((e.getModifiersEx() & MouseEvent.CTRL_DOWN_MASK) == MouseEvent.CTRL_DOWN_MASK) {
-                        displayDocumentEditionShortcutHint = false;
+
+                    if ((e.getModifiersEx() & MouseEvent.CTRL_DOWN_MASK) == MouseEvent.CTRL_DOWN_MASK) {
                         final DocumentNode documentNode = (DocumentNode) path.getPathComponent(1);
-                        editDocumentAction.setDocument(documentNode.getUserObject());
-                        editDocumentAction.actionPerformed(null);
+                        if (readOnly) {
+                            JsonEditor.showReadOnly(
+                                Bundle.displayDocumentTitle(),
+                                JSON.serialize(documentNode.getUserObject()));
+                        } else {
+                            editDocumentAction.setDocument(documentNode.getUserObject());
+                            editDocumentAction.actionPerformed(null);
+                        }
                     } else {
                         if (node.isLeaf()) {
-                            dislayDocumentEditionShortcutHintIfNecessary();
-                            if (node instanceof JsonPropertyNode) {
-                                JsonPropertyNode propertyNode = (JsonPropertyNode) node;
-                                if (!(propertyNode.getUserObject().getValue() instanceof ObjectId)) {
-                                    editJsonPropertyNodeAction.setPropertyNode(propertyNode);
-                                    editJsonPropertyNodeAction.actionPerformed(null);
+                            if (readOnly == false) {
+                                dislayDocumentEditionShortcutHintIfNecessary();
+                                if (node instanceof JsonPropertyNode) {
+                                    JsonPropertyNode propertyNode = (JsonPropertyNode) node;
+                                    if (!(propertyNode.getUserObject().getValue() instanceof ObjectId)) {
+                                        editJsonPropertyNodeAction.setPropertyNode(propertyNode);
+                                        editJsonPropertyNodeAction.actionPerformed(null);
+                                    }
+                                } else if (node instanceof JsonValueNode) {
+                                    editJsonValueNodeAction.setValueNode((JsonValueNode) node);
+                                    editJsonValueNodeAction.actionPerformed(null);
                                 }
-                            } else if (node instanceof JsonValueNode) {
-                                editJsonValueNodeAction.setValueNode((JsonValueNode) node);
-                                editJsonValueNodeAction.actionPerformed(null);
                             }
                         } else {
                             if (resultTreeTable.isCollapsed(path)) {
@@ -303,12 +309,14 @@ public final class QueryResultPanel extends javax.swing.JPanel implements Result
             }
 
         });
+        updatePagination();
+        updateDocumentButtonsState();
     }
 
     public void refreshResults() {
         QueryResultWorker worker = queryResultWorkerFactory.createWorker();
-        worker.setResultDisplayer(this);
         worker.execute();
+        worker.setResultDisplayer(this);
     }
 
     @Override
@@ -384,9 +392,10 @@ public final class QueryResultPanel extends javax.swing.JPanel implements Result
             @Override
             public void run() {
                 ResultPages pages = getResultPages();
+                int documentCount = pages.getTotalElementsCount();
                 totalDocumentsLabel.setText(
-                    Bundle.totalDocuments(pages.getTotalElementsCount()));
-                int page = pages.getPageIndex();
+                    Bundle.totalDocuments(documentCount));
+                int page = documentCount == 0 ? 0 : pages.getPageIndex();
                 int pageCount = pages.getPageCount();
                 pageCountLabel.setText(Bundle.pageCountLabel(page, pageCount));
                 navFirstAction.setEnabled(pages.canMoveBackward());
@@ -500,7 +509,6 @@ public final class QueryResultPanel extends javax.swing.JPanel implements Result
         documentsToolBar.add(addButton);
 
         deleteButton.setAction(getDeleteSelectedDocumentAction());
-        deleteButton.setEnabled(false);
         deleteButton.setFocusable(false);
         deleteButton.setHideActionText(true);
         deleteButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
@@ -508,7 +516,6 @@ public final class QueryResultPanel extends javax.swing.JPanel implements Result
         documentsToolBar.add(deleteButton);
 
         editButton.setAction(getEditSelectedDocumentAction());
-        editButton.setEnabled(false);
         editButton.setFocusable(false);
         editButton.setHideActionText(true);
         editButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
@@ -700,6 +707,7 @@ public final class QueryResultPanel extends javax.swing.JPanel implements Result
                 if (node instanceof JsonPropertyNode) {
                     JsonPropertyNode propertyNode = (JsonPropertyNode) node;
                     JsonProperty property = propertyNode.getUserObject();
+                    menu.add(new JMenuItem(new CopyKeyValuePairToClipboardAction(property)));
                     menu.add(new JMenuItem(new CopyKeyToClipboardAction(property)));
                     menu.add(new JMenuItem(new CopyValueToClipboardAction(property.getValue())));
                     if (isQuickEditableJsonValue(property.getValue())) {
@@ -735,6 +743,7 @@ public final class QueryResultPanel extends javax.swing.JPanel implements Result
         final JsonProperty property = new JsonProperty(
             model.getColumnName(column),
             model.getValueAt(row, column));
+        menu.add(new JMenuItem(new CopyKeyValuePairToClipboardAction(property)));
         menu.add(new JMenuItem(new CopyKeyToClipboardAction(property)));
         menu.add(new JMenuItem(new CopyValueToClipboardAction(property.getValue())));
         if (readOnly == false) {
