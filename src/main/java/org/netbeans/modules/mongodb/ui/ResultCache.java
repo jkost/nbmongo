@@ -15,10 +15,10 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-package de.bfg9000.mongonb.ui.core.windows;
+package org.netbeans.modules.mongodb.ui;
 
 import com.mongodb.DBObject;
-import de.bfg9000.mongonb.core.QueryResult;
+import org.netbeans.modules.mongodb.QueryResult;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.Getter;

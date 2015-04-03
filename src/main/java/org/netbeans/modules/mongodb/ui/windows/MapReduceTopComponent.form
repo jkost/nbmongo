@@ -139,7 +139,7 @@
                     <Component class="javax.swing.JLabel" name="lblMap">
                       <Properties>
                         <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-                          <ResourceString bundle="de/bfg9000/mongonb/ui/core/windows/Bundle.properties" key="MapReduceTopComponent.lblMap.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
+                          <ResourceString bundle="org/netbeans/modules/mongodb/ui/windows/Bundle.properties" key="MapReduceTopComponent.lblMap.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
                         </Property>
                       </Properties>
                       <Constraints>
@@ -181,7 +181,7 @@
                     <Component class="javax.swing.JLabel" name="lblReduce">
                       <Properties>
                         <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-                          <ResourceString bundle="de/bfg9000/mongonb/ui/core/windows/Bundle.properties" key="MapReduceTopComponent.lblReduce.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
+                          <ResourceString bundle="org/netbeans/modules/mongodb/ui/windows/Bundle.properties" key="MapReduceTopComponent.lblReduce.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
                         </Property>
                       </Properties>
                       <Constraints>

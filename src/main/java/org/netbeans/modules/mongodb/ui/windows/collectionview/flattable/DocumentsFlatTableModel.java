@@ -18,8 +18,8 @@
 package org.netbeans.modules.mongodb.ui.windows.collectionview.flattable;
 
 import com.mongodb.DBObject;
-import de.bfg9000.mongonb.ui.core.windows.ResultDisplayer;
-import de.bfg9000.mongonb.ui.core.windows.ResultPages;
+import org.netbeans.modules.mongodb.ui.ResultDisplayer;
+import org.netbeans.modules.mongodb.ui.ResultPages;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;

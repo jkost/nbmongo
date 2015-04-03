@@ -15,20 +15,10 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-package de.bfg9000.mongonb.ui.core.windows;
+@Messages({
+    "yes=yes",
+    "no=no"
+})
+package org.netbeans.modules.mongodb;
 
-/**
- *
- * @author Yann D'Isanto
- */
-public interface ResultDisplayer {
-    
-    void updateData(ResultCache resultCache, boolean isReloadable);
-    
-    public static interface View {
-        
-        void refreshIfNecessary(boolean force);
-        
-        ResultPages getPages();
-    }
-}
+import org.openide.util.NbBundle.Messages;

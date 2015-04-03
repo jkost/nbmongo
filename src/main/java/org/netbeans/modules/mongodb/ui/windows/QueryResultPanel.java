@@ -19,10 +19,10 @@ package org.netbeans.modules.mongodb.ui.windows;
 
 import com.mongodb.DBObject;
 import com.mongodb.util.JSON;
-import de.bfg9000.mongonb.ui.core.windows.QueryResultWorker;
-import de.bfg9000.mongonb.ui.core.windows.ResultCache;
-import de.bfg9000.mongonb.ui.core.windows.ResultDisplayer;
-import de.bfg9000.mongonb.ui.core.windows.ResultPages;
+import org.netbeans.modules.mongodb.ui.QueryResultWorker;
+import org.netbeans.modules.mongodb.ui.ResultCache;
+import org.netbeans.modules.mongodb.ui.ResultDisplayer;
+import org.netbeans.modules.mongodb.ui.ResultPages;
 import java.awt.CardLayout;
 import java.awt.Font;
 import java.awt.event.ActionEvent;

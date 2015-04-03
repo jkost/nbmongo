@@ -15,8 +15,10 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-package de.bfg9000.mongonb.ui.core.windows;
+package org.netbeans.modules.mongodb.ui.windows;
 
+import org.netbeans.modules.mongodb.ui.MapReduceWorker;
+import org.netbeans.modules.mongodb.ui.QueryResultWorker;
 import com.mongodb.DBCollection;
 import java.awt.BorderLayout;
 import java.awt.Component;
@@ -43,9 +45,8 @@ import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.netbeans.api.editor.DialogBinding;
 import org.netbeans.modules.mongodb.CollectionInfo;
 import org.netbeans.modules.mongodb.DbInfo;
-import org.netbeans.modules.mongodb.ui.windows.QueryResultPanel;
+import org.netbeans.modules.mongodb.ui.QueryHistory;
 import org.netbeans.modules.mongodb.ui.windows.QueryResultPanel.QueryResultWorkerFactory;
-import org.netbeans.modules.mongodb.ui.windows.QueryResultPanelContainer;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
 import org.openide.loaders.DataObject;

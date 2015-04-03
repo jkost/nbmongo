@@ -15,7 +15,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-package de.bfg9000.mongonb.ui.core.windows;
+package org.netbeans.modules.mongodb.ui;
 
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
@@ -30,7 +30,7 @@ import java.util.List;
  *
  * @author thomaswerner35
  */
-class QueryHistory {
+public class QueryHistory {
 
     public static final String PROPERTY_ITEMS = "items";
 
@@ -39,7 +39,7 @@ class QueryHistory {
     /**
      * Interface with no special methods. It's used just to provide a common base type.
      */
-    interface QueryHistoryItem {
+    public interface QueryHistoryItem {
         @Override
         String toString();
     }

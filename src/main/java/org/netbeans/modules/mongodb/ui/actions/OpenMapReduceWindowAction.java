@@ -15,14 +15,12 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-package de.bfg9000.mongonb.ui.core.actions;
+package org.netbeans.modules.mongodb.ui.actions;
 
-import de.bfg9000.mongonb.ui.core.windows.MapReduceTopComponent;
+import org.netbeans.modules.mongodb.ui.windows.MapReduceTopComponent;
 import java.awt.event.ActionEvent;
-import java.util.ResourceBundle;
 import javax.swing.AbstractAction;
 import org.openide.util.Lookup;
-import org.openide.util.NbBundle;
 import org.openide.util.NbBundle.Messages;
 
 /**
@@ -37,8 +35,6 @@ public class OpenMapReduceWindowAction extends AbstractAction {
 
     private static final long serialVersionUID = 1L;
     
-    private static final ResourceBundle bundle = NbBundle.getBundle(OpenMapReduceWindowAction.class);
-
     private final Lookup lookup;
     
     public OpenMapReduceWindowAction(Lookup lookup) {

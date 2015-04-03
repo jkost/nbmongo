@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2015 Thomas Werner
+ * Copyright (C) 2015 Yann D'Isanto
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -15,15 +15,20 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-package de.bfg9000.mongonb.core;
+package org.netbeans.modules.mongodb.ui;
 
 /**
- * Can execute a query and update the UI.
  *
- * @author thomaswerner35
+ * @author Yann D'Isanto
  */
-public interface QueryExecutor {
-
-    void execute();
-
+public interface ResultDisplayer {
+    
+    void updateData(ResultCache resultCache, boolean isReloadable);
+    
+    public static interface View {
+        
+        void refreshIfNecessary(boolean force);
+        
+        ResultPages getPages();
+    }
 }

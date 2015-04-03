@@ -15,11 +15,11 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-package de.bfg9000.mongonb.ui.core.windows;
+package org.netbeans.modules.mongodb.ui;
 
-import de.bfg9000.mongonb.core.MongoExceptionUnwrapper;
-import de.bfg9000.mongonb.core.QueryExecutor;
-import de.bfg9000.mongonb.core.QueryResult;
+import org.netbeans.modules.mongodb.MongoExceptionUnwrapper;
+import org.netbeans.modules.mongodb.QueryExecutor;
+import org.netbeans.modules.mongodb.QueryResult;
 import java.text.NumberFormat;
 import javax.swing.SwingWorker;
 import org.openide.util.NbBundle.Messages;
