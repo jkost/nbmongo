@@ -4,32 +4,28 @@ NetBeans MongoDB
 A [NetBeans](http://netbeans.org) plugin for accessing [MongoDB](http://mongodb.org). It adds
 a node to the Services tab. Right click it to add connections.
 
-Current release: [8.0.2](https://github.com/le-yams/netbeans-mongodb/releases/tag/nbmongo-8.0.2)
+Current release: [8.1.0](https://github.com/le-yams/netbeans-mongodb/releases/tag/nbmongo-8.1.0)
 
 Main features
 -------------
 
  * Connect to MongoDB using mongo standard uri
  * Browse/Create/Drop databases
- * Browse/Create/Rename/Delete collections
+ * Browse/Create/Rename/Clear/Delete collections
+ * Manage collections indexes
  * Query documents (json criteria/projection/sort can be specified)
+ * Perform Map/Reduce
  * Add/Edit/Delete documents as json
  * Import/Export json
  * Use some mongo [native tools](https://github.com/le-yams/netbeans-mongodb/wiki/MongoNativeTools) as mongo shell, mongodump, mongorestore, etc. (mongo bin folder path must be configured in options)
 
 See [release notes](https://github.com/le-yams/netbeans-mongodb/wiki/ReleaseNotes) for more informations.
 
-![NetBeans MongoDB Plugin Screen Shot](https://raw.githubusercontent.com/le-yams/netbeans-mongodb/master/screenshots/screenshot-medium-1.png "NetBeans MongoDB Plugin Screen Shot")
+![NBMongo explorer](https://raw.githubusercontent.com/le-yams/netbeans-mongodb/master/screenshots/screen-explorer.png "NBMongo explorer")
 
+![NBMongo result tree](https://raw.githubusercontent.com/le-yams/netbeans-mongodb/master/screenshots/screen-query-result-tree.png "NBMongo result tree")
 
-Upcoming Features
------------------
-
- * Indexes management
- * Map reduce top component
- * Clear collection action
- * Copy key/value pair action for a document
- * bugfixes
+![NBMongo map reduce](https://raw.githubusercontent.com/le-yams/netbeans-mongodb/master/screenshots/screen-mapreduce.png "NBMongo map reduce")
 
 Get and Install
 ---------------
