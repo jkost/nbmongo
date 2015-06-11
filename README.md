@@ -7,16 +7,21 @@ a node to the Services tab. Right click it to add connections.
 Available main features:
  * Connect to MongoDB using mongo standard uri
  * Browse/Create/Drop databases
- * Browse/Create/Rename/Delete collections
+ * Browse/Create/Rename/Clear/Delete collections
+ * Manage collections indexes
  * Query documents (json criteria/projection/sort can be specified)
+ * Perform Map/Reduce
  * Add/Edit/Delete documents as json
  * Import/Export json
  * Use some mongo [native tools](https://github.com/le-yams/netbeans-mongodb/wiki/MongoNativeTools) as mongo shell, mongodump, mongorestore, etc. (mongo bin folder path must be configured in options)
 
 See [release notes](https://github.com/le-yams/netbeans-mongodb/wiki/ReleaseNotes) for more informations.
 
-![NetBeans MongoDB Plugin Screen Shot](https://raw.githubusercontent.com/le-yams/netbeans-mongodb/master/screenshots/screenshot-medium-1.png "NetBeans MongoDB Plugin Screen Shot")
+![NBMongo explorer](https://raw.githubusercontent.com/le-yams/netbeans-mongodb/master/screenshots/screen-explorer.png "NBMongo explorer")
 
+![NBMongo result tree](https://raw.githubusercontent.com/le-yams/netbeans-mongodb/master/screenshots/screen-query-result-tree.png "NBMongo result tree")
+
+![NBMongo map reduce](https://raw.githubusercontent.com/le-yams/netbeans-mongodb/master/screenshots/screen-mapreduce.png "NBMongo map reduce")
 
 Get and Install
 ---------------
@@ -29,6 +34,7 @@ If you want to try the development version, as it's a Maven project built using 
 In NetBeans, install using Tools | Plugins on the Downloaded tab.
 
 
-License
--------
+Licenses
+--------
+GPL v2
 MIT license
