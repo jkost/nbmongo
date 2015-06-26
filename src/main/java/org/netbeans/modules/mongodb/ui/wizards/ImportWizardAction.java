@@ -17,7 +17,7 @@
  */
 package org.netbeans.modules.mongodb.ui.wizards;
 
-import com.mongodb.DB;
+import com.mongodb.client.MongoDatabase;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.io.File;
@@ -73,7 +73,7 @@ public final class ImportWizardAction extends AbstractAction {
     @Override
     public void actionPerformed(ActionEvent e) {
         List<WizardDescriptor.Panel<WizardDescriptor>> panels = new ArrayList<>();
-        panels.add(new ImportWizardPanel1(lookup.lookup(DB.class)));
+        panels.add(new ImportWizardPanel1(lookup.lookup(MongoDatabase.class)));
         String[] steps = new String[panels.size()];
         for (int i = 0; i < panels.size(); i++) {
             Component c = panels.get(i).getComponent();
@@ -104,7 +104,7 @@ public final class ImportWizardAction extends AbstractAction {
                 .encoding((Charset) wiz.getProperty(PROP_ENCODING))
                 .build();
             new ImportTask(
-                new Importer(lookup.lookup(DB.class), properties, onDone))
+                new Importer(lookup.lookup(MongoDatabase.class), properties, onDone))
                 .run();
         }
     }

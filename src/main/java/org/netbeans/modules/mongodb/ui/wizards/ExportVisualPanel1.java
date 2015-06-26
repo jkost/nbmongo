@@ -17,8 +17,8 @@
  */
 package org.netbeans.modules.mongodb.ui.wizards;
 
-import com.mongodb.DB;
 import com.mongodb.DBObject;
+import com.mongodb.client.MongoDatabase;
 import com.mongodb.util.JSON;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -36,9 +36,9 @@ public final class ExportVisualPanel1 extends JPanel {
 
     private final QueryEditor queryEditor = new QueryEditor();
 
-    public ExportVisualPanel1(DB db) {
+    public ExportVisualPanel1(MongoDatabase db) {
         initComponents();
-        for (String collection : db.getCollectionNames()) {
+        for (String collection : db.listCollectionNames()) {
             collectionComboBox.addItem(collection);
         }
         collectionComboBox.addActionListener(new ActionListener() {

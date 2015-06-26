@@ -23,9 +23,9 @@
  */
 package org.netbeans.modules.mongodb.ui.explorer;
 
-import com.mongodb.DB;
 import com.mongodb.MongoSocketException;
-import java.util.LinkedList;
+import com.mongodb.client.MongoDatabase;
+import java.util.Collections;
 import java.util.List;
 import org.netbeans.modules.mongodb.CollectionInfo;
 import org.netbeans.modules.mongodb.DbInfo;
@@ -49,14 +49,14 @@ class CollectionNodesFactory extends RefreshableChildFactory<CollectionInfo> {
         MongoConnection connection = lookup.lookup(MongoConnection.class);
         DbInfo info = lookup.lookup(DbInfo.class);
         try {
-            final DB db = connection.getClient().getDB(info.getDbName());
-            List<String> names = new LinkedList<>(db.getCollectionNames());
-            for (String name : names) {
+            final MongoDatabase db = connection.getClient().getDatabase(info.getDbName());
+            for (String name : db.listCollectionNames()) {
                 list.add(new CollectionInfo(name, lookup));
             }
         } catch (MongoSocketException ex) {
             lookup.lookup(MongoConnection.class).disconnect();
         }
+        Collections.sort(list);
         return true;
     }
 

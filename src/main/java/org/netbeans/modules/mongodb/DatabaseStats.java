@@ -22,6 +22,7 @@ import com.mongodb.DBObject;
 import java.text.NumberFormat;
 import lombok.Getter;
 import lombok.ToString;
+import org.bson.Document;
 
 /**
  * Wrapps the output of the dbStats mongodb server command.
@@ -46,7 +47,8 @@ public class DatabaseStats {
     @Getter private final String dataFileVersion;
     @Getter private final String ok;
 
-    public DatabaseStats(CommandResult stats) {
+    public DatabaseStats(Document stats) {
+//    public DatabaseStats(CommandResult stats) {
         if(null == stats) {
             serverUsed = "";
             db = "";
@@ -82,12 +84,14 @@ public class DatabaseStats {
         }
     }
 
-    private String getIntegerValue(CommandResult stats, String key) {
+    private String getIntegerValue(Document stats, String key) {
+//    private String getIntegerValue(CommandResult stats, String key) {
         return stats.get(key) instanceof Number ?
                NumberFormat.getIntegerInstance().format(((Number) stats.get(key)).doubleValue()) : "";
     }
 
-    private String getNumberValue(CommandResult stats, String key) {
+    private String getNumberValue(Document stats, String key) {
+//    private String getNumberValue(CommandResult stats, String key) {
         return stats.get(key) instanceof Number ?
                NumberFormat.getNumberInstance().format(((Number) stats.get(key)).doubleValue()) : "";
     }
