@@ -18,6 +18,7 @@
 package org.netbeans.modules.mongodb.ui.windows.collectionview.treetable;
 
 import com.mongodb.DBObject;
+import java.util.List;
 import java.util.Map;
 import org.netbeans.modules.mongodb.util.JsonProperty;
 
@@ -34,5 +35,46 @@ public class DBObjectNode extends CollectionViewTreeTableNode<DBObject> {
         for (Map.Entry<String, Object> entry : map.entrySet()) {
             add(new JsonPropertyNode(new JsonProperty(entry.getKey(), entry.getValue())));
         }
+    }
+
+    @Override
+    public DBObject getValue() {
+        return getUserObject();
+    }
+
+    @Override
+    public List<Object> getArrayValue() {
+        throw new IllegalArgumentException("not an array");
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public Map<String, Object> getObjectValue() {
+        return getValue().toMap();
+    }
+
+    @Override
+    public boolean isArrayValue() {
+        return false;
+    }
+
+    @Override
+    public boolean isNullValue() {
+        return false;
+    }
+
+    @Override
+    public boolean isObjectValue() {
+        return true;
+    }
+
+    @Override
+    public boolean isNotNullValue() {
+        return true;
+    }
+
+    @Override
+    public boolean isSimpleValue() {
+        return false;
     }
 }

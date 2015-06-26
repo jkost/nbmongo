@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2015 Yann D'Isanto
  *
  * This program is free software; you can redistribute it and/or
@@ -17,30 +17,44 @@
  */
 package org.netbeans.modules.mongodb.ui.windows.collectionview.treetable;
 
-import org.jdesktop.swingx.treetable.DefaultMutableTreeTableNode;
+import java.util.List;
+import java.util.Map;
 
 /**
  *
  * @author Yann D'Isanto
  */
-public abstract class CollectionViewTreeTableNode<T> extends DefaultMutableTreeTableNode implements JsonNode {
+public interface JsonNode {
     
-    public CollectionViewTreeTableNode(T userObject) {
-        super(userObject);
-    }
+    Object getValue();
     
-    public CollectionViewTreeTableNode(T userObject, boolean allowsChildren) {
-        super(userObject, allowsChildren);
-    }
+    List<Object> getArrayValue();
+    
+    Map<String, Object> getObjectValue();
+    
+    /**
+     * @return true if this node value is a json array
+     */
+    boolean isArrayValue();
 
-    @Override
-    @SuppressWarnings("unchecked")
-    public T getUserObject() {
-        return (T) super.getUserObject();
-    }
+    /**
+     * @return true if this node value is not null
+     */
+    boolean isNotNullValue();
+
+    /**
+     * @return true if this node value is null
+     */
+    boolean isNullValue();
+
+    /**
+     * @return true if this node value is a json object
+     */
+    boolean isObjectValue();
     
-    @Override
-    public boolean isEditable(int column) {
-        return false;
-    }    
+    /**
+     * @return true if this node value is a json simple value (boolean, string, numeric)
+     */
+    boolean isSimpleValue();
+    
 }

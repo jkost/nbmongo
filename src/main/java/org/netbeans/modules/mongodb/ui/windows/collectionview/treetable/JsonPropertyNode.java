@@ -28,18 +28,21 @@ import org.netbeans.modules.mongodb.util.JsonProperty;
  */
 public final class JsonPropertyNode extends CollectionViewTreeTableNode<JsonProperty> {
 
+    private final boolean arrayValue;
+
+    private final boolean objectValue;
+    
     @SuppressWarnings("unchecked")
     public JsonPropertyNode(JsonProperty property) {
         super(property);
-        final Object value = property.getValue();
-        if (value instanceof Map) {
-            final Map<String, Object> map = (Map<String, Object>) value;
-            for (Map.Entry<String, Object> entry : map.entrySet()) {
+        arrayValue = getValue() instanceof List;
+        objectValue = getValue() instanceof Map;
+        if (objectValue) {
+            for (Map.Entry<String, Object> entry : getObjectValue().entrySet()) {
                 add(new JsonPropertyNode(new JsonProperty(entry.getKey(), entry.getValue())));
             }
-        } else if (value instanceof List) {
-            final List<Object> objects = (List<Object>) value;
-            for (Object object : objects) {
+        } else if (arrayValue) {
+            for (Object object : getArrayValue()) {
                 if (object instanceof DBObject) {
                     add(new DBObjectNode((DBObject) object));
                 } else {
@@ -49,5 +52,51 @@ public final class JsonPropertyNode extends CollectionViewTreeTableNode<JsonProp
         } else {
             setAllowsChildren(false);
         }
+    }
+    
+    public String getName() {
+        return getUserObject().getName();
+    }
+    
+    @Override
+    public Object getValue() {
+        return getUserObject().getValue();
+    }
+    
+    @Override
+    @SuppressWarnings("unchecked")
+    public List<Object> getArrayValue() {
+        return (List<Object>) getValue();
+    }
+    
+    @Override
+    @SuppressWarnings("unchecked")
+    public Map<String, Object> getObjectValue() {
+        return (Map<String, Object>) getValue();
+    }
+
+    @Override
+    public boolean isArrayValue() {
+        return arrayValue;
+    }
+
+    @Override
+    public boolean isNullValue() {
+        return getValue() == null;
+    }
+
+    @Override
+    public boolean isObjectValue() {
+        return objectValue;
+    }
+    
+    @Override
+    public boolean isNotNullValue() {
+        return isNullValue()== false;
+    }
+    
+    @Override
+    public boolean isSimpleValue() {
+        return isNotNullValue() && isArrayValue() == false && isObjectValue() == false;
     }
 }

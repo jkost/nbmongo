@@ -24,9 +24,9 @@ import java.util.List;
 import javax.swing.SwingUtilities;
 import javax.swing.tree.TreePath;
 import lombok.Getter;
+import org.jdesktop.swingx.treetable.DefaultMutableTreeTableNode;
 import org.jdesktop.swingx.treetable.DefaultTreeTableModel;
 import org.jdesktop.swingx.treetable.TreeTableNode;
-import org.netbeans.lib.editor.util.swing.DocumentListenerPriority;
 
 /**
  *
@@ -61,7 +61,8 @@ public final class DocumentsTreeTableModel extends DefaultTreeTableModel impleme
     }
 
     private void buildFromPage() {
-        final TreeTableNode rootNode = new CollectionViewTreeTableNode<Object>(null) {
+        
+        final TreeTableNode rootNode = new DefaultMutableTreeTableNode(null) {
             {
                 if (pages != null) {
                     for (DBObject document : pages.getPageContent()) {
