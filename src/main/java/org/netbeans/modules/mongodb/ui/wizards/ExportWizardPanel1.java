@@ -17,8 +17,8 @@
  */
 package org.netbeans.modules.mongodb.ui.wizards;
 
-import com.mongodb.DB;
 import com.mongodb.DBObject;
+import com.mongodb.client.MongoDatabase;
 import javax.swing.JComboBox;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -37,9 +37,9 @@ public class ExportWizardPanel1 implements WizardDescriptor.ValidatingPanel<Wiza
 
     private final ChangeSupport changeSupport = new ChangeSupport(this);
 
-    private final DB db;
+    private final MongoDatabase db;
 
-    public ExportWizardPanel1(DB db) {
+    public ExportWizardPanel1(MongoDatabase db) {
         this.db = db;
     }
 

@@ -17,9 +17,9 @@
  */
 package org.netbeans.modules.mongodb.util;
 
-import com.mongodb.DB;
-import com.mongodb.DBCollection;
 import com.mongodb.DBObject;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
 import com.mongodb.util.JSON;
 import java.io.BufferedReader;
 import java.io.FileInputStream;
@@ -29,6 +29,7 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.util.ArrayList;
 import java.util.List;
+import org.bson.Document;
 import org.openide.util.Exceptions;
 
 /**
@@ -37,17 +38,17 @@ import org.openide.util.Exceptions;
  */
 public final class Importer implements Runnable {
 
-    private final DB db;
+    private final MongoDatabase db;
 
     private final ImportProperties properties;
     
     private final Runnable onDone;
 
-    public Importer(DB db, ImportProperties properties) {
+    public Importer(MongoDatabase db, ImportProperties properties) {
         this(db, properties, null);
     }
 
-    public Importer(DB db, ImportProperties properties, Runnable onDone) {
+    public Importer(MongoDatabase db, ImportProperties properties, Runnable onDone) {
         this.db = db;
         this.properties = properties;
         this.onDone = onDone;
@@ -67,25 +68,28 @@ public final class Importer implements Runnable {
     }
 
     private void importFrom(Reader reader) throws IOException {
-        final DBCollection collection = db.getCollection(properties.getCollection());
+        final MongoCollection<Document> collection = db.getCollection(properties.getCollection());
+//        final DBCollection collection = db.getCollection(properties.getCollection());
         final BufferedReader br = new BufferedReader(reader);
         String line;
         while ((line = br.readLine()) != null) {
             if(Thread.interrupted()) {
                 return;
             }
-            collection.insert(parseLine(line));
+//            collection.insert(parseLine(line));
+            collection.insertMany(parseLine(line));
         }
     }
 
     @SuppressWarnings("unchecked")
-    private List<DBObject> parseLine(String line) {
+    private List<Document> parseLine(String line) {
+//    private List<DBObject> parseLine(String line) {
         final Object obj = JSON.parse(line);
         if (obj instanceof List) {
-            return (List<DBObject>) obj;
+            return (List<Document>) obj;
         }
-        final List<DBObject> list = new ArrayList<>(1);
-        list.add((DBObject) obj);
+        final List<Document> list = new ArrayList<>(1);
+        list.add((Document) obj);
         return list;
     }
 

@@ -17,10 +17,9 @@
  */
 package org.netbeans.modules.mongodb.util;
 
-import com.mongodb.DB;
-import com.mongodb.DBCollection;
-import com.mongodb.DBCursor;
-import com.mongodb.DBObject;
+import com.mongodb.client.FindIterable;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
 import com.mongodb.util.JSON;
 import java.io.File;
 import java.io.IOException;
@@ -29,6 +28,8 @@ import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import org.bson.Document;
+import org.bson.conversions.Bson;
 import org.openide.util.Exceptions;
 
 /**
@@ -37,11 +38,11 @@ import org.openide.util.Exceptions;
  */
 public final class Exporter implements Runnable {
 
-    private final DB db;
+    private final MongoDatabase db;
 
     private final ExportProperties properties;
 
-    public Exporter(DB db, ExportProperties properties) {
+    public Exporter(MongoDatabase db, ExportProperties properties) {
         this.db = db;
         this.properties = properties;
     }
@@ -78,16 +79,20 @@ public final class Exporter implements Runnable {
 
     private void export(Writer writer) {
         final PrintWriter output = new PrintWriter(writer);
-        final DBCollection collection = db.getCollection(properties.getCollection());
-        final DBCursor cursor = collection.find(properties.getCriteria(), properties.getProjection());
+        final MongoCollection<Document> collection = db.getCollection(properties.getCollection());
+//        final DBCursor cursor = collection.find(properties.getCriteria(), properties.getProjection());
+        Bson filter = (Bson) properties.getCriteria();
+        Bson sort = (Bson) properties.getSort();
+        FindIterable<Document> cursor = collection.find(filter);
         if (properties.getSort() != null) {
-            cursor.sort(properties.getSort());
+            cursor.sort(sort);
         }
         if (properties.isJsonArray()) {
             output.print("[");
         }
         boolean first = true;
-        for (DBObject document : cursor) {
+        for (Document document : cursor) {
+//        for (DBObject document : cursor) {
             if (Thread.interrupted()) {
                 return;
             }

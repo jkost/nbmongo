@@ -25,9 +25,10 @@ package org.netbeans.modules.mongodb.ui.explorer;
 
 import com.mongodb.BasicDBObject;
 import org.netbeans.modules.mongodb.resources.Images;
-import com.mongodb.DB;
 import com.mongodb.DBCollection;
 import com.mongodb.MongoException;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
 import org.netbeans.modules.mongodb.ui.windows.MapReduceTopComponent;
 import org.netbeans.modules.mongodb.ui.util.TopComponentUtils;
 import java.awt.event.ActionEvent;
@@ -38,6 +39,7 @@ import java.util.List;
 import java.util.Map;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
+import org.bson.Document;
 import org.netbeans.modules.mongodb.CollectionInfo;
 import org.netbeans.modules.mongodb.CollectionStats;
 import org.netbeans.modules.mongodb.indexes.CreateIndexPanel;
@@ -203,17 +205,42 @@ final class CollectionNode extends AbstractNode {
         childFactory.refresh();
     }
 
-    private class CollectionConverter implements InstanceContent.Convertor<CollectionInfo, DBCollection> {
+//    private class CollectionConverter implements InstanceContent.Convertor<CollectionInfo, DBCollection> {
+//
+//        @Override
+//        public DBCollection convert(CollectionInfo t) {
+//            DB db = getLookup().lookup(DB.class);
+//            return db.getCollection(t.getName());
+//        }
+//
+//        @Override
+//        public Class<? extends DBCollection> type(CollectionInfo t) {
+//            return DBCollection.class;
+//        }
+//
+//        @Override
+//        public String id(CollectionInfo t) {
+//            return t.getName();
+//        }
+//
+//        @Override
+//        public String displayName(CollectionInfo t) {
+//            return id(t);
+//        }
+//    }
+
+    private class CollectionConverter implements InstanceContent.Convertor<CollectionInfo, MongoCollection> {
 
         @Override
-        public DBCollection convert(CollectionInfo t) {
-            DB db = getLookup().lookup(DB.class);
+        public MongoCollection<Document> convert(CollectionInfo t) {
+//            DB db = getLookup().lookup(DB.class);
+            MongoDatabase db = getLookup().lookup(MongoDatabase.class);
             return db.getCollection(t.getName());
         }
 
         @Override
-        public Class<? extends DBCollection> type(CollectionInfo t) {
-            return DBCollection.class;
+        public Class<? extends MongoCollection> type(CollectionInfo t) {
+            return MongoCollection.class;
         }
 
         @Override
