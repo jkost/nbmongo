@@ -47,6 +47,10 @@ public final class CollectionInfo implements Comparable<CollectionInfo> {
         this.lookup = lookup;
     }
 
+    public boolean isSystemCollection() {
+        return SystemCollectionPredicate.get().eval(name);
+    }
+
     @Override
     public boolean equals(Object object) {
         if (object == null) {
@@ -80,19 +84,18 @@ public final class CollectionInfo implements Comparable<CollectionInfo> {
 
     @Override
     public int compareTo(CollectionInfo o) {
-        SystemCollectionPredicate isSystemCollection = SystemCollectionPredicate.get();
-        if(isSystemCollection.eval(name)) {
-            if(isSystemCollection.eval(o.name)) {
-                return name.compareToIgnoreCase(o.name);
-            } else {
+        int sysCol = isSystemCollection() ? 1 : 0;
+        sysCol |= o.isSystemCollection() ? 2 : 0;
+        switch (sysCol) {
+            case 1:
                 return -1;
-            }
-        } else {
-            if(isSystemCollection.eval(o.name)) {
+            case 2:
                 return 1;
-            } else {
+            case 0: // FALL THROUGH
+            case 3:
                 return name.compareToIgnoreCase(o.name);
-            }
+            default:
+                throw new AssertionError();
         }
     }
 }
