@@ -19,7 +19,6 @@ package org.netbeans.modules.mongodb;
 
 import com.mongodb.MongoClient;
 import com.mongodb.MongoException;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.Getter;
@@ -64,22 +63,12 @@ public class MongoConnection {
                         final ConnectionInfo connection = getLookup().lookup(ConnectionInfo.class);
                         try {
                             client = new MongoClient(connection.getMongoURI());
-                            client.getDatabaseNames();  // ensure connection works
+                            client.listDatabaseNames();
                             fireConnectionStateChanged(ConnectionState.CONNECTED);
                         } catch (MongoException ex) {
                             DialogDisplayer.getDefault().notify(
                                 new NotifyDescriptor.Message(
                                     "error connectiong to mongo database: " + ex.getLocalizedMessage(),
-                                    NotifyDescriptor.ERROR_MESSAGE));
-                            MongoClient client = MongoConnection.this.client;
-                            MongoConnection.this.client = null;
-                            if (client != null) {
-                                client.close();
-                            }
-                        } catch (UnknownHostException ex) {
-                            DialogDisplayer.getDefault().notify(
-                                new NotifyDescriptor.Message(
-                                    "unknown server: " + ex.getLocalizedMessage(),
                                     NotifyDescriptor.ERROR_MESSAGE));
                             MongoClient client = MongoConnection.this.client;
                             MongoConnection.this.client = null;
