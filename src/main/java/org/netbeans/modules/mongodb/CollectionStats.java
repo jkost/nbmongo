@@ -17,10 +17,10 @@
  */
 package org.netbeans.modules.mongodb;
 
-import com.mongodb.CommandResult;
 import java.text.NumberFormat;
 import lombok.Getter;
 import lombok.ToString;
+import org.bson.Document;
 
 /**
  * Wrapps the output of the collStats mongodb server command.
@@ -45,11 +45,11 @@ public class CollectionStats {
     @Getter private final String totalIndexSize;
     @Getter private final String ok;
 
-    public CollectionStats(boolean isCollectionCapped, CommandResult stats) {
+    public CollectionStats(Document stats) {
         if(null != stats) {
             serverUsed = stats.get("serverUsed").toString();
             ns = stats.get("ns").toString();
-            capped = isCollectionCapped ? Bundle.yes() : Bundle.no();
+            capped = stats.getBoolean("capped") ? Bundle.yes() : Bundle.no();
             count = getIntegerValue(stats, "count");
             size = getIntegerValue(stats, "size");
             storageSize = getIntegerValue(stats, "storageSize");
@@ -79,12 +79,12 @@ public class CollectionStats {
         }
     }
 
-    private String getIntegerValue(CommandResult stats, String key) {
+    private String getIntegerValue(Document stats, String key) {
         return stats.get(key) instanceof Number ?
                NumberFormat.getIntegerInstance().format(((Number) stats.get(key)).doubleValue()) : "";
     }
 
-    private String getNumberValue(CommandResult stats, String key) {
+    private String getNumberValue(Document stats, String key) {
         return stats.get(key) instanceof Number ?
                NumberFormat.getNumberInstance().format(((Number) stats.get(key)).doubleValue()) : "";
     }

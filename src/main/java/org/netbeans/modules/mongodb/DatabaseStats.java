@@ -17,8 +17,6 @@
  */
 package org.netbeans.modules.mongodb;
 
-import com.mongodb.CommandResult;
-import com.mongodb.DBObject;
 import java.text.NumberFormat;
 import lombok.Getter;
 import lombok.ToString;
@@ -77,9 +75,9 @@ public class DatabaseStats {
             indexSize = getIntegerValue(stats, "indexSize");
             fileSize = getIntegerValue(stats, "fileSize");
             nsSizeMB = getIntegerValue(stats, "nsSizeMB");
-            dataFileVersion = stats.get("dataFileVersion") instanceof DBObject?
-                             ((DBObject)stats.get("dataFileVersion")).get("major") +"." +
-                             ((DBObject)stats.get("dataFileVersion")).get("minor") : "";
+            dataFileVersion = stats.get("dataFileVersion") instanceof Document?
+                             ((Document)stats.get("dataFileVersion")).get("major") +"." +
+                             ((Document)stats.get("dataFileVersion")).get("minor") : "";
             ok = Double.valueOf(1.0).equals(stats.get("ok")) ? Bundle.yes() : Bundle.no();
         }
     }

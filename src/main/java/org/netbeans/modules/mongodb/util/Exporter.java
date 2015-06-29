@@ -20,7 +20,6 @@ package org.netbeans.modules.mongodb.util;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
-import com.mongodb.util.JSON;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -29,7 +28,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import org.bson.Document;
-import org.bson.conversions.Bson;
 import org.openide.util.Exceptions;
 
 /**
@@ -80,19 +78,13 @@ public final class Exporter implements Runnable {
     private void export(Writer writer) {
         final PrintWriter output = new PrintWriter(writer);
         final MongoCollection<Document> collection = db.getCollection(properties.getCollection());
-//        final DBCursor cursor = collection.find(properties.getCriteria(), properties.getProjection());
-        Bson filter = (Bson) properties.getCriteria();
-        Bson sort = (Bson) properties.getSort();
-        FindIterable<Document> cursor = collection.find(filter);
-        if (properties.getSort() != null) {
-            cursor.sort(sort);
-        }
+        Document filter = properties.getCriteria();
+        FindIterable<Document> query = filter != null ? collection.find(filter) : collection.find();
         if (properties.isJsonArray()) {
             output.print("[");
         }
         boolean first = true;
-        for (Document document : cursor) {
-//        for (DBObject document : cursor) {
+        for (Document document : query.sort(properties.getSort())) {
             if (Thread.interrupted()) {
                 return;
             }
@@ -101,7 +93,7 @@ public final class Exporter implements Runnable {
             } else if (properties.isJsonArray()) {
                 output.print(",");
             }
-            final String json = JSON.serialize(document);
+            final String json = document.toJson();
             output.print(json);
             if (properties.isJsonArray() == false) {
                 output.println();

@@ -17,8 +17,6 @@
  */
 package org.netbeans.modules.mongodb.ui.components;
 
-import com.mongodb.DBObject;
-import com.mongodb.util.JSON;
 import com.mongodb.util.JSONParseException;
 import org.netbeans.modules.mongodb.util.Json;
 import java.awt.Dialog;
@@ -27,6 +25,8 @@ import javax.swing.JDialog;
 import javax.swing.JEditorPane;
 import javax.swing.JOptionPane;
 import javax.swing.text.EditorKit;
+import lombok.Getter;
+import org.bson.Document;
 import org.netbeans.api.editor.mimelookup.MimeLookup;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
@@ -49,11 +49,14 @@ public final class QueryEditor extends javax.swing.JPanel {
     
     private int dialogResult;
 
-    private DBObject criteria;
+    @Getter
+    private Document criteria;
 
-    private DBObject projection;
+    @Getter
+    private Document projection;
 
-    private DBObject sort;
+    @Getter
+    private Document sort;
 
     /**
      * Creates new form QueryPanel
@@ -62,53 +65,41 @@ public final class QueryEditor extends javax.swing.JPanel {
         initComponents();
     }
 
-    public DBObject parseCriteria() throws JSONParseException {
+    public Document parseCriteria() throws JSONParseException {
         return getEditorValue(criteriaEditor);
     }
 
-    public DBObject getCriteria() {
-        return criteria;
-    }
-
-    public void setCriteria(DBObject criteria) {
+    public void setCriteria(Document criteria) {
         setEditorValue(criteriaEditor, criteria);
         this.criteria = criteria;
     }
 
-    public DBObject parseProjection() throws JSONParseException {
+    public Document parseProjection() throws JSONParseException {
         return getEditorValue(projectionEditor);
     }
 
-    public DBObject getProjection() {
-        return projection;
-    }
-
-    public void setProjection(DBObject projection) {
+    public void setProjection(Document projection) {
         setEditorValue(projectionEditor, projection);
         this.projection = projection;
     }
 
-    public DBObject parseSort() throws JSONParseException {
+    public Document parseSort() throws JSONParseException {
         return getEditorValue(sortEditor);
     }
 
-    public DBObject getSort() {
-        return sort;
-    }
-
-    public void setSort(DBObject sort) {
+    public void setSort(Document sort) {
         setEditorValue(sortEditor, sort);
         this.sort = sort;
     }
 
-    private DBObject getEditorValue(JEditorPane editor) throws JSONParseException {
+    private Document getEditorValue(JEditorPane editor) throws JSONParseException {
         final String json = editor.getText().trim();
-        return (DBObject) JSON.parse(json);
+        return Document.parse(json);
     }
 
-    private void setEditorValue(JEditorPane editor, DBObject value) {
+    private void setEditorValue(JEditorPane editor, Document value) {
         final String text = value != null
-            ? Json.prettify(JSON.serialize(value))
+            ? Json.prettify(value)
             : "{}";
         editor.setText(text);
     }

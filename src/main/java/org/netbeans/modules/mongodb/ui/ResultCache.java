@@ -17,12 +17,12 @@
  */
 package org.netbeans.modules.mongodb.ui;
 
-import com.mongodb.DBObject;
 import org.netbeans.modules.mongodb.QueryResult;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
+import org.bson.Document;
 
 /**
  * Caches the data of a database query. Uses lazy loading to get new results
@@ -38,7 +38,7 @@ public final class ResultCache {
      */
     public static final ResultCache EMPTY = new ResultCache(QueryResult.EMPTY, 0);
 
-    private final List<DBObject> cache = new ArrayList<>();
+    private final List<Document> cache = new ArrayList<>();
 
     @Getter
     protected QueryResult queryResult;
@@ -55,28 +55,28 @@ public final class ResultCache {
         loadNextObjects(loadingBlockSize);
     }
 
-    public List<DBObject> get(int offset, int length) {
+    public List<Document> get(int offset, int length) {
         int toIndex = offset + length;
         int missingObjects = toIndex - cache.size();
         loadNextObjects(missingObjects);
         return cache.subList(offset, Math.min(cache.size(), toIndex));
     }
     
-    public void editObject(DBObject oldObject, DBObject newObject) {
+    public void editObject(Document oldObject, Document newObject) {
         int index = cache.indexOf(oldObject);
         if(index > -1) {
             editObject(index, newObject);
         }
     }
     
-    public void editObject(int index, DBObject object) {
+    public void editObject(int index, Document object) {
         if(index < cache.size()) {
-            DBObject oldValue = cache.set(index, object);
+            Document oldValue = cache.set(index, object);
             fireObjectUpdated(index, oldValue, object);
         }
     }
 
-    public int getObjectsCount() {
+    public long getObjectsCount() {
         return queryResult.getCount();
     }
 
@@ -100,7 +100,7 @@ public final class ResultCache {
         listeners.remove(listener);
     }
     
-    private void fireObjectUpdated(int index, DBObject oldValue, DBObject newValue) {
+    private void fireObjectUpdated(int index, Document oldValue, Document newValue) {
         for (Listener listener : listeners) {
             listener.objectUpdated(index, oldValue, newValue);
         }
@@ -108,7 +108,7 @@ public final class ResultCache {
     
     public static interface Listener {
         
-        void objectUpdated(int index, DBObject oldValue, DBObject newValue);
+        void objectUpdated(int index, Document oldValue, Document newValue);
     }
 
 }

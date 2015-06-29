@@ -17,13 +17,13 @@
  */
 package org.netbeans.modules.mongodb.indexes;
 
-import com.mongodb.DBObject;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ResourceBundle;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Value;
+import org.bson.Document;
 import org.openide.util.NbBundle;
 import org.openide.util.NbBundle.Messages;
 
@@ -63,8 +63,27 @@ public class Index {
         return name;
     }
     
-    public static Index fromDBObject(DBObject indexInfo) {
-        final DBObject keyObj = (DBObject) indexInfo.get("key");
+//    public static Index fromDBObject(DBObject indexInfo) {
+//        final DBObject keyObj = (DBObject) indexInfo.get("key");
+//        List<Key> keys = new ArrayList<>();
+//        for (String field : keyObj.keySet()) {
+//            Number sort = (Number) keyObj.get(field);
+//            keys.add(new Key(
+//                field,
+//                KeySort.valueOf(sort.intValue())
+//            ));
+//        }
+//        return new Index(
+//            (String) indexInfo.get("name"),
+//            (String) indexInfo.get("ns"),
+//            keys,
+//            Boolean.TRUE.equals(indexInfo.get("sparse")),
+//            Boolean.TRUE.equals(indexInfo.get("unique")),
+//            Boolean.TRUE.equals(indexInfo.get("dropDups"))
+//        );
+//    }
+    public static Index fromJson(Document indexInfo) {
+        final Document keyObj = (Document) indexInfo.get("key");
         List<Key> keys = new ArrayList<>();
         for (String field : keyObj.keySet()) {
             Number sort = (Number) keyObj.get(field);

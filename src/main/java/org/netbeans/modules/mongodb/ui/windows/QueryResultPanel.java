@@ -17,8 +17,6 @@
  */
 package org.netbeans.modules.mongodb.ui.windows;
 
-import com.mongodb.DBObject;
-import com.mongodb.util.JSON;
 import org.netbeans.modules.mongodb.ui.QueryResultWorker;
 import org.netbeans.modules.mongodb.ui.ResultCache;
 import org.netbeans.modules.mongodb.ui.ResultDisplayer;
@@ -53,6 +51,7 @@ import javax.swing.text.PlainDocument;
 import javax.swing.tree.TreePath;
 import lombok.Getter;
 import lombok.Setter;
+import org.bson.Document;
 import org.bson.types.ObjectId;
 import org.jdesktop.swingx.treetable.TreeTableNode;
 import org.netbeans.modules.mongodb.options.JsonCellRenderingOptions;
@@ -161,13 +160,13 @@ public final class QueryResultPanel extends javax.swing.JPanel implements Result
         ResultPages.ResultPagesListener pagesListener = new ResultPages.ResultPagesListener() {
 
             @Override
-            public void pageChanged(ResultPages pages, int pageIndex, List<DBObject> page) {
+            public void pageChanged(ResultPages pages, int pageIndex, List<Document> page) {
                 updatePagination();
                 updateDocumentButtonsState();
             }
 
             @Override
-            public void pageObjectUpdated(int index, DBObject oldValue, DBObject newValue) {
+            public void pageObjectUpdated(int index, Document oldValue, Document newValue) {
             }
             
         };
@@ -184,7 +183,7 @@ public final class QueryResultPanel extends javax.swing.JPanel implements Result
         };
 
         resultFlatTable.setModel(flatTableModel);
-        resultFlatTable.setDefaultRenderer(DBObject.class, new JsonFlatTableCellRenderer());
+        resultFlatTable.setDefaultRenderer(Document.class, new JsonFlatTableCellRenderer());
         resultFlatTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         resultFlatTable.getSelectionModel().addListSelectionListener(tableSelectionListener);
         resultFlatTable.getColumnModel().addColumnModelListener(new TableColumnModelListener() {
@@ -241,7 +240,7 @@ public final class QueryResultPanel extends javax.swing.JPanel implements Result
                         if (readOnly) {
                             JsonEditor.showReadOnly(
                                 Bundle.displayDocumentTitle(),
-                                JSON.serialize(documentNode.getUserObject()));
+                                documentNode.getUserObject());
                         } else {
                             editDocumentAction.setDocument(documentNode.getUserObject());
                             editDocumentAction.actionPerformed(null);
@@ -349,7 +348,7 @@ public final class QueryResultPanel extends javax.swing.JPanel implements Result
         return resultViews.get(resultView).getPages();
     }
 
-    public DBObject getResultTableSelectedDocument() {
+    public Document getResultTableSelectedDocument() {
         final JTable table = getResultTable();
         int row = table.getSelectedRow();
         if (row == -1) {
@@ -392,7 +391,7 @@ public final class QueryResultPanel extends javax.swing.JPanel implements Result
             @Override
             public void run() {
                 ResultPages pages = getResultPages();
-                int documentCount = pages.getTotalElementsCount();
+                long documentCount = pages.getTotalElementsCount();
                 totalDocumentsLabel.setText(
                     Bundle.totalDocuments(documentCount));
                 int page = documentCount == 0 ? 0 : pages.getPageIndex();
@@ -737,7 +736,7 @@ public final class QueryResultPanel extends javax.swing.JPanel implements Result
 
     private JPopupMenu createFlatTableContextMenu(int row, int column) {
         final JPopupMenu menu = new JPopupMenu();
-        final DBObject document = getFlatTablePages().getPageContent().get(row);
+        final Document document = getFlatTablePages().getPageContent().get(row);
         menu.add(new JMenuItem(new CopyDocumentToClipboardAction(document)));
         final DocumentsFlatTableModel model = (DocumentsFlatTableModel) resultFlatTable.getModel();
         final JsonProperty property = new JsonProperty(

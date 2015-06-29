@@ -19,7 +19,7 @@ package org.netbeans.modules.mongodb.ui.windows;
 
 import org.netbeans.modules.mongodb.ui.MapReduceWorker;
 import org.netbeans.modules.mongodb.ui.QueryResultWorker;
-import com.mongodb.DBCollection;
+import com.mongodb.client.MongoCollection;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Font;
@@ -27,9 +27,7 @@ import java.awt.GridLayout;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.IOException;
-import java.text.MessageFormat;
 import java.util.Objects;
-import java.util.ResourceBundle;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JEditorPane;
 import javax.swing.JLabel;
@@ -37,14 +35,12 @@ import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.ListCellRenderer;
 import javax.swing.border.EmptyBorder;
-import javax.swing.text.Document;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
+import org.bson.Document;
 import org.netbeans.api.editor.DialogBinding;
-import org.netbeans.modules.mongodb.CollectionInfo;
-import org.netbeans.modules.mongodb.DbInfo;
 import org.netbeans.modules.mongodb.ui.QueryHistory;
 import org.netbeans.modules.mongodb.ui.windows.QueryResultPanel.QueryResultWorkerFactory;
 import org.openide.filesystems.FileObject;
@@ -96,10 +92,11 @@ public final class MapReduceTopComponent extends TopComponent implements QueryRe
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public QueryResultWorker createWorker() {
         String map = epMap.getText();
         String reduce = epReduce.getText();
-        DBCollection collection = getLookup().lookup(DBCollection.class);
+        MongoCollection<Document> collection = getLookup().lookup(MongoCollection.class);
         queryHistory.add(new MapReduceHistoryItem(map, reduce));
         return new MapReduceWorker(
             collection, 
@@ -209,8 +206,8 @@ public final class MapReduceTopComponent extends TopComponent implements QueryRe
 
     private void cmbHistoryActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmbHistoryActionPerformed
         if(null != cmbHistory.getSelectedItem()) {
-            final int index = cmbHistory.getSelectedIndex();
-            final MapReduceHistoryItem item = (MapReduceHistoryItem)queryHistory.getItems().get(index);
+            int index = cmbHistory.getSelectedIndex();
+            MapReduceHistoryItem item = (MapReduceHistoryItem)queryHistory.getItems().get(index);
             epMap.setText(item.getMapFunction());
             epReduce.setText(item.getReduceFunction());
         }
@@ -243,28 +240,14 @@ public final class MapReduceTopComponent extends TopComponent implements QueryRe
         updateCollectionLabel();
     }
 
-//    void writeProperties(java.util.Properties p) {
-//        p.setProperty("version", "1.0");
-//    }
-//
-//    void readProperties(java.util.Properties p) {
-//        // String version = p.getProperty("version");
-//    }
-
     public void updateCollectionLabel() {
-        Lookup lookup = getLookup();
-        final DbInfo dbInfo = lookup.lookup(DbInfo.class);
-        final CollectionInfo collectionInfo = lookup.lookup(CollectionInfo.class);
-        final StringBuilder builder = new StringBuilder();
-        builder.append(dbInfo.getDbName())
-               .append(".")
-               .append(collectionInfo.getName());
-        lblCollection.setText(builder.toString());
+        String collectionFullName = getLookup().lookup(MongoCollection.class).getNamespace().getFullName();
+        lblCollection.setText(collectionFullName);
     }
 
     private void initWindowName() {
-        final Mode editorMode = WindowManager.getDefault().findMode("editor");
-        final TopComponent[] openedTopComponents = WindowManager.getDefault().getOpenedTopComponents(editorMode);
+        Mode editorMode = WindowManager.getDefault().findMode("editor");
+        TopComponent[] openedTopComponents = WindowManager.getDefault().getOpenedTopComponents(editorMode);
         String name = "";
         int counter = 0;
         boolean found = true;
@@ -283,8 +266,8 @@ public final class MapReduceTopComponent extends TopComponent implements QueryRe
     private void initEditor(JEditorPane epEditor) {
         epEditor.setEditorKit(CloneableEditorSupport.getEditorKit("text/x-javascript"));
         try {
-            final FileObject fob = FileUtil.createMemoryFileSystem().getRoot().createData(epEditor.getName(), "js");
-            epEditor.getDocument().putProperty(Document.StreamDescriptionProperty, DataObject.find(fob));
+            FileObject fob = FileUtil.createMemoryFileSystem().getRoot().createData(epEditor.getName(), "js");
+            epEditor.getDocument().putProperty(javax.swing.text.Document.StreamDescriptionProperty, DataObject.find(fob));
             DialogBinding.bindComponentToFile(fob, 0, 0, epEditor);
         } catch(IOException ex) {
         }
@@ -378,15 +361,15 @@ public final class MapReduceTopComponent extends TopComponent implements QueryRe
             setLayout(new GridLayout(2, 1, 5, 0));
             setBorder(new EmptyBorder(0, 0, 2, 0));
 
-            final JPanel pnlFirstRow = new JPanel(new BorderLayout());
-            final JLabel lblMapDesc = new JLabel("Map: ");
+            JPanel pnlFirstRow = new JPanel(new BorderLayout());
+            JLabel lblMapDesc = new JLabel("Map: ");
             lblMapDesc.setFont(lblMapDesc.getFont().deriveFont(Font.BOLD));
             pnlFirstRow.add(lblMapDesc, BorderLayout.WEST);
             pnlFirstRow.add(lblMapFunction = new JLabel(), BorderLayout.CENTER);
             add(pnlFirstRow);
 
-            final JPanel pnlSecondRow = new JPanel(new BorderLayout());
-            final JLabel lblReduceDesc = new JLabel("Reduce: ");
+            JPanel pnlSecondRow = new JPanel(new BorderLayout());
+            JLabel lblReduceDesc = new JLabel("Reduce: ");
             lblReduceDesc.setFont(lblReduceDesc.getFont().deriveFont(Font.BOLD));
             pnlSecondRow.add(lblReduceDesc, BorderLayout.WEST);
             pnlSecondRow.add(lblReduceFunction = new JLabel(), BorderLayout.CENTER);

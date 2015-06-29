@@ -17,14 +17,13 @@
  */
 package org.netbeans.modules.mongodb.ui.wizards;
 
-import com.mongodb.DBObject;
 import com.mongodb.client.MongoDatabase;
-import com.mongodb.util.JSON;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import javax.swing.JComboBox;
 import javax.swing.JPanel;
 import javax.swing.event.ChangeListener;
+import org.bson.Document;
 import org.netbeans.modules.mongodb.ui.components.QueryEditor;
 import org.openide.util.ChangeSupport;
 import org.openide.util.NbBundle.Messages;
@@ -64,12 +63,12 @@ public final class ExportVisualPanel1 extends JPanel {
     }
 
     void updateQueryFieldsFromEditor() {
-        final DBObject criteria = queryEditor.getCriteria();
-        final DBObject projection = queryEditor.getProjection();
-        final DBObject sort = queryEditor.getSort();
-        criteriaField.setText(criteria != null ? JSON.serialize(criteria) : "");
-        projectionField.setText(projection != null ? JSON.serialize(projection) : "");
-        sortField.setText(sort != null ? JSON.serialize(sort) : "");
+        final Document criteria = queryEditor.getCriteria();
+        final Document projection = queryEditor.getProjection();
+        final Document sort = queryEditor.getSort();
+        criteriaField.setText(criteria != null ? criteria.toJson() : "");
+        projectionField.setText(projection != null ? projection.toJson() : "");
+        sortField.setText(sort != null ? sort.toJson() : "");
     }
 
     public final void addChangeListener(ChangeListener l) {

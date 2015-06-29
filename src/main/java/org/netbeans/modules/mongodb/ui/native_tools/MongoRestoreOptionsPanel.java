@@ -17,8 +17,6 @@
  */
 package org.netbeans.modules.mongodb.ui.native_tools;
 
-import com.mongodb.DBObject;
-import com.mongodb.util.JSON;
 import java.io.File;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -26,6 +24,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import javax.swing.text.PlainDocument;
+import org.bson.Document;
 import org.netbeans.modules.mongodb.native_tools.MongoNativeTool;
 import org.netbeans.modules.mongodb.native_tools.MongoRestoreOptions;
 import org.netbeans.modules.mongodb.options.MongoNativeToolsOptions;
@@ -494,9 +493,9 @@ public final class MongoRestoreOptionsPanel extends AbstractOptionsAndArgsPanel 
     }//GEN-LAST:event_browseDBPathButtonActionPerformed
 
     private void editFilterButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_editFilterButtonActionPerformed
-        final DBObject dbObject = JsonEditor.show(Bundle.filterEditorTitle(), filterField.getText());
-        if (dbObject != null) {
-            filterField.setText(JSON.serialize(dbObject));
+        final Document document = JsonEditor.show(Bundle.filterEditorTitle(), Document.parse(filterField.getText()));
+        if (document != null) {
+            filterField.setText(document.toJson());
         }
     }//GEN-LAST:event_editFilterButtonActionPerformed
 

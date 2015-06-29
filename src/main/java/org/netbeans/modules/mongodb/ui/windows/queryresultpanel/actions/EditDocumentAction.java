@@ -17,14 +17,14 @@
  */
 package org.netbeans.modules.mongodb.ui.windows.queryresultpanel.actions;
 
-import com.mongodb.DBCollection;
-import com.mongodb.DBObject;
 import com.mongodb.MongoException;
-import com.mongodb.util.JSON;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.model.Filters;
 import java.awt.event.ActionEvent;
 import javax.swing.ImageIcon;
 import lombok.Getter;
 import lombok.Setter;
+import org.bson.Document;
 import org.netbeans.modules.mongodb.resources.Images;
 import org.netbeans.modules.mongodb.ui.util.JsonEditor;
 import org.netbeans.modules.mongodb.ui.windows.QueryResultPanel;
@@ -47,7 +47,7 @@ public class EditDocumentAction extends QueryResultPanelAction {
 
     @Getter
     @Setter
-    private DBObject document;
+    private Document document;
 
     public EditDocumentAction(QueryResultPanel resultPanel) {
         super(resultPanel,
@@ -57,17 +57,18 @@ public class EditDocumentAction extends QueryResultPanelAction {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public void actionPerformed(ActionEvent e) {
         if (document == null) {
             return;
         }
-        final DBObject modifiedDocument = JsonEditor.show(
+        final Document modifiedDocument = JsonEditor.show(
             Bundle.editDocumentTitle(),
-            JSON.serialize(document));
+            document);
         if (modifiedDocument != null) {
             try {
-                final DBCollection dbCollection = getResultPanel().getLookup().lookup(DBCollection.class);
-                dbCollection.save(modifiedDocument);
+                MongoCollection<Document> collection = getResultPanel().getLookup().lookup(MongoCollection.class);
+                collection.replaceOne(Filters.eq("_id", document.get("_id")), document);
                 getResultPanel().getResultCache().editObject(document, modifiedDocument);
             } catch (MongoException ex) {
                 DialogDisplayer.getDefault().notify(

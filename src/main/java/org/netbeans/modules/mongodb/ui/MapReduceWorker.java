@@ -17,10 +17,9 @@
  */
 package org.netbeans.modules.mongodb.ui;
 
-import com.mongodb.BasicDBObject;
-import com.mongodb.DBCollection;
-import static com.mongodb.MapReduceCommand.OutputType.INLINE;
-import com.mongodb.MapReduceOutput;
+import com.mongodb.client.MapReduceIterable;
+import com.mongodb.client.MongoCollection;
+import org.bson.Document;
 import org.netbeans.modules.mongodb.QueryExecutor;
 import org.netbeans.modules.mongodb.QueryResult;
 
@@ -32,13 +31,14 @@ import org.netbeans.modules.mongodb.QueryResult;
  */
 public class MapReduceWorker extends QueryResultWorker implements QueryExecutor {
 
-    private final DBCollection collection;
+    private final MongoCollection<Document> collection;
+//    private final DBCollection collection;
 
     private final String mapFunction;
 
     private final String reduceFunction;
 
-    public MapReduceWorker(DBCollection collection, String map, String reduce, String name, int cacheLoadingBlockSize) {
+    public MapReduceWorker(MongoCollection<Document> collection, String map, String reduce, String name, int cacheLoadingBlockSize) {
         super(name, cacheLoadingBlockSize);
         this.collection = collection;
         this.mapFunction = map;
@@ -47,7 +47,8 @@ public class MapReduceWorker extends QueryResultWorker implements QueryExecutor 
 
     @Override
     protected QueryResult createQuery() throws Exception {
-        final MapReduceOutput out = collection.mapReduce(mapFunction, reduceFunction, null, INLINE, new BasicDBObject());
+//        final MapReduceOutput out = collection.mapReduce(mapFunction, reduceFunction, null, INLINE, new BasicDBObject());
+        final MapReduceIterable<Document> out = collection.mapReduce(mapFunction, reduceFunction);
         return new QueryResult.MapReduceResult(out, this);
     }
 

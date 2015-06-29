@@ -17,7 +17,6 @@
  */
 package org.netbeans.modules.mongodb.ui.wizards;
 
-import com.mongodb.DBObject;
 import com.mongodb.client.MongoDatabase;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
@@ -30,6 +29,7 @@ import java.util.List;
 import java.util.Map;
 import javax.swing.AbstractAction;
 import javax.swing.JComponent;
+import org.bson.Document;
 import org.netbeans.modules.mongodb.util.ExportProperties;
 import org.netbeans.modules.mongodb.util.ExportPropertiesBuilder;
 import org.netbeans.modules.mongodb.util.ExportTask;
@@ -100,9 +100,9 @@ public final class ExportWizardAction extends AbstractAction {
         if (DialogDisplayer.getDefault().notify(wiz) == WizardDescriptor.FINISH_OPTION) {
             final ExportProperties properties = new ExportPropertiesBuilder()
                 .collection((String) wiz.getProperty(PROP_COLLECTION))
-                .criteria((DBObject) wiz.getProperty(PROP_CRITERIA))
-                .projection((DBObject) wiz.getProperty(PROP_PROJECTION))
-                .sort((DBObject) wiz.getProperty(PROP_SORT))
+                .criteria((Document) wiz.getProperty(PROP_CRITERIA))
+                .projection((Document) wiz.getProperty(PROP_PROJECTION))
+                .sort((Document) wiz.getProperty(PROP_SORT))
                 .jsonArray((Boolean) wiz.getProperty(PROP_JSON_ARRAY))
                 .file((File) wiz.getProperty(PROP_FILE))
                 .encoding((Charset) wiz.getProperty(PROP_ENCODING))

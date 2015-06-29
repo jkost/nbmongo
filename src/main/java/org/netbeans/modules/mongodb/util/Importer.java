@@ -17,7 +17,6 @@
  */
 package org.netbeans.modules.mongodb.util;
 
-import com.mongodb.DBObject;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.util.JSON;
@@ -83,7 +82,6 @@ public final class Importer implements Runnable {
 
     @SuppressWarnings("unchecked")
     private List<Document> parseLine(String line) {
-//    private List<DBObject> parseLine(String line) {
         final Object obj = JSON.parse(line);
         if (obj instanceof List) {
             return (List<Document>) obj;

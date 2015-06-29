@@ -24,7 +24,6 @@
 package org.netbeans.modules.mongodb.ui.explorer;
 
 import org.netbeans.modules.mongodb.resources.Images;
-import com.mongodb.BasicDBObject;import com.mongodb.DBObject;
 import com.mongodb.MongoException;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.CreateCollectionOptions;
