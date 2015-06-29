@@ -17,7 +17,6 @@
  */
 package org.netbeans.modules.mongodb.ui.components;
 
-import com.mongodb.util.JSONParseException;
 import org.netbeans.modules.mongodb.util.Json;
 import java.awt.Dialog;
 import java.awt.Frame;
@@ -27,6 +26,7 @@ import javax.swing.JOptionPane;
 import javax.swing.text.EditorKit;
 import lombok.Getter;
 import org.bson.Document;
+import org.bson.json.JsonParseException;
 import org.netbeans.api.editor.mimelookup.MimeLookup;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
@@ -65,7 +65,7 @@ public final class QueryEditor extends javax.swing.JPanel {
         initComponents();
     }
 
-    public Document parseCriteria() throws JSONParseException {
+    public Document parseCriteria() throws JsonParseException {
         return getEditorValue(criteriaEditor);
     }
 
@@ -74,7 +74,7 @@ public final class QueryEditor extends javax.swing.JPanel {
         this.criteria = criteria;
     }
 
-    public Document parseProjection() throws JSONParseException {
+    public Document parseProjection() throws JsonParseException {
         return getEditorValue(projectionEditor);
     }
 
@@ -83,7 +83,7 @@ public final class QueryEditor extends javax.swing.JPanel {
         this.projection = projection;
     }
 
-    public Document parseSort() throws JSONParseException {
+    public Document parseSort() throws JsonParseException {
         return getEditorValue(sortEditor);
     }
 
@@ -92,7 +92,7 @@ public final class QueryEditor extends javax.swing.JPanel {
         this.sort = sort;
     }
 
-    private Document getEditorValue(JEditorPane editor) throws JSONParseException {
+    private Document getEditorValue(JEditorPane editor) throws JsonParseException {
         final String json = editor.getText().trim();
         return Document.parse(json);
     }
@@ -107,7 +107,7 @@ public final class QueryEditor extends javax.swing.JPanel {
     public boolean validateInput() {
         try {
             parseCriteria();
-        } catch (JSONParseException ex) {
+        } catch (JsonParseException ex) {
             DialogDisplayer.getDefault().notify(
                 new NotifyDescriptor.Message(Bundle.invalidCriteriaJson(),
                     NotifyDescriptor.ERROR_MESSAGE));
@@ -115,7 +115,7 @@ public final class QueryEditor extends javax.swing.JPanel {
         }
         try {
             parseProjection();
-        } catch (JSONParseException ex) {
+        } catch (JsonParseException ex) {
             DialogDisplayer.getDefault().notify(
                 new NotifyDescriptor.Message(Bundle.invalidProjectionJson(),
                     NotifyDescriptor.ERROR_MESSAGE));
@@ -123,7 +123,7 @@ public final class QueryEditor extends javax.swing.JPanel {
         }
         try {
             parseSort();
-        } catch (JSONParseException ex) {
+        } catch (JsonParseException ex) {
             DialogDisplayer.getDefault().notify(
                 new NotifyDescriptor.Message(Bundle.invalidSortJson(),
                     NotifyDescriptor.ERROR_MESSAGE));

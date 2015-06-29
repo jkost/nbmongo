@@ -17,7 +17,6 @@
  */
 package org.netbeans.modules.mongodb.ui.util;
 
-import com.mongodb.util.JSONParseException;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
@@ -38,6 +37,7 @@ import javax.swing.event.DocumentListener;
 import javax.swing.text.EditorKit;
 import lombok.Getter;
 import org.bson.Document;
+import org.bson.json.JsonParseException;
 import org.netbeans.api.editor.mimelookup.MimeLookup;
 import org.netbeans.modules.mongodb.util.Json;
 import org.openide.DialogDescriptor;
@@ -212,7 +212,7 @@ public class JsonEditor extends JPanel {
                 try {
                     json = editor.getJson();
                     return Document.parse(json);
-                } catch (JSONParseException ex) {
+                } catch (JsonParseException ex) {
                     DialogDisplayer.getDefault().notify(
                         new NotifyDescriptor.Message(Bundle.invalidJson(), NotifyDescriptor.ERROR_MESSAGE));
                     doLoop = true;
