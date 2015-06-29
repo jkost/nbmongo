@@ -17,9 +17,7 @@
  */
 package org.netbeans.modules.mongodb.util;
 
-import com.github.jsonj.JsonElement;
-import com.github.jsonj.tools.JsonParser;
-import com.github.jsonj.tools.JsonSerializer;
+import com.cedarsoftware.util.io.JsonWriter;
 import com.mongodb.DBObject;
 import com.mongodb.util.JSON;
 
@@ -29,16 +27,12 @@ import com.mongodb.util.JSON;
  */
 public final class Json {
 
-    private static final JsonParser PARSER = new JsonParser();
-    
-    
     public static String prettify(DBObject dbObject) {
         return prettify(JSON.serialize(dbObject));
     }
     
     public static String prettify(String json) {
-        final JsonElement element = PARSER.parse(json);
-        return JsonSerializer.serialize(element, true).replace("\t", "  ").trim();
+        return JsonWriter.formatJson(json);
     }
 
     private Json() {
