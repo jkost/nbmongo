@@ -70,17 +70,17 @@ public interface QueryResult {
 
     };
 
-    
-    public class DBCursorResult implements QueryResult {
+    public class MongoCursorResult implements QueryResult {
 
         private final MongoCursor<Document> cursor;
 
         @Getter
         private final QueryExecutor executor;
 
-        private long count;
+        @Getter
+        private final long count;
 
-        public DBCursorResult(MongoCursor<Document> cursor, QueryExecutor queryExecutor, long count) {
+        public MongoCursorResult(MongoCursor<Document> cursor, QueryExecutor queryExecutor, long count) {
             this.cursor = cursor;
             this.executor = queryExecutor;
             this.count = count;
@@ -102,59 +102,11 @@ public interface QueryResult {
         }
 
         @Override
-        public long getCount() {
-            return count;
-        }
-
-        @Override
         protected void finalize() throws Throwable {
             super.finalize();
             cursor.close();
         }
-        
     }
-    
-//    public class DBCursorResult implements QueryResult {
-//
-//        private final DBCursor cursor;
-//
-//        @Getter
-//        private final QueryExecutor executor;
-//
-//        private Integer count = null;
-//
-//        public DBCursorResult(DBCursor cursor, QueryExecutor queryExecutor) {
-//            this.cursor = cursor;
-//            this.executor = queryExecutor;
-//        }
-//
-//        @Override
-//        public boolean hasNext() {
-//            return cursor.hasNext();
-//        }
-//
-//        @Override
-//        public boolean isCapped() {
-//            return false;
-//        }
-//
-//        @Override
-//        public Document next() {
-//            return cursor.next();
-//        }
-//
-//        @Override
-//        public int getCount() {
-//            return null == count ? count = cursor.count() : count;
-//        }
-//
-//        @Override
-//        protected void finalize() throws Throwable {
-//            super.finalize();
-//            cursor.close();
-//        }
-//        
-//    }
 
     public class MapReduceResult implements QueryResult {
 
@@ -171,7 +123,6 @@ public interface QueryResult {
         private final Iterator<Document> iterator;
 
         public MapReduceResult(MapReduceIterable<Document> out, QueryExecutor queryExecutor) {
-//        public MapReduceResult(MapReduceOutput out, QueryExecutor queryExecutor) {
             this.data = new LinkedList<>();
             int num = 0;
             for (Document document : out) {
@@ -202,7 +153,7 @@ public interface QueryResult {
         }
 
     }
-
+    
     public class CollectionResult implements QueryResult {
 
         @Getter

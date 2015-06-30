@@ -52,6 +52,6 @@ public final class QueryWorker extends QueryResultWorker implements QueryExecuto
         FindIterable<Document> query = criteria != null ? collection.find(criteria) : collection.find();
         query = query.projection(projection).sort(sort);
         long size = criteria != null ? collection.count(criteria) : collection.count();
-        return new QueryResult.DBCursorResult(query.iterator(), this, size);
+        return new QueryResult.MongoCursorResult(query.iterator(), this, size);
     }
 }

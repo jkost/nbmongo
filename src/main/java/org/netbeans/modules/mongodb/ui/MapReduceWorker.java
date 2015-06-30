@@ -32,7 +32,6 @@ import org.netbeans.modules.mongodb.QueryResult;
 public class MapReduceWorker extends QueryResultWorker implements QueryExecutor {
 
     private final MongoCollection<Document> collection;
-//    private final DBCollection collection;
 
     private final String mapFunction;
 
@@ -47,7 +46,6 @@ public class MapReduceWorker extends QueryResultWorker implements QueryExecutor 
 
     @Override
     protected QueryResult createQuery() throws Exception {
-//        final MapReduceOutput out = collection.mapReduce(mapFunction, reduceFunction, null, INLINE, new BasicDBObject());
         final MapReduceIterable<Document> out = collection.mapReduce(mapFunction, reduceFunction);
         return new QueryResult.MapReduceResult(out, this);
     }
