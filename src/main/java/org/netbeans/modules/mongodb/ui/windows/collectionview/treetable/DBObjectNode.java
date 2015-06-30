@@ -17,28 +17,28 @@
  */
 package org.netbeans.modules.mongodb.ui.windows.collectionview.treetable;
 
-import com.mongodb.DBObject;
 import java.util.List;
 import java.util.Map;
+import org.bson.Document;
 import org.netbeans.modules.mongodb.util.JsonProperty;
 
 /**
  *
  * @author Yann D'Isanto
  */
-public class DBObjectNode extends CollectionViewTreeTableNode<DBObject> {
+public class DBObjectNode extends CollectionViewTreeTableNode<Document> {
 
     @SuppressWarnings("unchecked")
-    public DBObjectNode(DBObject userObject) {
-        super(userObject);
-        final Map<String, Object> map = userObject.toMap();
+    public DBObjectNode(Document document) {
+        super(document);
+        final Map<String, Object> map = document;
         for (Map.Entry<String, Object> entry : map.entrySet()) {
             add(new JsonPropertyNode(new JsonProperty(entry.getKey(), entry.getValue())));
         }
     }
 
     @Override
-    public DBObject getValue() {
+    public Document getValue() {
         return getUserObject();
     }
 
@@ -50,7 +50,7 @@ public class DBObjectNode extends CollectionViewTreeTableNode<DBObject> {
     @Override
     @SuppressWarnings("unchecked")
     public Map<String, Object> getObjectValue() {
-        return getValue().toMap();
+        return getValue();
     }
 
     @Override

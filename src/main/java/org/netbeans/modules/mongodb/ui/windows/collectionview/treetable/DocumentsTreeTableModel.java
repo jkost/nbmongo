@@ -17,13 +17,13 @@
  */
 package org.netbeans.modules.mongodb.ui.windows.collectionview.treetable;
 
-import com.mongodb.DBObject;
 import org.netbeans.modules.mongodb.ui.ResultDisplayer;
 import org.netbeans.modules.mongodb.ui.ResultPages;
 import java.util.List;
 import javax.swing.SwingUtilities;
 import javax.swing.tree.TreePath;
 import lombok.Getter;
+import org.bson.Document;
 import org.jdesktop.swingx.treetable.DefaultMutableTreeTableNode;
 import org.jdesktop.swingx.treetable.DefaultTreeTableModel;
 import org.jdesktop.swingx.treetable.TreeTableNode;
@@ -44,12 +44,12 @@ public final class DocumentsTreeTableModel extends DefaultTreeTableModel impleme
     }
 
     @Override
-    public void pageChanged(ResultPages source, int pageIndex, List<DBObject> page) {
+    public void pageChanged(ResultPages source, int pageIndex, List<Document> page) {
         buildFromPage();
     }
 
     @Override
-    public void pageObjectUpdated(int index, DBObject oldValue, DBObject newValue) {
+    public void pageObjectUpdated(int index, Document oldValue, Document newValue) {
         documentUpdated(newValue, index);
     }
 
@@ -65,7 +65,7 @@ public final class DocumentsTreeTableModel extends DefaultTreeTableModel impleme
         final TreeTableNode rootNode = new DefaultMutableTreeTableNode(null) {
             {
                 if (pages != null) {
-                    for (DBObject document : pages.getPageContent()) {
+                    for (Document document : pages.getPageContent()) {
                         add(new DocumentNode(document));
                     }
                 }
@@ -81,7 +81,7 @@ public final class DocumentsTreeTableModel extends DefaultTreeTableModel impleme
         });
     }
 
-    public void documentUpdated(DBObject document, int index) {
+    public void documentUpdated(Document document, int index) {
         DocumentNode node = (DocumentNode) getRoot().getChildAt(index);
         setUserObject(node, document);
         TreePath path = new TreePath(getPathToRoot(node));
@@ -100,6 +100,6 @@ public final class DocumentsTreeTableModel extends DefaultTreeTableModel impleme
 
     @Override
     public Class<?> getColumnClass(int columnIndex) {
-        return DBObject.class;
+        return Document.class;
     }
 }

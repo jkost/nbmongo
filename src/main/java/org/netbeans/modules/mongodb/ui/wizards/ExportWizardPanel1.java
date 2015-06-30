@@ -17,11 +17,11 @@
  */
 package org.netbeans.modules.mongodb.ui.wizards;
 
-import com.mongodb.DB;
-import com.mongodb.DBObject;
+import com.mongodb.client.MongoDatabase;
 import javax.swing.JComboBox;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import org.bson.Document;
 import org.netbeans.modules.mongodb.ui.components.QueryEditor;
 import org.openide.WizardDescriptor;
 import org.openide.WizardValidationException;
@@ -37,9 +37,9 @@ public class ExportWizardPanel1 implements WizardDescriptor.ValidatingPanel<Wiza
 
     private final ChangeSupport changeSupport = new ChangeSupport(this);
 
-    private final DB db;
+    private final MongoDatabase db;
 
-    public ExportWizardPanel1(DB db) {
+    public ExportWizardPanel1(MongoDatabase db) {
         this.db = db;
     }
 
@@ -82,9 +82,9 @@ public class ExportWizardPanel1 implements WizardDescriptor.ValidatingPanel<Wiza
         if (collection != null) {
             panel.getCollectionComboBox().setSelectedItem(collection);
         }
-        query.setCriteria((DBObject) wiz.getProperty(ExportWizardAction.PROP_CRITERIA));
-        query.setProjection((DBObject) wiz.getProperty(ExportWizardAction.PROP_PROJECTION));
-        query.setSort((DBObject) wiz.getProperty(ExportWizardAction.PROP_SORT));
+        query.setCriteria((Document) wiz.getProperty(ExportWizardAction.PROP_CRITERIA));
+        query.setProjection((Document) wiz.getProperty(ExportWizardAction.PROP_PROJECTION));
+        query.setSort((Document) wiz.getProperty(ExportWizardAction.PROP_SORT));
         panel.updateQueryFieldsFromEditor();
     }
 

@@ -17,9 +17,9 @@
  */
 package org.netbeans.modules.mongodb.ui.windows.collectionview.treetable;
 
-import com.mongodb.DBObject;
 import java.util.List;
 import java.util.Map;
+import org.bson.Document;
 import org.netbeans.modules.mongodb.util.JsonProperty;
 
 /**
@@ -43,8 +43,8 @@ public final class JsonPropertyNode extends CollectionViewTreeTableNode<JsonProp
             }
         } else if (arrayValue) {
             for (Object object : getArrayValue()) {
-                if (object instanceof DBObject) {
-                    add(new DBObjectNode((DBObject) object));
+                if (object instanceof Document) {
+                    add(new DBObjectNode((Document) object));
                 } else {
                     add(new JsonValueNode(object));
                 }

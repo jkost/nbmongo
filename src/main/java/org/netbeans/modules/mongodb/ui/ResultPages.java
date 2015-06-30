@@ -17,10 +17,10 @@
  */
 package org.netbeans.modules.mongodb.ui;
 
-import com.mongodb.DBObject;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.Getter;
+import org.bson.Document;
 
 /**
  *
@@ -105,11 +105,11 @@ public final class ResultPages implements ResultCache.Listener {
         firePageChanged();
     }
 
-    public List<DBObject> getPageContent() {
+    public List<Document> getPageContent() {
         return cache.get(pageFirstElementOffset, pageSize);
     }
 
-    public int getTotalElementsCount() {
+    public long getTotalElementsCount() {
         return cache.getObjectsCount();
     }
 
@@ -146,14 +146,14 @@ public final class ResultPages implements ResultCache.Listener {
 
     void firePageChanged() {
         int pageIndex = getPageIndex();
-        List<DBObject> page = getPageContent();
+        List<Document> page = getPageContent();
         for (ResultPagesListener listener : listeners) {
             listener.pageChanged(this, pageIndex, page);
         }
     }
 
     @Override
-    public void objectUpdated(int index, DBObject oldValue, DBObject newValue) {
+    public void objectUpdated(int index, Document oldValue, Document newValue) {
         for (ResultPagesListener listener : listeners) {
             listener.pageObjectUpdated(index, oldValue, newValue);
         }
@@ -161,8 +161,8 @@ public final class ResultPages implements ResultCache.Listener {
     
     public static interface ResultPagesListener {
 
-        void pageChanged(ResultPages source, int pageIndex, List<DBObject> page);
+        void pageChanged(ResultPages source, int pageIndex, List<Document> page);
         
-        void pageObjectUpdated(int index, DBObject oldValue, DBObject newValue);
+        void pageObjectUpdated(int index, Document oldValue, Document newValue);
     }
 }

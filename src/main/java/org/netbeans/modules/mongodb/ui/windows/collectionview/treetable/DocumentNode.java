@@ -17,8 +17,8 @@
  */
 package org.netbeans.modules.mongodb.ui.windows.collectionview.treetable;
 
-import com.mongodb.DBObject;
 import java.util.Map;
+import org.bson.Document;
 import org.netbeans.modules.mongodb.util.JsonProperty;
 
 /**
@@ -27,7 +27,7 @@ import org.netbeans.modules.mongodb.util.JsonProperty;
  */
 public final class DocumentNode extends DBObjectNode {
     
-    public DocumentNode(DBObject document) {
+    public DocumentNode(Document document) {
         super(document);
     }
 
@@ -36,7 +36,7 @@ public final class DocumentNode extends DBObjectNode {
     public void setUserObject(Object object) {
         super.setUserObject(object);
         children.clear();
-        final Map<String, Object> map = getUserObject().toMap();
+        final Map<String, Object> map = getUserObject();
         for (Map.Entry<String, Object> entry : map.entrySet()) {
             add(new JsonPropertyNode(new JsonProperty(entry.getKey(), entry.getValue())));
         }

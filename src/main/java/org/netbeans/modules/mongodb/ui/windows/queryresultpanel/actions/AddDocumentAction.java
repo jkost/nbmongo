@@ -17,11 +17,11 @@
  */
 package org.netbeans.modules.mongodb.ui.windows.queryresultpanel.actions;
 
-import com.mongodb.DBCollection;
-import com.mongodb.DBObject;
 import com.mongodb.MongoException;
+import com.mongodb.client.MongoCollection;
 import java.awt.event.ActionEvent;
 import javax.swing.ImageIcon;
+import org.bson.Document;
 import org.netbeans.modules.mongodb.resources.Images;
 import org.netbeans.modules.mongodb.ui.util.JsonEditor;
 import org.netbeans.modules.mongodb.ui.windows.QueryResultPanel;
@@ -50,14 +50,15 @@ public final class AddDocumentAction extends QueryResultPanelAction {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public void actionPerformed(ActionEvent e) {
-        final DBObject document = JsonEditor.show(
-            Bundle.addDocumentTitle(),
-            "{}");
+        final Document document = JsonEditor.show(
+            Bundle.addDocumentTitle(), 
+            null);
         if (document != null) {
             try {
-                final DBCollection dbCollection = getResultPanel().getLookup().lookup(DBCollection.class);
-                dbCollection.insert(document);
+                MongoCollection<Document> dbCollection = getResultPanel().getLookup().lookup(MongoCollection.class);
+                dbCollection.insertOne(document);
                 getResultPanel().refreshResults();
             } catch (MongoException ex) {
                 DialogDisplayer.getDefault().notify(

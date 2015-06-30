@@ -18,8 +18,9 @@
 package org.netbeans.modules.mongodb.util;
 
 import com.cedarsoftware.util.io.JsonWriter;
-import com.mongodb.DBObject;
-import com.mongodb.util.JSON;
+import org.bson.Document;
+import org.bson.json.JsonMode;
+import org.bson.json.JsonWriterSettings;
 
 /**
  *
@@ -27,8 +28,10 @@ import com.mongodb.util.JSON;
  */
 public final class Json {
 
-    public static String prettify(DBObject dbObject) {
-        return prettify(JSON.serialize(dbObject));
+    private static final JsonWriterSettings jws = new JsonWriterSettings(JsonMode.STRICT, true);
+    
+    public static String prettify(Document document) {
+        return document.toJson(jws);
     }
     
     public static String prettify(String json) {

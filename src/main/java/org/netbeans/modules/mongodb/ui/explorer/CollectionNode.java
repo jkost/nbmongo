@@ -25,9 +25,11 @@ package org.netbeans.modules.mongodb.ui.explorer;
 
 import com.mongodb.BasicDBObject;
 import org.netbeans.modules.mongodb.resources.Images;
-import com.mongodb.DB;
-import com.mongodb.DBCollection;
 import com.mongodb.MongoException;
+import com.mongodb.MongoNamespace;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.IndexOptions;
 import org.netbeans.modules.mongodb.ui.windows.MapReduceTopComponent;
 import org.netbeans.modules.mongodb.ui.util.TopComponentUtils;
 import java.awt.event.ActionEvent;
@@ -38,6 +40,9 @@ import java.util.List;
 import java.util.Map;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
+import org.bson.BsonDocument;
+import org.bson.BsonString;
+import org.bson.Document;
 import org.netbeans.modules.mongodb.CollectionInfo;
 import org.netbeans.modules.mongodb.CollectionStats;
 import org.netbeans.modules.mongodb.indexes.CreateIndexPanel;
@@ -120,8 +125,8 @@ final class CollectionNode extends AbstractNode {
             }
         });
         setIconBaseWithExtension(SystemCollectionPredicate.get().eval(collection.getName())
-                ? Images.SYSTEM_COLLECTION_ICON_PATH
-                : Images.COLLECTION_ICON_PATH);
+            ? Images.SYSTEM_COLLECTION_ICON_PATH
+            : Images.COLLECTION_ICON_PATH);
     }
 
     @Override
@@ -130,28 +135,34 @@ final class CollectionNode extends AbstractNode {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     protected Sheet createSheet() {
         Sheet sheet = Sheet.createDefault();
         Sheet.Set set = Sheet.createPropertiesSet();
-        DBCollection col = getLookup().lookup(DBCollection.class);
-        final CollectionStats stats = new CollectionStats(col.isCapped(), col.getStats());
+//        DBCollection col = getLookup().lookup(DBCollection.class);
+        MongoCollection<Document> col = getLookup().lookup(MongoCollection.class);
+        MongoDatabase db = getLookup().lookup(MongoDatabase.class);
+        BsonDocument commandDocument = new BsonDocument("collStats", new BsonString(collection.getName()));
+        Document result = db.runCommand(commandDocument);
+        final CollectionStats stats = new CollectionStats(result);
+
         set.put(new LocalizedProperties(CollectionNode.class)
-                .stringProperty("serverUsed", stats.getServerUsed())
-                .stringProperty("serverUsed", stats.getServerUsed())
-                .stringProperty("ns", stats.getNs())
-                .stringProperty("capped", stats.getCapped())
-                .stringProperty("count", stats.getCount())
-                .stringProperty("size", stats.getSize())
-                .stringProperty("storageSize", stats.getStorageSize())
-                .stringProperty("numExtents", stats.getNumExtents())
-                .stringProperty("nindexes", stats.getNindexes())
-                .stringProperty("lastExtentSize", stats.getLastExtentSize())
-                .stringProperty("paddingFactor", stats.getPaddingFactor())
-                .stringProperty("systemFlags", stats.getSystemFlags())
-                .stringProperty("userFlags", stats.getUserFlags())
-                .stringProperty("totalIndexSize", stats.getTotalIndexSize())
-                .stringProperty("ok", stats.getOk())
-                .toArray());
+            .stringProperty("serverUsed", stats.getServerUsed())
+            .stringProperty("serverUsed", stats.getServerUsed())
+            .stringProperty("ns", stats.getNs())
+            .stringProperty("capped", stats.getCapped())
+            .stringProperty("count", stats.getCount())
+            .stringProperty("size", stats.getSize())
+            .stringProperty("storageSize", stats.getStorageSize())
+            .stringProperty("numExtents", stats.getNumExtents())
+            .stringProperty("nindexes", stats.getNindexes())
+            .stringProperty("lastExtentSize", stats.getLastExtentSize())
+            .stringProperty("paddingFactor", stats.getPaddingFactor())
+            .stringProperty("systemFlags", stats.getSystemFlags())
+            .stringProperty("userFlags", stats.getUserFlags())
+            .stringProperty("totalIndexSize", stats.getTotalIndexSize())
+            .stringProperty("ok", stats.getOk())
+            .toArray());
         sheet.put(set);
         return sheet;
     }
@@ -203,17 +214,41 @@ final class CollectionNode extends AbstractNode {
         childFactory.refresh();
     }
 
-    private class CollectionConverter implements InstanceContent.Convertor<CollectionInfo, DBCollection> {
+//    private class CollectionConverter implements InstanceContent.Convertor<CollectionInfo, DBCollection> {
+//
+//        @Override
+//        public DBCollection convert(CollectionInfo t) {
+//            DB db = getLookup().lookup(DB.class);
+//            return db.getCollection(t.getName());
+//        }
+//
+//        @Override
+//        public Class<? extends DBCollection> type(CollectionInfo t) {
+//            return DBCollection.class;
+//        }
+//
+//        @Override
+//        public String id(CollectionInfo t) {
+//            return t.getName();
+//        }
+//
+//        @Override
+//        public String displayName(CollectionInfo t) {
+//            return id(t);
+//        }
+//    }
+    private class CollectionConverter implements InstanceContent.Convertor<CollectionInfo, MongoCollection> {
 
         @Override
-        public DBCollection convert(CollectionInfo t) {
-            DB db = getLookup().lookup(DB.class);
+        public MongoCollection<Document> convert(CollectionInfo t) {
+//            DB db = getLookup().lookup(DB.class);
+            MongoDatabase db = getLookup().lookup(MongoDatabase.class);
             return db.getCollection(t.getName());
         }
 
         @Override
-        public Class<? extends DBCollection> type(CollectionInfo t) {
-            return DBCollection.class;
+        public Class<? extends MongoCollection> type(CollectionInfo t) {
+            return MongoCollection.class;
         }
 
         @Override
@@ -237,18 +272,18 @@ final class CollectionNode extends AbstractNode {
         public void actionPerformed(ActionEvent e) {
             final CollectionInfo ci = getLookup().lookup(CollectionInfo.class);
             final Object dlgResult = DialogDisplayer.getDefault().notify(new NotifyDescriptor.Confirmation(
-                    Bundle.dropCollectionConfirmText(ci.getName()),
-                    NotifyDescriptor.YES_NO_OPTION));
+                Bundle.dropCollectionConfirmText(ci.getName()),
+                NotifyDescriptor.YES_NO_OPTION));
             if (dlgResult.equals(NotifyDescriptor.OK_OPTION)) {
                 try {
-                    getLookup().lookup(DBCollection.class).drop();
+                    getLookup().lookup(MongoCollection.class).drop();
                     ((DBNode) getParentNode()).refreshChildren();
                     for (TopComponent topComponent : TopComponentUtils.findAll(ci, CollectionView.class, MapReduceTopComponent.class)) {
                         topComponent.close();
                     }
                 } catch (MongoException ex) {
                     DialogDisplayer.getDefault().notify(
-                            new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE));
+                        new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE));
                 }
             }
         }
@@ -261,17 +296,19 @@ final class CollectionNode extends AbstractNode {
         }
 
         @Override
+        @SuppressWarnings("unchecked")
         public void actionPerformed(ActionEvent e) {
             final NotifyDescriptor.InputLine input = new ValidatingInputLine(
-                    Bundle.renameCollectionText(collection.getName()),
-                    Bundle.ACTION_RenameCollection(),
-                    new CollectionNameValidator(getLookup()));
+                Bundle.renameCollectionText(collection.getName()),
+                Bundle.ACTION_RenameCollection(),
+                new CollectionNameValidator(getLookup()));
             input.setInputText(collection.getName());
             final Object dlgResult = DialogDisplayer.getDefault().notify(input);
             if (dlgResult.equals(NotifyDescriptor.OK_OPTION)) {
                 try {
                     final String name = input.getInputText().trim();
-                    getLookup().lookup(DBCollection.class).rename(name);
+                    MongoCollection<Document> collection = getLookup().lookup(MongoCollection.class);
+                    collection.renameCollection(new MongoNamespace(collection.getNamespace().getDatabaseName(), name));
                     final DBNode parentNode = (DBNode) getParentNode();
                     parentNode.refreshChildren();
 
@@ -292,7 +329,7 @@ final class CollectionNode extends AbstractNode {
                     }
                 } catch (MongoException ex) {
                     DialogDisplayer.getDefault().notify(
-                            new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE));
+                        new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE));
                 }
             }
         }
@@ -308,18 +345,18 @@ final class CollectionNode extends AbstractNode {
         public void actionPerformed(ActionEvent e) {
             final CollectionInfo ci = getLookup().lookup(CollectionInfo.class);
             final Object dlgResult = DialogDisplayer.getDefault().notify(new NotifyDescriptor.Confirmation(
-                    Bundle.clearCollectionConfirmText(ci.getName()),
-                    NotifyDescriptor.YES_NO_OPTION));
+                Bundle.clearCollectionConfirmText(ci.getName()),
+                NotifyDescriptor.YES_NO_OPTION));
             if (dlgResult.equals(NotifyDescriptor.OK_OPTION)) {
                 try {
-                    getLookup().lookup(DBCollection.class).remove(new BasicDBObject());
+                    getLookup().lookup(MongoCollection.class).deleteMany(new BasicDBObject());
                     for (TopComponent topComponent : TopComponentUtils.findAll(ci, CollectionView.class, MapReduceTopComponent.class)) {
                         ((QueryResultPanelContainer) topComponent).getResultPanel().refreshResults();
 
                     }
                 } catch (MongoException ex) {
                     DialogDisplayer.getDefault().notify(
-                            new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE));
+                        new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE));
                 }
             }
         }
@@ -332,27 +369,19 @@ final class CollectionNode extends AbstractNode {
         }
 
         @Override
+        @SuppressWarnings("unchecked")
         public void actionPerformed(ActionEvent e) {
             Index index = CreateIndexPanel.showDialog();
             if (index != null) {
-                DBCollection collection = getLookup().lookup(DBCollection.class);
+                MongoCollection<Document> collection = getLookup().lookup(MongoCollection.class);
                 final BasicDBObject keys = new BasicDBObject();
                 for (Index.Key key : index.getKeys()) {
                     keys.append(key.getField(), key.getSort().getValue());
                 }
-                final BasicDBObject options = new BasicDBObject();
-                if (index.getName() != null) {
-                    options.append("name", index.getName());
-                }
-                if (index.isSparse()) {
-                    options.append("sparse", true);
-                }
-                if (index.isUnique()) {
-                    options.append("unique", true);
-                }
-                if (index.isDropDuplicates()) {
-                    options.append("dropDups", true);
-                }
+                IndexOptions options = new IndexOptions()
+                    .name(index.getName())
+                    .sparse(index.isSparse())
+                    .unique(index.isUnique());
                 collection.createIndex(keys, options);
                 refreshChildren();
             }

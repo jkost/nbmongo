@@ -26,6 +26,7 @@ package org.netbeans.modules.mongodb;
 import java.util.Objects;
 import lombok.Getter;
 import lombok.NonNull;
+import org.netbeans.modules.mongodb.util.SystemCollectionPredicate;
 import org.openide.util.Lookup;
 
 /**
@@ -44,6 +45,10 @@ public final class CollectionInfo implements Comparable<CollectionInfo> {
     public CollectionInfo(@NonNull String name, @NonNull Lookup lookup) {
         this.name = name;
         this.lookup = lookup;
+    }
+
+    public boolean isSystemCollection() {
+        return SystemCollectionPredicate.get().eval(name);
     }
 
     @Override
@@ -79,6 +84,18 @@ public final class CollectionInfo implements Comparable<CollectionInfo> {
 
     @Override
     public int compareTo(CollectionInfo o) {
-        return name.compareToIgnoreCase(o.name);
+        int sysCol = isSystemCollection() ? 1 : 0;
+        sysCol |= o.isSystemCollection() ? 2 : 0;
+        switch (sysCol) {
+            case 1:
+                return -1;
+            case 2:
+                return 1;
+            case 0: // FALL THROUGH
+            case 3:
+                return name.compareToIgnoreCase(o.name);
+            default:
+                throw new AssertionError();
+        }
     }
 }

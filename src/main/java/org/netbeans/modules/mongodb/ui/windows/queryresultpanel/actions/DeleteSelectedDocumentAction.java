@@ -17,11 +17,12 @@
  */
 package org.netbeans.modules.mongodb.ui.windows.queryresultpanel.actions;
 
-import com.mongodb.DBCollection;
-import com.mongodb.DBObject;
 import com.mongodb.MongoException;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.model.Filters;
 import java.awt.event.ActionEvent;
 import javax.swing.ImageIcon;
+import org.bson.Document;
 import org.netbeans.modules.mongodb.resources.Images;
 import org.netbeans.modules.mongodb.ui.windows.QueryResultPanel;
 import org.openide.DialogDisplayer;
@@ -49,14 +50,15 @@ public final class DeleteSelectedDocumentAction extends QueryResultPanelAction {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public void actionPerformed(ActionEvent e) {
-        final DBObject document = getResultPanel().getResultTableSelectedDocument();
         final Object dlgResult = DialogDisplayer.getDefault().notify(
             new NotifyDescriptor.Confirmation(Bundle.confirmDocumentDeletionText(), NotifyDescriptor.YES_NO_OPTION));
         if (dlgResult.equals(NotifyDescriptor.OK_OPTION)) {
             try {
-                final DBCollection dbCollection = getResultPanel().getLookup().lookup(DBCollection.class);
-                dbCollection.remove(document);
+                MongoCollection<Document> collection = getResultPanel().getLookup().lookup(MongoCollection.class);
+                Document document = (Document) getResultPanel().getResultTableSelectedDocument();
+                collection.deleteOne(Filters.eq("_id", document.get("_id")));
                 getResultPanel().refreshResults();
             } catch (MongoException ex) {
                 DialogDisplayer.getDefault().notify(

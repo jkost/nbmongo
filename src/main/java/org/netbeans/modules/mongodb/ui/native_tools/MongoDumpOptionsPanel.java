@@ -17,8 +17,6 @@
  */
 package org.netbeans.modules.mongodb.ui.native_tools;
 
-import com.mongodb.DBObject;
-import com.mongodb.util.JSON;
 import java.io.File;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -26,6 +24,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import javax.swing.text.PlainDocument;
+import org.bson.Document;
 import org.netbeans.modules.mongodb.native_tools.MongoDumpOptions;
 import org.netbeans.modules.mongodb.native_tools.MongoNativeTool;
 import org.netbeans.modules.mongodb.options.MongoNativeToolsOptions;
@@ -454,9 +453,9 @@ public final class MongoDumpOptionsPanel extends AbstractOptionsAndArgsPanel imp
     }//GEN-LAST:event_browseDBPathButtonActionPerformed
 
     private void editQueryButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_editQueryButtonActionPerformed
-        final DBObject dbObject = JsonEditor.show(Bundle.queryEditorTitle(), queryField.getText());
-        if (dbObject != null) {
-            queryField.setText(JSON.serialize(dbObject));
+        final Document document = JsonEditor.show(Bundle.queryEditorTitle(), Document.parse(queryField.getText()));
+        if (document != null) {
+            queryField.setText(document.toJson());
         }
     }//GEN-LAST:event_editQueryButtonActionPerformed
 

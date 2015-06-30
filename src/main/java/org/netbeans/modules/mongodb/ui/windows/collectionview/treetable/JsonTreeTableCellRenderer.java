@@ -17,7 +17,6 @@
  */
 package org.netbeans.modules.mongodb.ui.windows.collectionview.treetable;
 
-import com.mongodb.DBObject;
 import org.netbeans.modules.mongodb.options.JsonCellRenderingOptions;
 import java.awt.Color;
 import java.awt.Component;
@@ -36,6 +35,7 @@ import javax.swing.border.Border;
 import javax.swing.plaf.UIResource;
 import javax.swing.tree.TreeCellRenderer;
 import javax.swing.tree.TreeNode;
+import org.bson.Document;
 import org.bson.types.ObjectId;
 import org.jdesktop.swingx.treetable.TreeTableNode;
 import org.netbeans.modules.mongodb.options.LabelCategory;
@@ -143,7 +143,7 @@ public final class JsonTreeTableCellRenderer extends JPanel implements TreeCellR
         }
 
         if (node instanceof DBObjectNode) {
-            DBObject value = ((DBObjectNode) node).getUserObject();
+            Document value = ((DBObjectNode) node).getUserObject();
             final boolean isDocumentNode = node instanceof DocumentNode;
             final LabelFontConf keyFontConf = options.getLabelFontConf(isDocumentNode
                 ? LabelCategory.DOCUMENT
