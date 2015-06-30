@@ -68,14 +68,12 @@ public final class Importer implements Runnable {
 
     private void importFrom(Reader reader) throws IOException {
         final MongoCollection<Document> collection = db.getCollection(properties.getCollection());
-//        final DBCollection collection = db.getCollection(properties.getCollection());
         final BufferedReader br = new BufferedReader(reader);
         String line;
         while ((line = br.readLine()) != null) {
             if(Thread.interrupted()) {
                 return;
             }
-//            collection.insert(parseLine(line));
             collection.insertMany(parseLine(line));
         }
     }

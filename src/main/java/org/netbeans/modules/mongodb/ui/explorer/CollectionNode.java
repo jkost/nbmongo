@@ -139,31 +139,11 @@ final class CollectionNode extends AbstractNode {
     protected Sheet createSheet() {
         Sheet sheet = Sheet.createDefault();
         Sheet.Set set = Sheet.createPropertiesSet();
-//        DBCollection col = getLookup().lookup(DBCollection.class);
         MongoCollection<Document> col = getLookup().lookup(MongoCollection.class);
         MongoDatabase db = getLookup().lookup(MongoDatabase.class);
         BsonDocument commandDocument = new BsonDocument("collStats", new BsonString(collection.getName()));
         Document result = db.runCommand(commandDocument);
-//        final CollectionStats stats = new CollectionStats(result);
-        
         set.put(new LocalizedProperties(CollectionNode.class).fromDocument(result).toArray());
-//        set.put(new LocalizedProperties(CollectionNode.class)
-//            .stringProperty("serverUsed", stats.getServerUsed())
-//            .stringProperty("ns", stats.getNs())
-//            .stringProperty("capped", stats.getCapped())
-//            .stringProperty("count", stats.getCount())
-//            .stringProperty("size", stats.getSize())
-//            .stringProperty("storageSize", stats.getStorageSize())
-//            .stringProperty("numExtents", stats.getNumExtents())
-//            .stringProperty("nindexes", stats.getNindexes())
-//            .stringProperty("lastExtentSize", stats.getLastExtentSize())
-//            .stringProperty("paddingFactor", stats.getPaddingFactor())
-//            .stringProperty("systemFlags", stats.getSystemFlags())
-//            .stringProperty("userFlags", stats.getUserFlags())
-//            .stringProperty("totalIndexSize", stats.getTotalIndexSize())
-//            .stringProperty("ok", stats.getOk())
-//            .toArray());
-        
         sheet.put(set);
         return sheet;
     }
@@ -215,34 +195,10 @@ final class CollectionNode extends AbstractNode {
         childFactory.refresh();
     }
 
-//    private class CollectionConverter implements InstanceContent.Convertor<CollectionInfo, DBCollection> {
-//
-//        @Override
-//        public DBCollection convert(CollectionInfo t) {
-//            DB db = getLookup().lookup(DB.class);
-//            return db.getCollection(t.getName());
-//        }
-//
-//        @Override
-//        public Class<? extends DBCollection> type(CollectionInfo t) {
-//            return DBCollection.class;
-//        }
-//
-//        @Override
-//        public String id(CollectionInfo t) {
-//            return t.getName();
-//        }
-//
-//        @Override
-//        public String displayName(CollectionInfo t) {
-//            return id(t);
-//        }
-//    }
     private class CollectionConverter implements InstanceContent.Convertor<CollectionInfo, MongoCollection> {
 
         @Override
         public MongoCollection<Document> convert(CollectionInfo t) {
-//            DB db = getLookup().lookup(DB.class);
             MongoDatabase db = getLookup().lookup(MongoDatabase.class);
             return db.getCollection(t.getName());
         }

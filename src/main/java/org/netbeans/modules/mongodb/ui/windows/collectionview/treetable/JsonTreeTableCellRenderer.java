@@ -195,7 +195,6 @@ public final class JsonTreeTableCellRenderer extends JPanel implements TreeCellR
         final Object value = property.getValue();
         LabelFontConf keyFontConf = options.getLabelFontConf(LabelCategory.KEY);
         LabelFontConf valueFontConf = options.getLabelFontConf(LabelCategory.COMMENT);
-//        if (node.isLeaf() && value != null && (value instanceof List) == false && (value instanceof Map) == false) {
         if (node.isLeaf() && node.isSimpleValue()) {
             final LabelCategory valueLabelCategory = LABEL_CATEGORIES.get(value.getClass());
             keyFontConf = options.getLabelFontConf((value instanceof ObjectId) ? LabelCategory.ID : LabelCategory.KEY);

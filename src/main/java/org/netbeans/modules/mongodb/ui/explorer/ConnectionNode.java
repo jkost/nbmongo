@@ -121,6 +121,7 @@ class ConnectionNode extends AbstractNode implements PropertyChangeListener {
             }
         });
         content.add(connectionHandler);
+        content.add(connection, new ConnectionConverter());
     }
 
     public boolean isConnected() {
@@ -272,7 +273,6 @@ class ConnectionNode extends AbstractNode implements PropertyChangeListener {
 
         @Override
         public void actionPerformed(ActionEvent e) {
-//            connect(true);
             connectionHandler.connect();
         }
 
@@ -286,7 +286,6 @@ class ConnectionNode extends AbstractNode implements PropertyChangeListener {
 
         @Override
         public void actionPerformed(ActionEvent e) {
-//            disconnecter.close();
             connectionHandler.disconnect();
         }
 

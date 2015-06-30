@@ -137,7 +137,6 @@ public class JsonEditor extends JPanel {
                     notificationLineSupport.setInformationMessage(Bundle.HINT_nextResult());
                 } else {
                     notificationLineSupport.setInformationMessage(Bundle.HINT_noResultFound());
-//                    editor.setSelectionStart(0);
                     editor.setSelectionEnd(editor.getSelectionStart());
                 }
             }
@@ -229,11 +228,9 @@ public class JsonEditor extends JPanel {
      * @param json the json to display
      */
     public static void showReadOnly(String title, Document document) {
-//    public static void showReadOnly(String title, String json) {
         JsonEditor editor = new JsonEditor();
         editor.editor.setEditable(false);
         editor.setJson(Json.prettify(document));
-//            final DialogDescriptor desc = new DialogDescriptor(editor, title);
         final DialogDescriptor desc = new DialogDescriptor(editor, title, true, NotifyDescriptor.PLAIN_MESSAGE, NotifyDescriptor.OK_OPTION, null);
         editor.setNotificationLineSupport(desc.createNotificationLineSupport());
         final JDialog dialog = (JDialog) DialogDisplayer.getDefault().createDialog(desc);

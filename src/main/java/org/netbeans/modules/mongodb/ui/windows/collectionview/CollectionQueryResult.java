@@ -126,14 +126,6 @@ public final class CollectionQueryResult {
         viewRefreshNecessary = false;
     }
 
-//    private MongoCursor<Document> getPageCursor(MongoCursor<Document> queryCursor) {
-//        if (pageSize > 0) {
-//            final int toSkip = (page - 1) * pageSize;
-//            return queryCursor.skip(toSkip).limit(pageSize);
-//        }
-//        return queryCursor;
-//    }
-
     private void fireUpdateStarting() {
         if (view != null) {
             view.updateStarting(this);

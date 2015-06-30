@@ -108,31 +108,9 @@ final class DBNode extends AbstractNode {
         Sheet sheet = Sheet.createDefault();
         Sheet.Set set = Sheet.createPropertiesSet();
         MongoDatabase db = getLookup().lookup(MongoDatabase.class);
-//        DB db = getLookup().lookup(DB.class);
         BsonDocument commandDocument = new BsonDocument("dbStats", new BsonInt32(1)).append("scale", new BsonInt32(1));
         Document result = db.runCommand(commandDocument);
-
         set.put(new LocalizedProperties(DBNode.class).fromDocument(result).toArray());
-        
-//        final DatabaseStats stats = new DatabaseStats(result);
-//            final DatabaseStats stats = new DatabaseStats(db.getStats());
-//        set.put(new LocalizedProperties(DBNode.class)
-//            .stringProperty("serverUsed", stats.getServerUsed())
-//            .stringProperty("db", stats.getDb())
-//            .stringProperty("collections", stats.getCollections())
-//            .stringProperty("objects", stats.getObjects())
-//            .stringProperty("avgObjSize", stats.getAvgObjSize())
-//            .stringProperty("dataSize", stats.getDataSize())
-//            .stringProperty("storageSize", stats.getStorageSize())
-//            .stringProperty("numExtents", stats.getNumExtents())
-//            .stringProperty("indexes", stats.getIndexes())
-//            .stringProperty("indexSize", stats.getIndexSize())
-//            .stringProperty("fileSize", stats.getFileSize())
-//            .stringProperty("nsSizeMB", stats.getNsSizeMB())
-//            .stringProperty("dataFileVersion", stats.getDataFileVersion())
-//            .stringProperty("ok", stats.getOk())
-//            .toArray());
-
         sheet.put(set);
         return sheet;
     }
@@ -190,30 +168,6 @@ final class DBNode extends AbstractNode {
             return id(t);
         }
     }
-//    private class DBConverter implements InstanceContent.Convertor<DbInfo, DB> {
-//
-//        @Override
-//        public DB convert(DbInfo t) {
-//            DbInfo info = getLookup().lookup(DbInfo.class);
-//            MongoConnection connection = getLookup().lookup(MongoConnection.class);
-//            return connection.getClient().getDB(info.getDbName());
-//        }
-//
-//        @Override
-//        public Class<? extends DB> type(DbInfo t) {
-//            return DB.class;
-//        }
-//
-//        @Override
-//        public String id(DbInfo t) {
-//            return t.getDbName();
-//        }
-//
-//        @Override
-//        public String displayName(DbInfo t) {
-//            return id(t);
-//        }
-//    }
 
     public final class AddCollectionAction extends AbstractAction {
 
@@ -231,11 +185,8 @@ final class DBNode extends AbstractNode {
             if (dlgResult.equals(NotifyDescriptor.OK_OPTION)) {
                 String collectionName = input.getInputText().trim();
                 MongoDatabase db = getLookup().lookup(MongoDatabase.class);
-//                final DB db = getLookup().lookup(DB.class);
-//                final DBObject collectionOptions = new BasicDBObject("capped", false);
                 try {
                     db.createCollection(collectionName, new CreateCollectionOptions().capped(false));
-//                    db.createCollection(collectionName, collectionOptions);
                     childFactory.refresh();
                 } catch (MongoException ex) {
                     DialogDisplayer.getDefault().notify(
@@ -255,7 +206,6 @@ final class DBNode extends AbstractNode {
         @Override
         public void actionPerformed(ActionEvent e) {
             MongoDatabase db = getLookup().lookup(MongoDatabase.class);
-//            final DB db = getLookup().lookup(DB.class);
 
             Object dlgResult = DialogDisplayer.getDefault().notify(new NotifyDescriptor.Confirmation(
                 Bundle.dropDatabaseConfirmText(db.getName()),
