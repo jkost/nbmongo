@@ -43,10 +43,6 @@ public class IndexKeyListCellRenderer extends JTextPane implements ListCellRende
 
     private final Style fieldsStyle;
 
-    private final Style ascIcon;
-
-    private final Style descIcon;
-    
     private final Map<KeySort, Style> sortStyles;
 
     public IndexKeyListCellRenderer() {
@@ -56,17 +52,42 @@ public class IndexKeyListCellRenderer extends JTextPane implements ListCellRende
         fieldsStyle = document.addStyle("fields", def);
         StyleConstants.setAlignment(fieldsStyle, StyleConstants.ALIGN_CENTER);
 
-        ascIcon = document.addStyle("sortAsc", def);
+        Style ascIcon = document.addStyle("sortAsc", def);
         StyleConstants.setAlignment(ascIcon, StyleConstants.ALIGN_CENTER);
         StyleConstants.setIcon(ascIcon, new ImageIcon(Images.SORT_ASC_ICON, KeySort.ASCENDING.toString()));
 
-        descIcon = document.addStyle("sortDesc", def);
+        Style descIcon = document.addStyle("sortDesc", def);
         StyleConstants.setAlignment(descIcon, StyleConstants.ALIGN_CENTER);
         StyleConstants.setIcon(descIcon, new ImageIcon(Images.SORT_DESC_ICON, KeySort.DESCENDING.toString()));
         
-        sortStyles = new HashMap<>(2);
+        Style geo2dIcon = document.addStyle("geo2d", def);
+        StyleConstants.setAlignment(geo2dIcon, StyleConstants.ALIGN_CENTER);
+        StyleConstants.setIcon(geo2dIcon, new ImageIcon(Images.MAP_ICON, KeySort.GEOSPATIAL_2D.toString()));
+        
+        Style geo2dSphereIcon = document.addStyle("geo2dSphere", def);
+        StyleConstants.setAlignment(geo2dSphereIcon, StyleConstants.ALIGN_CENTER);
+        StyleConstants.setIcon(geo2dSphereIcon, new ImageIcon(Images.WORLD_ICON, KeySort.GEOSPATIAL_2DSPHERE.toString()));
+        
+        Style geoHaystackIcon = document.addStyle("geoHaystack", def);
+        StyleConstants.setAlignment(geoHaystackIcon, StyleConstants.ALIGN_CENTER);
+        StyleConstants.setIcon(geoHaystackIcon, new ImageIcon(Images.MAP_MAGNIFY_ICON, KeySort.GEOSPATIAL_HAYSTACK.toString()));
+        
+        Style hashedIcon = document.addStyle("hashed", def);
+        StyleConstants.setAlignment(hashedIcon, StyleConstants.ALIGN_CENTER);
+        StyleConstants.setIcon(hashedIcon, new ImageIcon(Images.SHADING_ICON, KeySort.HASHED.toString()));
+        
+        Style textIcon = document.addStyle("text", def);
+        StyleConstants.setAlignment(textIcon, StyleConstants.ALIGN_CENTER);
+        StyleConstants.setIcon(textIcon, new ImageIcon(Images.TEXT_ALIGN_JUSTIFY_ICON, KeySort.TEXT.toString()));
+        
+        sortStyles = new HashMap<>(7);
         sortStyles.put(KeySort.ASCENDING, ascIcon);
         sortStyles.put(KeySort.DESCENDING, descIcon);
+        sortStyles.put(KeySort.GEOSPATIAL_2D, geo2dIcon);
+        sortStyles.put(KeySort.GEOSPATIAL_2DSPHERE, geo2dSphereIcon);
+        sortStyles.put(KeySort.GEOSPATIAL_HAYSTACK, geoHaystackIcon);
+        sortStyles.put(KeySort.HASHED, hashedIcon);
+        sortStyles.put(KeySort.TEXT, textIcon);
     }
 
     @Override
@@ -87,6 +108,8 @@ public class IndexKeyListCellRenderer extends JTextPane implements ListCellRende
             document.insertString(document.getLength(), key.getField(), fieldsStyle);
             document.insertString(document.getLength(), " ", fieldsStyle);
             document.insertString(document.getLength(), " ", sortStyles.get(key.getSort()));
+            
+            System.out.println("sort=" + key.getSort() + ", style=" + sortStyles.get(key.getSort()));
         } catch (BadLocationException ex) {
             Exceptions.printStackTrace(ex);
         }

@@ -61,7 +61,7 @@ public class CreateIndexPanel extends ValidablePanel {
     private static final long serialVersionUID = 1L;
 
     private final DefaultListModel<Index.Key> keyFieldsListModel = new DefaultListModel<>();
-    
+
     /**
      * Creates new form CreateIndexPanel
      */
@@ -119,7 +119,7 @@ public class CreateIndexPanel extends ValidablePanel {
 
     @Override
     protected String computeValidationProblem() {
-        if(keyFieldsListModel.getSize() == 0) {
+        if (keyFieldsListModel.getSize() == 0) {
             return Bundle.VALIDATION_noKey();
         }
         return null;
@@ -135,7 +135,7 @@ public class CreateIndexPanel extends ValidablePanel {
             uniqueCheckBox.isSelected()
         );
     }
-    
+
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -232,19 +232,22 @@ public class CreateIndexPanel extends ValidablePanel {
     }// </editor-fold>//GEN-END:initComponents
 
     private void addFieldButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addFieldButtonActionPerformed
-         Enumeration<Index.Key> keys = keyFieldsListModel.elements();
-         List<String> usedKeys = new ArrayList<>();
-         while(keys.hasMoreElements()) {
-             usedKeys.add(keys.nextElement().getField());
-         }
-         Index.Key key = IndexKeyPanel.showCreateDialog(usedKeys);
-         if(key != null) {
-             keyFieldsListModel.addElement(key);
-         }
+        Enumeration<Index.Key> keys = keyFieldsListModel.elements();
+        List<String> usedKeys = new ArrayList<>();
+        while (keys.hasMoreElements()) {
+            usedKeys.add(keys.nextElement().getField());
+        }
+        Index.Key key = IndexKeyPanel.showCreateDialog(usedKeys);
+        if (key != null) {
+            keyFieldsListModel.addElement(key);
+        }
     }//GEN-LAST:event_addFieldButtonActionPerformed
 
     private void removeFieldButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_removeFieldButtonActionPerformed
-        keyFieldsListModel.removeElementAt(keyFieldsList.getSelectedIndex());
+        int index = keyFieldsList.getSelectedIndex();
+        if (index > -1) {
+            keyFieldsListModel.removeElementAt(index);
+        }
     }//GEN-LAST:event_removeFieldButtonActionPerformed
 
 

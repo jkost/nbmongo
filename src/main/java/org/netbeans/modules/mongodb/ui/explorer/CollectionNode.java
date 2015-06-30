@@ -359,8 +359,13 @@ final class CollectionNode extends AbstractNode {
                     .name(index.getName())
                     .sparse(index.isSparse())
                     .unique(index.isUnique());
+                try {
                 collection.createIndex(keys, options);
                 refreshChildren();
+                } catch (MongoException ex) {
+                DialogDisplayer.getDefault().notify(
+                    new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE));
+                }
             }
         }
     }

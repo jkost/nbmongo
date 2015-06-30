@@ -172,4 +172,14 @@ public interface Images {
 
     Image KEY_DELETE_ICON = ImageUtilities.loadImage(KEY_DELETE_ICON_PATH);
 
+    Image MAP_ICON = ImageUtilities.loadImage(MAP_ICON_PATH);
+
+    Image MAP_MAGNIFY_ICON = ImageUtilities.loadImage(MAP_MAGNIFY_ICON_PATH);
+
+    Image WORLD_ICON = ImageUtilities.loadImage(WORLD_ICON_PATH);
+
+    Image TEXT_ALIGN_JUSTIFY_ICON = ImageUtilities.loadImage(TEXT_ALIGN_JUSTIFY_ICON_PATH);
+
+    Image SHADING_ICON = ImageUtilities.loadImage(SHADING_ICON_PATH);
+
 }
