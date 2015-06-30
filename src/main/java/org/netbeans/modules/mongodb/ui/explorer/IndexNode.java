@@ -17,6 +17,7 @@
  */
 package org.netbeans.modules.mongodb.ui.explorer;
 
+import org.netbeans.modules.mongodb.properties.LocalizedProperties;
 import com.mongodb.client.MongoCollection;
 import java.awt.event.ActionEvent;
 import java.util.Arrays;

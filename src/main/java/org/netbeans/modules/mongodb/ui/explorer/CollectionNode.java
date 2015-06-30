@@ -23,6 +23,7 @@
  */
 package org.netbeans.modules.mongodb.ui.explorer;
 
+import org.netbeans.modules.mongodb.properties.LocalizedProperties;
 import com.mongodb.BasicDBObject;
 import org.netbeans.modules.mongodb.resources.Images;
 import com.mongodb.MongoException;
@@ -44,7 +45,6 @@ import org.bson.BsonDocument;
 import org.bson.BsonString;
 import org.bson.Document;
 import org.netbeans.modules.mongodb.CollectionInfo;
-import org.netbeans.modules.mongodb.CollectionStats;
 import org.netbeans.modules.mongodb.indexes.CreateIndexPanel;
 import org.netbeans.modules.mongodb.indexes.Index;
 import org.netbeans.modules.mongodb.native_tools.MongoNativeToolsAction;
@@ -144,25 +144,26 @@ final class CollectionNode extends AbstractNode {
         MongoDatabase db = getLookup().lookup(MongoDatabase.class);
         BsonDocument commandDocument = new BsonDocument("collStats", new BsonString(collection.getName()));
         Document result = db.runCommand(commandDocument);
-        final CollectionStats stats = new CollectionStats(result);
-
-        set.put(new LocalizedProperties(CollectionNode.class)
-            .stringProperty("serverUsed", stats.getServerUsed())
-            .stringProperty("serverUsed", stats.getServerUsed())
-            .stringProperty("ns", stats.getNs())
-            .stringProperty("capped", stats.getCapped())
-            .stringProperty("count", stats.getCount())
-            .stringProperty("size", stats.getSize())
-            .stringProperty("storageSize", stats.getStorageSize())
-            .stringProperty("numExtents", stats.getNumExtents())
-            .stringProperty("nindexes", stats.getNindexes())
-            .stringProperty("lastExtentSize", stats.getLastExtentSize())
-            .stringProperty("paddingFactor", stats.getPaddingFactor())
-            .stringProperty("systemFlags", stats.getSystemFlags())
-            .stringProperty("userFlags", stats.getUserFlags())
-            .stringProperty("totalIndexSize", stats.getTotalIndexSize())
-            .stringProperty("ok", stats.getOk())
-            .toArray());
+//        final CollectionStats stats = new CollectionStats(result);
+        
+        set.put(new LocalizedProperties(CollectionNode.class).fromDocument(result).toArray());
+//        set.put(new LocalizedProperties(CollectionNode.class)
+//            .stringProperty("serverUsed", stats.getServerUsed())
+//            .stringProperty("ns", stats.getNs())
+//            .stringProperty("capped", stats.getCapped())
+//            .stringProperty("count", stats.getCount())
+//            .stringProperty("size", stats.getSize())
+//            .stringProperty("storageSize", stats.getStorageSize())
+//            .stringProperty("numExtents", stats.getNumExtents())
+//            .stringProperty("nindexes", stats.getNindexes())
+//            .stringProperty("lastExtentSize", stats.getLastExtentSize())
+//            .stringProperty("paddingFactor", stats.getPaddingFactor())
+//            .stringProperty("systemFlags", stats.getSystemFlags())
+//            .stringProperty("userFlags", stats.getUserFlags())
+//            .stringProperty("totalIndexSize", stats.getTotalIndexSize())
+//            .stringProperty("ok", stats.getOk())
+//            .toArray());
+        
         sheet.put(set);
         return sheet;
     }

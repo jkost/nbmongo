@@ -18,75 +18,62 @@
 package org.netbeans.modules.mongodb;
 
 import java.text.NumberFormat;
-import lombok.Getter;
+import java.util.Map;
 import lombok.ToString;
 import org.bson.Document;
+import org.netbeans.modules.mongodb.properties.LocalizedProperties;
+import org.openide.util.NbBundle.Messages;
 
 /**
  * Wrapps the output of the collStats mongodb server command.
  *
  * @author thomaswerner35
  */
- @ToString
+@ToString
+@Messages({
+    "# {0} - index name",
+    "indexSizes=Size of index {0}"
+})
 public class CollectionStats {
 
-    @Getter private final String serverUsed;
-    @Getter private final String ns;
-    @Getter private final String capped;
-    @Getter private final String count;
-    @Getter private final String size;
-    @Getter private final String storageSize;
-    @Getter private final String numExtents;
-    @Getter private final String nindexes;
-    @Getter private final String lastExtentSize;
-    @Getter private final String paddingFactor;
-    @Getter private final String systemFlags;
-    @Getter private final String userFlags;
-    @Getter private final String totalIndexSize;
-    @Getter private final String ok;
+    private final Document stats;
 
     public CollectionStats(Document stats) {
-        if(null != stats) {
-            serverUsed = stats.get("serverUsed").toString();
-            ns = stats.get("ns").toString();
-            capped = stats.getBoolean("capped") ? Bundle.yes() : Bundle.no();
-            count = getIntegerValue(stats, "count");
-            size = getIntegerValue(stats, "size");
-            storageSize = getIntegerValue(stats, "storageSize");
-            numExtents = getIntegerValue(stats, "numExtents");
-            nindexes = getIntegerValue(stats, "nindexes");
-            lastExtentSize = getIntegerValue(stats, "lastExtentSize");
-            paddingFactor = getNumberValue(stats, "paddingFactor");
-            systemFlags = getIntegerValue(stats, "systemFlags");
-            userFlags = getIntegerValue(stats, "userFlags");
-            totalIndexSize = getIntegerValue(stats, "totalIndexSize");
-            ok = Double.valueOf(1.0).equals(stats.get("ok")) ?  Bundle.yes() : Bundle.no();
-        } else {
-            serverUsed = "";
-            ns = "";
-            capped = "";
-            count = "";
-            size = "";
-            storageSize = "";
-            numExtents = "";
-            nindexes = "";
-            lastExtentSize = "";
-            paddingFactor = "";
-            systemFlags = "";
-            userFlags = "";
-            totalIndexSize = "";
-            ok = "";
+        this.stats = stats;
+    }
+
+    public LocalizedProperties populate(LocalizedProperties props) {
+        for (Map.Entry<String, Object> entry : stats.entrySet()) {
+            populate(props, entry.getKey(), entry.getValue());
+        }
+        return props;
+    }
+
+    @SuppressWarnings("unchecked")
+    private static void populate(LocalizedProperties props, String key, Object value) {
+        if (value instanceof Boolean) {
+            props.booleanProperty(key, (Boolean) value);
+        } else if (value instanceof String) {
+            props.stringProperty(key, (String) value);
+        } else if (value instanceof Integer) {
+            props.intProperty(key, (Integer) value);
+        } else if (value instanceof Long) {
+            props.longProperty(key, (Long) value);
+        } else if (value instanceof Number) {
+            props.stringProperty(key, NumberFormat.getNumberInstance().format(value));
+        } else if (value instanceof Map) {
+            Map<String, Object> map = (Map<String, Object>) value;
+            StringBuilder prefix = new StringBuilder();
+            if ("indexSizes".equals(key)) {
+                for (Map.Entry<String, Object> entry : map.entrySet()) {
+                    populate(props, Bundle.indexSizes(entry.getKey()), entry.getValue());
+                }
+            } else {
+                for (Map.Entry<String, Object> entry : map.entrySet()) {
+                    String childKey = prefix.append(key).append('.').append(entry.getKey()).toString();
+                    populate(props, childKey, entry.getValue());
+                }
+            }
         }
     }
-
-    private String getIntegerValue(Document stats, String key) {
-        return stats.get(key) instanceof Number ?
-               NumberFormat.getIntegerInstance().format(((Number) stats.get(key)).doubleValue()) : "";
-    }
-
-    private String getNumberValue(Document stats, String key) {
-        return stats.get(key) instanceof Number ?
-               NumberFormat.getNumberInstance().format(((Number) stats.get(key)).doubleValue()) : "";
-    }
-
 }
