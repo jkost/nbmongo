@@ -62,8 +62,18 @@ final class IndexKeyNode extends AbstractNode {
                 return Images.SORT_ASC_ICON_PATH;
             case DESCENDING:
                 return Images.SORT_DESC_ICON_PATH;
+            case HASHED:
+                return Images.SHADING_ICON_PATH;
+            case TEXT:
+                return Images.TEXT_ALIGN_JUSTIFY_ICON_PATH;
+            case GEOSPATIAL_2D:
+                return Images.MAP_ICON_PATH;
+            case GEOSPATIAL_2DSPHERE:
+                return Images.WORLD_ICON_PATH;
+            case GEOSPATIAL_HAYSTACK:
+                return Images.MAP_MAGNIFY_ICON_PATH;
             default:
-                throw new AssertionError();
+                return Images.BULLET_BLUE_ICON_PATH;
         }
     }
 }

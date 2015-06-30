@@ -51,26 +51,24 @@ public class Index {
     @Getter
     private boolean unique;
 
-    @Getter
-    private boolean dropDuplicates;
-
+//    @Getter
+//    private boolean dropDuplicates;
     public Index(String name, String nameSpace, List<Key> keys) {
-        this(name, nameSpace, keys, true, false, false);
+        this(name, nameSpace, keys, true, false);
     }
 
     @Override
     public String toString() {
         return name;
     }
-    
+
     public static Index fromJson(Document indexInfo) {
         final Document keyObj = (Document) indexInfo.get("key");
         List<Key> keys = new ArrayList<>();
         for (String field : keyObj.keySet()) {
-            Number sort = (Number) keyObj.get(field);
             keys.add(new Key(
                 field,
-                KeySort.valueOf(sort.intValue())
+                KeySort.valueOf(keyObj.get(field))
             ));
         }
         return new Index(
@@ -78,8 +76,7 @@ public class Index {
             (String) indexInfo.get("ns"),
             keys,
             Boolean.TRUE.equals(indexInfo.get("sparse")),
-            Boolean.TRUE.equals(indexInfo.get("unique")),
-            Boolean.TRUE.equals(indexInfo.get("dropDups"))
+            Boolean.TRUE.equals(indexInfo.get("unique"))
         );
     }
 
@@ -97,24 +94,59 @@ public class Index {
     @AllArgsConstructor
     @Messages({
         "ASCENDING=ascending",
-        "DESCENDING=descending"
+        "DESCENDING=descending",
+        "HASHED=hashed",
+        "TEXT=text",
+        "GEOSPATIAL_2D=2d",
+        "GEOSPATIAL_2DSPHERE=2dsphere",
+        "GEOSPATIAL_HAYSTACK=geoHaystack"
     })
     public static enum KeySort {
 
         ASCENDING(1),
-        DESCENDING(-1);
+        DESCENDING(-1),
+        HASHED("hashed"),
+        TEXT("text"),
+        GEOSPATIAL_2D("2d"),
+        GEOSPATIAL_2DSPHERE("2dsphere"),
+        GEOSPATIAL_HAYSTACK("geoHaystack");
 
         @Getter
-        private final int value;
+        private final Object value;
 
-        public static KeySort valueOf(int value) {
-            switch (value) {
+        public static KeySort valueOf(Object value) {
+            if (value instanceof Number) {
+                return valueOf(((Number) value).intValue());
+            } else {
+                return parse((String) value);
+            }
+        }
+
+        public static KeySort valueOf(int sortValue) {
+            switch (sortValue) {
                 case 1:
                     return ASCENDING;
                 case -1:
                     return DESCENDING;
                 default:
-                    throw new AssertionError();
+                    throw new IllegalArgumentException("invlid index sort value: " + sortValue);
+            }
+        }
+
+        public static KeySort parse(String value) {
+            switch (value) {
+                case "hashed":
+                    return HASHED;
+                case "text":
+                    return TEXT;
+                case "2d":
+                    return GEOSPATIAL_2D;
+                case "2dsphere":
+                    return GEOSPATIAL_2DSPHERE;
+                case "geoHaystack":
+                    return GEOSPATIAL_HAYSTACK;
+                default:
+                    throw new IllegalArgumentException("unknown index type: " + value);
             }
         }
 

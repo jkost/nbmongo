@@ -44,7 +44,6 @@ import org.openide.util.NbBundle.Messages;
  */
 @Messages({
     "CreateIndexPanel.fieldsLabel.text=Fields",
-    "CreateIndexPanel.dropDupsCheckBox.text=drop duplicates",
     "CreateIndexPanel.uniqueCheckBox.text=unique",
     "CreateIndexPanel.sparseCheckBox.text=sparse",
     "CreateIndexPanel.okButton.text=Ok",
@@ -133,8 +132,7 @@ public class CreateIndexPanel extends ValidablePanel {
             null,
             Collections.list(keyFieldsListModel.elements()),
             sparseCheckBox.isSelected(),
-            uniqueCheckBox.isSelected(),
-            dropDupsCheckBox.isSelected()
+            uniqueCheckBox.isSelected()
         );
     }
     
@@ -148,7 +146,6 @@ public class CreateIndexPanel extends ValidablePanel {
     private void initComponents() {
 
         uniqueCheckBox = new javax.swing.JCheckBox();
-        dropDupsCheckBox = new javax.swing.JCheckBox();
         nameLabel = new javax.swing.JLabel();
         nameField = new javax.swing.JTextField();
         addFieldButton = new javax.swing.JButton();
@@ -159,8 +156,6 @@ public class CreateIndexPanel extends ValidablePanel {
         sparseCheckBox = new javax.swing.JCheckBox();
 
         org.openide.awt.Mnemonics.setLocalizedText(uniqueCheckBox, org.openide.util.NbBundle.getMessage(CreateIndexPanel.class, "CreateIndexPanel.uniqueCheckBox.text")); // NOI18N
-
-        org.openide.awt.Mnemonics.setLocalizedText(dropDupsCheckBox, org.openide.util.NbBundle.getMessage(CreateIndexPanel.class, "CreateIndexPanel.dropDupsCheckBox.text")); // NOI18N
 
         org.openide.awt.Mnemonics.setLocalizedText(nameLabel, org.openide.util.NbBundle.getMessage(CreateIndexPanel.class, "CreateIndexPanel.nameLabel.text")); // NOI18N
 
@@ -210,10 +205,8 @@ public class CreateIndexPanel extends ValidablePanel {
                         .addGap(10, 10, 10))
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(dropDupsCheckBox)
-                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                .addComponent(sparseCheckBox, javax.swing.GroupLayout.Alignment.TRAILING)
-                                .addComponent(uniqueCheckBox, javax.swing.GroupLayout.Alignment.TRAILING)))
+                            .addComponent(sparseCheckBox, javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addComponent(uniqueCheckBox, javax.swing.GroupLayout.Alignment.TRAILING))
                         .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
         );
         layout.setVerticalGroup(
@@ -227,16 +220,14 @@ public class CreateIndexPanel extends ValidablePanel {
                 .addComponent(sparseCheckBox)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(uniqueCheckBox)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(dropDupsCheckBox)
                 .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(fieldsLabel)
                     .addComponent(removeFieldButton)
                     .addComponent(addFieldButton))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 178, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 188, Short.MAX_VALUE)
+                .addContainerGap())
         );
     }// </editor-fold>//GEN-END:initComponents
 
@@ -259,7 +250,6 @@ public class CreateIndexPanel extends ValidablePanel {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton addFieldButton;
-    private javax.swing.JCheckBox dropDupsCheckBox;
     private javax.swing.JLabel fieldsLabel;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JList<Index.Key> keyFieldsList;

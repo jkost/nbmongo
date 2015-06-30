@@ -90,7 +90,6 @@ class IndexNode extends AbstractNode {
                 .stringProperty("nameSpace", index.getNameSpace())
                 .booleanProperty("sparse", index.isSparse())
                 .booleanProperty("unique", index.isUnique())
-                .booleanProperty("dropDuplicates", index.isDropDuplicates())
                 .toArray());
         sheet.put(set);
         return sheet;
