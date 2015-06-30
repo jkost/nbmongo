@@ -17,6 +17,7 @@
  */
 package org.netbeans.modules.mongodb.ui.explorer;
 
+import org.netbeans.modules.mongodb.properties.LocalizedProperties;
 import org.netbeans.modules.mongodb.indexes.Index;
 import org.netbeans.modules.mongodb.resources.Images;
 import org.openide.nodes.AbstractNode;

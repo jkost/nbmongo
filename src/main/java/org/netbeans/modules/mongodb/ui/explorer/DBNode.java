@@ -23,6 +23,7 @@
  */
 package org.netbeans.modules.mongodb.ui.explorer;
 
+import org.netbeans.modules.mongodb.properties.LocalizedProperties;
 import org.netbeans.modules.mongodb.resources.Images;
 import com.mongodb.MongoException;
 import com.mongodb.client.MongoDatabase;
@@ -37,7 +38,6 @@ import javax.swing.Action;
 import org.bson.BsonDocument;
 import org.bson.BsonInt32;
 import org.bson.Document;
-import org.netbeans.modules.mongodb.DatabaseStats;
 import org.netbeans.modules.mongodb.DbInfo;
 import org.netbeans.modules.mongodb.MongoConnection;
 import org.netbeans.modules.mongodb.native_tools.MongoNativeToolsAction;
@@ -111,27 +111,28 @@ final class DBNode extends AbstractNode {
 //        DB db = getLookup().lookup(DB.class);
         BsonDocument commandDocument = new BsonDocument("dbStats", new BsonInt32(1)).append("scale", new BsonInt32(1));
         Document result = db.runCommand(commandDocument);
+
+        set.put(new LocalizedProperties(DBNode.class).fromDocument(result).toArray());
         
-        if (db != null) {
-            final DatabaseStats stats = new DatabaseStats(result);
+//        final DatabaseStats stats = new DatabaseStats(result);
 //            final DatabaseStats stats = new DatabaseStats(db.getStats());
-            set.put(new LocalizedProperties(DBNode.class)
-                .stringProperty("serverUsed", stats.getServerUsed())
-                .stringProperty("db", stats.getDb())
-                .stringProperty("collections", stats.getCollections())
-                .stringProperty("objects", stats.getObjects())
-                .stringProperty("avgObjSize", stats.getAvgObjSize())
-                .stringProperty("dataSize", stats.getDataSize())
-                .stringProperty("storageSize", stats.getStorageSize())
-                .stringProperty("numExtents", stats.getNumExtents())
-                .stringProperty("indexes", stats.getIndexes())
-                .stringProperty("indexSize", stats.getIndexSize())
-                .stringProperty("fileSize", stats.getFileSize())
-                .stringProperty("nsSizeMB", stats.getNsSizeMB())
-                .stringProperty("dataFileVersion", stats.getDataFileVersion())
-                .stringProperty("ok", stats.getOk())
-                .toArray());
-        }
+//        set.put(new LocalizedProperties(DBNode.class)
+//            .stringProperty("serverUsed", stats.getServerUsed())
+//            .stringProperty("db", stats.getDb())
+//            .stringProperty("collections", stats.getCollections())
+//            .stringProperty("objects", stats.getObjects())
+//            .stringProperty("avgObjSize", stats.getAvgObjSize())
+//            .stringProperty("dataSize", stats.getDataSize())
+//            .stringProperty("storageSize", stats.getStorageSize())
+//            .stringProperty("numExtents", stats.getNumExtents())
+//            .stringProperty("indexes", stats.getIndexes())
+//            .stringProperty("indexSize", stats.getIndexSize())
+//            .stringProperty("fileSize", stats.getFileSize())
+//            .stringProperty("nsSizeMB", stats.getNsSizeMB())
+//            .stringProperty("dataFileVersion", stats.getDataFileVersion())
+//            .stringProperty("ok", stats.getOk())
+//            .toArray());
+
         sheet.put(set);
         return sheet;
     }
@@ -246,7 +247,7 @@ final class DBNode extends AbstractNode {
     }
 
     public final class DropDatabaseAction extends AbstractAction {
-        
+
         public DropDatabaseAction() {
             super(Bundle.ACTION_DropDatabase());
         }
