@@ -117,7 +117,7 @@ final class CollectionNode extends AbstractNode {
         content.add(new OpenCookie() {
             @Override
             public void open() {
-                if(TopComponentUtils.isNotActivated(CollectionView.class, collection)) {
+                if (TopComponentUtils.isNotActivated(CollectionView.class, collection)) {
                     TopComponent tc = TopComponentUtils.find(CollectionView.class, collection);
                     if (tc == null) {
                         tc = new CollectionView(collection, lookup);
@@ -355,16 +355,12 @@ final class CollectionNode extends AbstractNode {
                 for (Index.Key key : index.getKeys()) {
                     keys.append(key.getField(), key.getSort().getValue());
                 }
-                IndexOptions options = new IndexOptions()
-                    .name(index.getName())
-                    .sparse(index.isSparse())
-                    .unique(index.isUnique());
                 try {
-                collection.createIndex(keys, options);
-                refreshChildren();
+                    collection.createIndex(keys, index.getOptions());
+                    refreshChildren();
                 } catch (MongoException ex) {
-                DialogDisplayer.getDefault().notify(
-                    new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE));
+                    DialogDisplayer.getDefault().notify(
+                        new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE));
                 }
             }
         }

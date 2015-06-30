@@ -88,8 +88,8 @@ class IndexNode extends AbstractNode {
         set.put(new LocalizedProperties(IndexNode.class)
                 .stringProperty("name", index.getName())
                 .stringProperty("nameSpace", index.getNameSpace())
-                .booleanProperty("sparse", index.isSparse())
-                .booleanProperty("unique", index.isUnique())
+                .booleanProperty("sparse", index.getGlobalOptions().isSparse())
+                .booleanProperty("unique", index.getGlobalOptions().isUnique())
                 .toArray());
         sheet.put(set);
         return sheet;
