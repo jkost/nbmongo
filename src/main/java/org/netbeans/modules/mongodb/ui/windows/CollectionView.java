@@ -79,6 +79,10 @@ public final class CollectionView extends TopComponent implements QueryResultWor
     private final Action clearQueryAction = new ClearQueryAction(this);
 
     public CollectionView(CollectionInfo collectionInfo, Lookup lookup) {
+        this(collectionInfo, lookup, null);
+    }
+    
+    public CollectionView(CollectionInfo collectionInfo, Lookup lookup, Document criteria) {
         super(lookup);
         this.lookup = lookup;
         isSystemCollection = SystemCollectionPredicate.get().eval(collectionInfo.getName());
@@ -88,7 +92,12 @@ public final class CollectionView extends TopComponent implements QueryResultWor
             ? Images.SYSTEM_COLLECTION_ICON
             : Images.COLLECTION_ICON);
         loadPreferences();
-        getResultPanel().refreshResults();
+        if(criteria != null) {
+            queryEditor.setCriteria(criteria);
+            updateQueryFieldsFromEditor();
+        } else {
+            getResultPanel().refreshResults();
+        }
     }
 
     public void setLookup(Lookup lookup) {

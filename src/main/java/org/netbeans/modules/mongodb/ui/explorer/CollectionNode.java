@@ -78,6 +78,7 @@ import org.openide.windows.TopComponent;
  * @author Yann D'Isanto
  */
 @Messages({
+    "ACTION_OpenCollectionInNewTab=Open in new tab",
     "ACTION_DropCollection=Drop Collection",
     "ACTION_RenameCollection=Rename Collection",
     "ACTION_ClearCollection=Clear Collection",
@@ -116,12 +117,14 @@ final class CollectionNode extends AbstractNode {
         content.add(new OpenCookie() {
             @Override
             public void open() {
-                TopComponent tc = TopComponentUtils.find(CollectionView.class, collection);
-                if (tc == null) {
-                    tc = new CollectionView(collection, lookup);
-                    tc.open();
+                if(TopComponentUtils.isNotActivated(CollectionView.class, collection)) {
+                    TopComponent tc = TopComponentUtils.find(CollectionView.class, collection);
+                    if (tc == null) {
+                        tc = new CollectionView(collection, lookup);
+                        tc.open();
+                    }
+                    tc.requestActive();
                 }
-                tc.requestActive();
             }
         });
         setIconBaseWithExtension(SystemCollectionPredicate.get().eval(collection.getName())
@@ -165,6 +168,7 @@ final class CollectionNode extends AbstractNode {
         }
         final List<Action> actions = new LinkedList<>();
         actions.add(SystemAction.get(OpenAction.class));
+        actions.add(new OpenCollectionInNewTabAction());
         actions.add(new OpenMapReduceWindowAction(getLookup()));
         actions.add(null);
         actions.add(new RefreshChildrenAction(Bundle.ACTION_RefreshIndexes(), childFactory));
@@ -216,6 +220,22 @@ final class CollectionNode extends AbstractNode {
         @Override
         public String displayName(CollectionInfo t) {
             return id(t);
+        }
+    }
+
+    public class OpenCollectionInNewTabAction extends AbstractAction {
+
+        public OpenCollectionInNewTabAction() {
+            super(Bundle.ACTION_OpenCollectionInNewTab());
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            Lookup lookup = getLookup();
+            final CollectionInfo collection = lookup.lookup(CollectionInfo.class);
+            CollectionView newTab = new CollectionView(collection, lookup);
+            newTab.open();
+            newTab.requestActive();
         }
     }
 
@@ -331,7 +351,7 @@ final class CollectionNode extends AbstractNode {
             Index index = CreateIndexPanel.showDialog();
             if (index != null) {
                 MongoCollection<Document> collection = getLookup().lookup(MongoCollection.class);
-                final BasicDBObject keys = new BasicDBObject();
+                Document keys = new Document();
                 for (Index.Key key : index.getKeys()) {
                     keys.append(key.getField(), key.getSort().getValue());
                 }

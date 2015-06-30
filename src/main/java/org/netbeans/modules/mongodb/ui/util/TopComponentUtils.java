@@ -30,6 +30,21 @@ import org.openide.windows.WindowManager;
  */
 public class TopComponentUtils {
 
+    public static <T extends TopComponent> boolean isNotActivated(Class<T> topComponentType, Object data) {
+        return isActivated(topComponentType, data) == false;
+    }
+    
+    public static <T extends TopComponent> boolean isActivated(Class<T> topComponentType, Object data) {
+        TopComponent tc = WindowManager.getDefault().getRegistry().getActivated();
+        if(tc == null) {
+            return false;
+        }
+        if(topComponentType.isAssignableFrom(tc.getClass())) {
+            return tc.getLookup().lookup(data.getClass()) == data;
+        }
+        return false;
+    }
+    
     @SuppressWarnings("unchecked")
     public static <T extends TopComponent> T find(Class<T> topComponentType, Object data) {
         final Set<TopComponent> openTopComponents = WindowManager.getDefault().getRegistry().getOpened();

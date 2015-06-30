@@ -54,6 +54,7 @@ import lombok.Setter;
 import org.bson.Document;
 import org.bson.types.ObjectId;
 import org.jdesktop.swingx.treetable.TreeTableNode;
+import org.netbeans.modules.mongodb.CollectionInfo;
 import org.netbeans.modules.mongodb.options.JsonCellRenderingOptions;
 import org.netbeans.modules.mongodb.options.LabelCategory;
 import org.netbeans.modules.mongodb.resources.Images;
@@ -87,6 +88,7 @@ import org.netbeans.modules.mongodb.ui.windows.collectionview.treetable.Document
 import org.netbeans.modules.mongodb.ui.windows.collectionview.treetable.JsonPropertyNode;
 import org.netbeans.modules.mongodb.ui.windows.collectionview.treetable.JsonTreeTableCellRenderer;
 import org.netbeans.modules.mongodb.ui.windows.collectionview.treetable.JsonValueNode;
+import org.netbeans.modules.mongodb.ui.windows.queryresultpanel.actions.FindWithJsonPropertyNodeAction;
 import org.netbeans.modules.mongodb.util.JsonProperty;
 import org.openide.awt.NotificationDisplayer;
 import org.openide.util.Exceptions;
@@ -614,6 +616,9 @@ public final class QueryResultPanel extends javax.swing.JPanel implements Result
     private final EditJsonValueNodeAction editJsonValueNodeAction = new EditJsonValueNodeAction(this, null);
 
     @Getter
+    private final FindWithJsonPropertyNodeAction findWithJsonPropertyNodeAction = new FindWithJsonPropertyNodeAction(this, null);
+
+    @Getter
     private final Action refreshDocumentsAction = new RefreshDocumentsAction(this);
 
     @Getter
@@ -706,6 +711,10 @@ public final class QueryResultPanel extends javax.swing.JPanel implements Result
                 if (node instanceof JsonPropertyNode) {
                     JsonPropertyNode propertyNode = (JsonPropertyNode) node;
                     JsonProperty property = propertyNode.getUserObject();
+                    if(lookup.lookup(CollectionInfo.class) != null) {
+                        findWithJsonPropertyNodeAction.setPropertyNode(propertyNode);
+                        menu.add(new JMenuItem(findWithJsonPropertyNodeAction));
+                    }
                     menu.add(new JMenuItem(new CopyKeyValuePairToClipboardAction(property)));
                     menu.add(new JMenuItem(new CopyKeyToClipboardAction(property)));
                     menu.add(new JMenuItem(new CopyValueToClipboardAction(property.getValue())));
