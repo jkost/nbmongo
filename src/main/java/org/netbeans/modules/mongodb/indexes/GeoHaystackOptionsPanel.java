@@ -37,6 +37,22 @@ public class GeoHaystackOptionsPanel extends javax.swing.JPanel {
         return new GeoHaystackOptions(bucketSize);
     }
     
+    public void setOptions(GeoHaystackOptions options) {
+        Double bucketSize = options.getBucketSize();
+        if(bucketSize != null) {
+            bucketSizeCheckBox.setSelected(true);
+            bucketSizeSpinner.setValue(bucketSize);
+        } else {
+            bucketSizeCheckBox.setSelected(false);
+        }
+    }
+    
+    void clearOptions() {
+        bucketSizeSpinner.setValue(2);
+        bucketSizeSpinner.setEnabled(false);
+        bucketSizeCheckBox.setSelected(false);
+    }
+    
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always

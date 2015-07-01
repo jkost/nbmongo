@@ -39,6 +39,42 @@ public class Geo2DOptionsPanel extends javax.swing.JPanel {
         return new Geo2DOptions(bits, min, max);
     }
     
+    public void setOptions(Geo2DOptions options) {
+        Integer bits = options.getBits();
+        if(bits != null) {
+            bitsCheckBox.setSelected(true);
+            bitsSpinner.setValue(bits);
+        } else {
+            bitsCheckBox.setSelected(false);
+        }
+        Double min = options.getMin();
+        if(min != null) {
+            minCheckBox.setSelected(true);
+            minSpinner.setValue(min);
+        } else {
+            minCheckBox.setSelected(false);
+        }
+        Double max = options.getMax();
+        if(max != null) {
+            maxCheckBox.setSelected(true);
+            maxSpinner.setValue(max);
+        } else {
+            maxCheckBox.setSelected(false);
+        }
+    }
+    
+    void clearOptions() {
+        bitsSpinner.setValue(26);
+        bitsSpinner.setEnabled(false);
+        bitsCheckBox.setSelected(false);
+        minSpinner.setValue(-180.0);
+        minSpinner.setEnabled(false);
+        minCheckBox.setSelected(false);
+        maxSpinner.setValue(180.0);
+        maxSpinner.setEnabled(false);
+        maxCheckBox.setSelected(false);
+    }
+    
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always

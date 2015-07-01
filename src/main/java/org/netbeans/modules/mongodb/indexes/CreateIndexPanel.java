@@ -130,7 +130,9 @@ public class CreateIndexPanel extends ValidablePanel {
 
     @Override
     protected String computeValidationProblem() {
-        if (keyFieldsListModel.getSize() == 0) {
+        int keysCount = keyFieldsListModel.getSize();
+        addFieldButton.setEnabled(keysCount < 31);
+        if (keysCount == 0) {
             return Bundle.VALIDATION_noKey();
         }
         return null;
@@ -174,6 +176,48 @@ public class CreateIndexPanel extends ValidablePanel {
             geo2DOptionsPanel.getGeo2DOptions(),
             geoHaystackOptionsPanel.getGeoHaystackOptions()
         );
+    }
+
+    void setIndex(Index index) {
+        String name = index.getName();
+        if (name != null) {
+            nameField.setText(name);
+        }
+        keyFieldsListModel.clear();
+        for (Index.Key key : index.getKeys()) {
+            keyFieldsListModel.addElement(key);
+        }
+        globalOptionsPanel.setOptions(index.getGlobalOptions());
+        textOptionsPanel.setOptions(index.getTextOptions());
+        geo2DSphereOptionsPanel.setOptions(index.getGeo2DSphereOptions());
+        geo2DOptionsPanel.setOptions(index.getGeo2DOptions());
+        geoHaystackOptionsPanel.setOptions(index.getGeoHaystackOptions());
+        SwingUtilities.invokeLater(new Runnable() {
+
+            @Override
+            public void run() {
+                performValidation();
+                updateOptionsTabs();
+            }
+        });
+    }
+    
+    private void clearIndex() {
+        nameField.setText("");
+        keyFieldsListModel.clear();
+        globalOptionsPanel.clearOptions();
+        textOptionsPanel.clearOptions();
+        geo2DSphereOptionsPanel.clearOptions();
+        geo2DOptionsPanel.clearOptions();
+        geoHaystackOptionsPanel.clearOptions();
+        SwingUtilities.invokeLater(new Runnable() {
+
+            @Override
+            public void run() {
+                performValidation();
+                updateOptionsTabs();
+            }
+        });
     }
 
     /**
@@ -340,7 +384,14 @@ public class CreateIndexPanel extends ValidablePanel {
     // End of variables declaration//GEN-END:variables
 
     public static Index showDialog() {
+        return showDialog(null);
+    }
+    
+    public static Index showDialog(Index index) {
         final CreateIndexPanel panel = new CreateIndexPanel();
+        if(index != null) {
+            panel.setIndex(index);
+        }
         final DialogDescriptor desc = new DialogDescriptor(panel, Bundle.IndexKeyPanel_title());
         panel.setNotificationLineSupport(desc.createNotificationLineSupport());
         panel.addChangeListener(new ChangeListener() {

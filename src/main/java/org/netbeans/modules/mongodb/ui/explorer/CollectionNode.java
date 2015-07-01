@@ -348,21 +348,27 @@ final class CollectionNode extends AbstractNode {
         @Override
         @SuppressWarnings("unchecked")
         public void actionPerformed(ActionEvent e) {
-            Index index = CreateIndexPanel.showDialog();
-            if (index != null) {
-                MongoCollection<Document> collection = getLookup().lookup(MongoCollection.class);
-                Document keys = new Document();
-                for (Index.Key key : index.getKeys()) {
-                    keys.append(key.getField(), key.getType().getValue());
+            boolean retryOnFailure;
+            Index index = null;
+            do {
+                retryOnFailure = false;
+                index = CreateIndexPanel.showDialog(index);
+                if (index != null) {
+                    MongoCollection<Document> collection = getLookup().lookup(MongoCollection.class);
+                    Document keys = new Document();
+                    for (Index.Key key : index.getKeys()) {
+                        keys.append(key.getField(), key.getType().getValue());
+                    }
+                    try {
+                        collection.createIndex(keys, index.getOptions());
+                        refreshChildren();
+                    } catch (MongoException ex) {
+                        retryOnFailure = true;
+                        DialogDisplayer.getDefault().notify(
+                            new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE));
+                    }
                 }
-                try {
-                    collection.createIndex(keys, index.getOptions());
-                    refreshChildren();
-                } catch (MongoException ex) {
-                    DialogDisplayer.getDefault().notify(
-                        new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE));
-                }
-            }
+            } while (retryOnFailure);
         }
     }
 

@@ -51,6 +51,37 @@ public class TextOptionsPanel extends javax.swing.JPanel {
             indexVersion);
     }
     
+    public void setOptions(TextOptions options) {
+        Document weights = options.getWeights();
+        if(weights != null) {
+            weightsField.setText(weights.toJson());
+        }
+        String defaultLanguage = options.getDefaultLanguage();
+        if(defaultLanguage != null) {
+            defaultLanguageField.setText(defaultLanguage);
+        }
+        String languageOverride = options.getLanguageOverride();
+        if(languageOverride != null) {
+            languageOverrideField.setText(languageOverride);
+        }
+        Integer indexVersion = options.getIndexVersion();
+        if(indexVersion != null) {
+            indexVersionCheckBox.setSelected(true);
+            indexVersionSpinner.setValue(indexVersion);
+        } else {
+            indexVersionCheckBox.setSelected(false);
+        }
+    }
+    
+    void clearOptions() {
+        weightsField.setText("");
+        defaultLanguageField.setText("");
+        languageOverrideField.setText("");
+        indexVersionSpinner.setValue(2);
+        indexVersionSpinner.setEnabled(false);
+        indexVersionCheckBox.setSelected(false);
+    }
+    
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always

@@ -51,6 +51,43 @@ public class GlobalOptionsPanel extends javax.swing.JPanel {
         return new GlobalOptions(background, unique, sparse, expireAfterSeconds, indexVersion, storageEngine);
     }
     
+    public void setOptions(GlobalOptions options) {
+        backgroundCheckBox.setSelected(options.isBackground());
+        uniqueCheckBox.setSelected(options.isUnique());
+        sparseCheckBox.setSelected(options.isSparse());
+        Long expireAfterSeconds = options.getExpireAfterSeconds();
+        if(expireAfterSeconds != null) {
+            expireAfterCheckBox.setSelected(true);
+            expireAfterSpinner.setValue(expireAfterSeconds);
+        } else {
+            expireAfterCheckBox.setSelected(false);
+        }
+        Integer indexVersion = options.getIndexVersion();
+        if(indexVersion != null) {
+            indexVersionCheckBox.setSelected(true);
+            indexVersionSpinner.setValue(indexVersion);
+        } else {
+            indexVersionCheckBox.setSelected(false);
+        }
+        Document storageEngine = options.getStorageEngine();
+        if(storageEngine != null) {
+            storageEngineField.setText(storageEngine.toJson());
+        }
+    }
+    
+    public void clearOptions() {
+        backgroundCheckBox.setSelected(false);
+        uniqueCheckBox.setSelected(false);
+        sparseCheckBox.setSelected(false);
+        expireAfterSpinner.setValue(0);
+        expireAfterSpinner.setEnabled(false);
+        expireAfterCheckBox.setSelected(false);
+        indexVersionSpinner.setValue(2);
+        indexVersionSpinner.setEnabled(false);
+        indexVersionCheckBox.setSelected(false);
+        storageEngineField.setText("");
+    }
+    
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always

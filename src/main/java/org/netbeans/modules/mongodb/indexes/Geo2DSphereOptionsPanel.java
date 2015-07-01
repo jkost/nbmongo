@@ -37,6 +37,22 @@ public class Geo2DSphereOptionsPanel extends javax.swing.JPanel {
         return new Geo2DSphereOptions(indexVersion);
     }
     
+    public void setOptions(Geo2DSphereOptions options) {
+        Integer indexVersion = options.getIndexVersion();
+        if(indexVersion != null) {
+            indexVersionCheckBox.setSelected(true);
+            indexVersionSpinner.setValue(indexVersion);
+        } else {
+            indexVersionCheckBox.setSelected(false);
+        }
+    }
+    
+    void clearOptions() {
+        indexVersionSpinner.setValue(2);
+        indexVersionSpinner.setEnabled(false);
+        indexVersionCheckBox.setSelected(false);
+    }
+    
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
