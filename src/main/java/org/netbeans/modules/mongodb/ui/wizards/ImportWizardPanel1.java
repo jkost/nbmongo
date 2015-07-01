@@ -17,7 +17,7 @@
  */
 package org.netbeans.modules.mongodb.ui.wizards;
 
-import com.mongodb.DB;
+import com.mongodb.client.MongoDatabase;
 import java.io.File;
 import java.nio.charset.Charset;
 import javax.swing.JFileChooser;
@@ -39,9 +39,9 @@ public class ImportWizardPanel1 implements WizardDescriptor.ValidatingPanel<Wiza
 
     private ImportVisualPanel1 component;
 
-    private final DB db;
+    private final MongoDatabase db;
 
-    public ImportWizardPanel1(DB db) {
+    public ImportWizardPanel1(MongoDatabase db) {
         this.db = db;
     }
     

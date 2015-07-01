@@ -17,13 +17,16 @@
  */
 package org.netbeans.modules.mongodb.indexes;
 
-import com.mongodb.DBObject;
+import com.mongodb.client.model.IndexOptions;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ResourceBundle;
+import java.util.concurrent.TimeUnit;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Value;
+import org.bson.Document;
 import org.openide.util.NbBundle;
 import org.openide.util.NbBundle.Messages;
 
@@ -34,53 +37,89 @@ import org.openide.util.NbBundle.Messages;
  * @author Yann D'Isanto
  */
 @AllArgsConstructor
+@Getter
 public class Index {
 
-    @Getter
-    private String name;
+    private final String name;
 
-    @Getter
-    private String nameSpace;
+    private final String nameSpace;
 
-    @Getter
     private final List<Key> keys;
 
-    @Getter
-    private boolean sparse;
+    private final GlobalOptions globalOptions;
 
-    @Getter
-    private boolean unique;
+    private final TextOptions textOptions;
 
-    @Getter
-    private boolean dropDuplicates;
+    private final Geo2DSphereOptions geo2DSphereOptions;
 
-    public Index(String name, String nameSpace, List<Key> keys) {
-        this(name, nameSpace, keys, true, false, false);
-    }
+    private final Geo2DOptions geo2DOptions;
+
+    private final GeoHaystackOptions geoHaystackOptions;
 
     @Override
     public String toString() {
         return name;
     }
-    
-    public static Index fromDBObject(DBObject indexInfo) {
-        final DBObject keyObj = (DBObject) indexInfo.get("key");
+
+    public static Index fromJson(Document indexInfo) {
+        final Document keyObj = (Document) indexInfo.get("key");
         List<Key> keys = new ArrayList<>();
         for (String field : keyObj.keySet()) {
-            Number sort = (Number) keyObj.get(field);
             keys.add(new Key(
                 field,
-                KeySort.valueOf(sort.intValue())
+                Type.valueOf(keyObj.get(field))
             ));
         }
         return new Index(
             (String) indexInfo.get("name"),
             (String) indexInfo.get("ns"),
             keys,
-            Boolean.TRUE.equals(indexInfo.get("sparse")),
-            Boolean.TRUE.equals(indexInfo.get("unique")),
-            Boolean.TRUE.equals(indexInfo.get("dropDups"))
+            GlobalOptions.builder()
+                .background(indexInfo.getBoolean("background", false))
+                .unique(indexInfo.getBoolean("unique", false))
+                .sparse(indexInfo.getBoolean("sparse", false))
+                .expireAfterSeconds(indexInfo.getLong("expireAfterSeconds"))
+                .indexVersion(indexInfo.getInteger("v"))
+                .storageEngine((Document) indexInfo.get("storageEngine"))
+                .build(),
+            TextOptions.builder()
+                .weights((Document) indexInfo.get("weights"))
+                .defaultLanguage(indexInfo.getString("default_language"))
+                .languageOverride(indexInfo.getString("language_override"))
+                .indexVersion(indexInfo.getInteger("textIndexVersion"))
+                .build(),
+            Geo2DSphereOptions.builder()
+                .indexVersion(indexInfo.getInteger("2dsphereIndexVersion"))
+                .build(),
+            Geo2DOptions.builder()
+                .bits(indexInfo.getInteger("bits"))
+                .min(indexInfo.getDouble("min"))
+                .max(indexInfo.getDouble("max"))
+                .build(),
+            GeoHaystackOptions.builder()
+                .bucketSize(indexInfo.getDouble("bucketSize"))
+                .build()
         );
+    }
+
+    public IndexOptions getOptions() {
+        return new IndexOptions()
+            .name(getName())
+            .background(globalOptions.isBackground())
+            .unique(globalOptions.isUnique())
+            .sparse(globalOptions.isSparse())
+            .expireAfter(globalOptions.getExpireAfterSeconds(), TimeUnit.SECONDS)
+            .version(globalOptions.getIndexVersion())
+            .storageEngine(globalOptions.getStorageEngine())
+            .weights(textOptions.getWeights())
+            .defaultLanguage(textOptions.getDefaultLanguage())
+            .languageOverride(textOptions.getLanguageOverride())
+            .textVersion(textOptions.getIndexVersion())
+            .sphereVersion(geo2DSphereOptions.getIndexVersion())
+            .bits(geo2DOptions.getBits())
+            .min(geo2DOptions.getMin())
+            .max(geo2DOptions.getMax())
+            .bucketSize(geoHaystackOptions.getBucketSize());
     }
 
     @Value
@@ -90,35 +129,70 @@ public class Index {
         private String field;
 
         @Getter
-        private KeySort sort;
+        private Type type;
 
     }
 
     @AllArgsConstructor
     @Messages({
         "ASCENDING=ascending",
-        "DESCENDING=descending"
+        "DESCENDING=descending",
+        "HASHED=hashed",
+        "TEXT=text",
+        "GEOSPATIAL_2D=2d",
+        "GEOSPATIAL_2DSPHERE=2dsphere",
+        "GEOSPATIAL_HAYSTACK=geoHaystack"
     })
-    public static enum KeySort {
+    public static enum Type {
 
         ASCENDING(1),
-        DESCENDING(-1);
+        DESCENDING(-1),
+        HASHED("hashed"),
+        TEXT("text"),
+        GEOSPATIAL_2D("2d"),
+        GEOSPATIAL_2DSPHERE("2dsphere"),
+        GEOSPATIAL_HAYSTACK("geoHaystack");
 
         @Getter
-        private final int value;
+        private final Object value;
 
-        public static KeySort valueOf(int value) {
-            switch (value) {
+        public static Type valueOf(Object value) {
+            if (value instanceof Number) {
+                return valueOf(((Number) value).intValue());
+            } else {
+                return parse((String) value);
+            }
+        }
+
+        public static Type valueOf(int sortValue) {
+            switch (sortValue) {
                 case 1:
                     return ASCENDING;
                 case -1:
                     return DESCENDING;
                 default:
-                    throw new AssertionError();
+                    throw new IllegalArgumentException("invlid index sort value: " + sortValue);
             }
         }
 
-        private final ResourceBundle bundle = NbBundle.getBundle(KeySort.class);
+        public static Type parse(String value) {
+            switch (value) {
+                case "hashed":
+                    return HASHED;
+                case "text":
+                    return TEXT;
+                case "2d":
+                    return GEOSPATIAL_2D;
+                case "2dsphere":
+                    return GEOSPATIAL_2DSPHERE;
+                case "geoHaystack":
+                    return GEOSPATIAL_HAYSTACK;
+                default:
+                    throw new IllegalArgumentException("unknown index type: " + value);
+            }
+        }
+
+        private final ResourceBundle bundle = NbBundle.getBundle(Type.class);
 
         @Override
         public String toString() {
@@ -126,4 +200,65 @@ public class Index {
         }
 
     }
+
+    @Value
+    @Builder
+    public static class GlobalOptions {
+
+        boolean background;
+
+        boolean unique;
+
+        boolean sparse;
+
+        Long expireAfterSeconds;
+
+        Integer indexVersion;
+
+        Document storageEngine;
+
+    }
+
+    @Value
+    @Builder
+    public static class TextOptions {
+
+        Document weights;
+
+        String defaultLanguage;
+
+        String languageOverride;
+
+        Integer indexVersion;
+
+    }
+
+    @Value
+    @Builder
+    public static class Geo2DSphereOptions {
+
+        Integer indexVersion;
+
+    }
+
+    @Value
+    @Builder
+    public static class Geo2DOptions {
+
+        Integer bits;
+
+        Double min;
+
+        Double max;
+
+    }
+
+    @Value
+    @Builder
+    public static class GeoHaystackOptions {
+
+        Double bucketSize;
+
+    }
+
 }

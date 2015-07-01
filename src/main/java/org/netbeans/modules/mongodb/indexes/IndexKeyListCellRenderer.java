@@ -29,7 +29,7 @@ import javax.swing.text.Style;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyleContext;
 import javax.swing.text.StyledDocument;
-import org.netbeans.modules.mongodb.indexes.Index.KeySort;
+import org.netbeans.modules.mongodb.indexes.Index.Type;
 import org.netbeans.modules.mongodb.resources.Images;
 import org.openide.util.Exceptions;
 
@@ -43,11 +43,7 @@ public class IndexKeyListCellRenderer extends JTextPane implements ListCellRende
 
     private final Style fieldsStyle;
 
-    private final Style ascIcon;
-
-    private final Style descIcon;
-    
-    private final Map<KeySort, Style> sortStyles;
+    private final Map<Type, Style> sortStyles;
 
     public IndexKeyListCellRenderer() {
         StyledDocument document = getStyledDocument();
@@ -56,17 +52,42 @@ public class IndexKeyListCellRenderer extends JTextPane implements ListCellRende
         fieldsStyle = document.addStyle("fields", def);
         StyleConstants.setAlignment(fieldsStyle, StyleConstants.ALIGN_CENTER);
 
-        ascIcon = document.addStyle("sortAsc", def);
+        Style ascIcon = document.addStyle("sortAsc", def);
         StyleConstants.setAlignment(ascIcon, StyleConstants.ALIGN_CENTER);
-        StyleConstants.setIcon(ascIcon, new ImageIcon(Images.SORT_ASC_ICON, KeySort.ASCENDING.toString()));
+        StyleConstants.setIcon(ascIcon, new ImageIcon(Images.SORT_ASC_ICON, Type.ASCENDING.toString()));
 
-        descIcon = document.addStyle("sortDesc", def);
+        Style descIcon = document.addStyle("sortDesc", def);
         StyleConstants.setAlignment(descIcon, StyleConstants.ALIGN_CENTER);
-        StyleConstants.setIcon(descIcon, new ImageIcon(Images.SORT_DESC_ICON, KeySort.DESCENDING.toString()));
+        StyleConstants.setIcon(descIcon, new ImageIcon(Images.SORT_DESC_ICON, Type.DESCENDING.toString()));
         
-        sortStyles = new HashMap<>(2);
-        sortStyles.put(KeySort.ASCENDING, ascIcon);
-        sortStyles.put(KeySort.DESCENDING, descIcon);
+        Style geo2dIcon = document.addStyle("geo2d", def);
+        StyleConstants.setAlignment(geo2dIcon, StyleConstants.ALIGN_CENTER);
+        StyleConstants.setIcon(geo2dIcon, new ImageIcon(Images.MAP_ICON, Type.GEOSPATIAL_2D.toString()));
+        
+        Style geo2dSphereIcon = document.addStyle("geo2dSphere", def);
+        StyleConstants.setAlignment(geo2dSphereIcon, StyleConstants.ALIGN_CENTER);
+        StyleConstants.setIcon(geo2dSphereIcon, new ImageIcon(Images.WORLD_ICON, Type.GEOSPATIAL_2DSPHERE.toString()));
+        
+        Style geoHaystackIcon = document.addStyle("geoHaystack", def);
+        StyleConstants.setAlignment(geoHaystackIcon, StyleConstants.ALIGN_CENTER);
+        StyleConstants.setIcon(geoHaystackIcon, new ImageIcon(Images.MAP_MAGNIFY_ICON, Type.GEOSPATIAL_HAYSTACK.toString()));
+        
+        Style hashedIcon = document.addStyle("hashed", def);
+        StyleConstants.setAlignment(hashedIcon, StyleConstants.ALIGN_CENTER);
+        StyleConstants.setIcon(hashedIcon, new ImageIcon(Images.SHADING_ICON, Type.HASHED.toString()));
+        
+        Style textIcon = document.addStyle("text", def);
+        StyleConstants.setAlignment(textIcon, StyleConstants.ALIGN_CENTER);
+        StyleConstants.setIcon(textIcon, new ImageIcon(Images.TEXT_ALIGN_JUSTIFY_ICON, Type.TEXT.toString()));
+        
+        sortStyles = new HashMap<>(7);
+        sortStyles.put(Type.ASCENDING, ascIcon);
+        sortStyles.put(Type.DESCENDING, descIcon);
+        sortStyles.put(Type.GEOSPATIAL_2D, geo2dIcon);
+        sortStyles.put(Type.GEOSPATIAL_2DSPHERE, geo2dSphereIcon);
+        sortStyles.put(Type.GEOSPATIAL_HAYSTACK, geoHaystackIcon);
+        sortStyles.put(Type.HASHED, hashedIcon);
+        sortStyles.put(Type.TEXT, textIcon);
     }
 
     @Override
@@ -86,7 +107,7 @@ public class IndexKeyListCellRenderer extends JTextPane implements ListCellRende
         try {
             document.insertString(document.getLength(), key.getField(), fieldsStyle);
             document.insertString(document.getLength(), " ", fieldsStyle);
-            document.insertString(document.getLength(), " ", sortStyles.get(key.getSort()));
+            document.insertString(document.getLength(), " ", sortStyles.get(key.getType()));
         } catch (BadLocationException ex) {
             Exceptions.printStackTrace(ex);
         }

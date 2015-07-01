@@ -17,6 +17,7 @@
  */
 package org.netbeans.modules.mongodb.ui.explorer;
 
+import org.netbeans.modules.mongodb.properties.LocalizedProperties;
 import org.netbeans.modules.mongodb.indexes.Index;
 import org.netbeans.modules.mongodb.resources.Images;
 import org.openide.nodes.AbstractNode;
@@ -49,20 +50,30 @@ final class IndexKeyNode extends AbstractNode {
         Sheet.Set set = Sheet.createPropertiesSet();
         set.put(new LocalizedProperties(IndexKeyNode.class)
                 .stringProperty("field", key.getField())
-                .objectStringProperty("sort", key.getSort())
+                .objectStringProperty("sort", key.getType())
                 .toArray());
         sheet.put(set);
         return sheet;
     }
 
     public String getIconPath() {
-        switch (key.getSort()) {
+        switch (key.getType()) {
             case ASCENDING:
                 return Images.SORT_ASC_ICON_PATH;
             case DESCENDING:
                 return Images.SORT_DESC_ICON_PATH;
+            case HASHED:
+                return Images.SHADING_ICON_PATH;
+            case TEXT:
+                return Images.TEXT_ALIGN_JUSTIFY_ICON_PATH;
+            case GEOSPATIAL_2D:
+                return Images.MAP_ICON_PATH;
+            case GEOSPATIAL_2DSPHERE:
+                return Images.WORLD_ICON_PATH;
+            case GEOSPATIAL_HAYSTACK:
+                return Images.MAP_MAGNIFY_ICON_PATH;
             default:
-                throw new AssertionError();
+                return Images.BULLET_BLUE_ICON_PATH;
         }
     }
 }

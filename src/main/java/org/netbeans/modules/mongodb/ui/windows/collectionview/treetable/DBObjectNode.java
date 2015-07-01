@@ -17,22 +17,64 @@
  */
 package org.netbeans.modules.mongodb.ui.windows.collectionview.treetable;
 
-import com.mongodb.DBObject;
+import java.util.List;
 import java.util.Map;
+import org.bson.Document;
 import org.netbeans.modules.mongodb.util.JsonProperty;
 
 /**
  *
  * @author Yann D'Isanto
  */
-public class DBObjectNode extends CollectionViewTreeTableNode<DBObject> {
+public class DBObjectNode extends CollectionViewTreeTableNode<Document> {
 
     @SuppressWarnings("unchecked")
-    public DBObjectNode(DBObject userObject) {
-        super(userObject);
-        final Map<String, Object> map = userObject.toMap();
+    public DBObjectNode(Document document) {
+        super(document);
+        final Map<String, Object> map = document;
         for (Map.Entry<String, Object> entry : map.entrySet()) {
             add(new JsonPropertyNode(new JsonProperty(entry.getKey(), entry.getValue())));
         }
+    }
+
+    @Override
+    public Document getValue() {
+        return getUserObject();
+    }
+
+    @Override
+    public List<Object> getArrayValue() {
+        throw new IllegalArgumentException("not an array");
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public Map<String, Object> getObjectValue() {
+        return getValue();
+    }
+
+    @Override
+    public boolean isArrayValue() {
+        return false;
+    }
+
+    @Override
+    public boolean isNullValue() {
+        return false;
+    }
+
+    @Override
+    public boolean isObjectValue() {
+        return true;
+    }
+
+    @Override
+    public boolean isNotNullValue() {
+        return true;
+    }
+
+    @Override
+    public boolean isSimpleValue() {
+        return false;
     }
 }

@@ -17,8 +17,6 @@
  */
 package org.netbeans.modules.mongodb.ui.windows;
 
-import com.mongodb.DBObject;
-import com.mongodb.util.JSON;
 import org.netbeans.modules.mongodb.ui.QueryResultWorker;
 import org.netbeans.modules.mongodb.ui.ResultCache;
 import org.netbeans.modules.mongodb.ui.ResultDisplayer;
@@ -53,8 +51,10 @@ import javax.swing.text.PlainDocument;
 import javax.swing.tree.TreePath;
 import lombok.Getter;
 import lombok.Setter;
+import org.bson.Document;
 import org.bson.types.ObjectId;
 import org.jdesktop.swingx.treetable.TreeTableNode;
+import org.netbeans.modules.mongodb.CollectionInfo;
 import org.netbeans.modules.mongodb.options.JsonCellRenderingOptions;
 import org.netbeans.modules.mongodb.options.LabelCategory;
 import org.netbeans.modules.mongodb.resources.Images;
@@ -88,6 +88,7 @@ import org.netbeans.modules.mongodb.ui.windows.collectionview.treetable.Document
 import org.netbeans.modules.mongodb.ui.windows.collectionview.treetable.JsonPropertyNode;
 import org.netbeans.modules.mongodb.ui.windows.collectionview.treetable.JsonTreeTableCellRenderer;
 import org.netbeans.modules.mongodb.ui.windows.collectionview.treetable.JsonValueNode;
+import org.netbeans.modules.mongodb.ui.windows.queryresultpanel.actions.FindWithJsonPropertyNodeAction;
 import org.netbeans.modules.mongodb.util.JsonProperty;
 import org.openide.awt.NotificationDisplayer;
 import org.openide.util.Exceptions;
@@ -161,13 +162,13 @@ public final class QueryResultPanel extends javax.swing.JPanel implements Result
         ResultPages.ResultPagesListener pagesListener = new ResultPages.ResultPagesListener() {
 
             @Override
-            public void pageChanged(ResultPages pages, int pageIndex, List<DBObject> page) {
+            public void pageChanged(ResultPages pages, int pageIndex, List<Document> page) {
                 updatePagination();
                 updateDocumentButtonsState();
             }
 
             @Override
-            public void pageObjectUpdated(int index, DBObject oldValue, DBObject newValue) {
+            public void pageObjectUpdated(int index, Document oldValue, Document newValue) {
             }
             
         };
@@ -184,7 +185,7 @@ public final class QueryResultPanel extends javax.swing.JPanel implements Result
         };
 
         resultFlatTable.setModel(flatTableModel);
-        resultFlatTable.setDefaultRenderer(DBObject.class, new JsonFlatTableCellRenderer());
+        resultFlatTable.setDefaultRenderer(Document.class, new JsonFlatTableCellRenderer());
         resultFlatTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         resultFlatTable.getSelectionModel().addListSelectionListener(tableSelectionListener);
         resultFlatTable.getColumnModel().addColumnModelListener(new TableColumnModelListener() {
@@ -241,7 +242,7 @@ public final class QueryResultPanel extends javax.swing.JPanel implements Result
                         if (readOnly) {
                             JsonEditor.showReadOnly(
                                 Bundle.displayDocumentTitle(),
-                                JSON.serialize(documentNode.getUserObject()));
+                                documentNode.getUserObject());
                         } else {
                             editDocumentAction.setDocument(documentNode.getUserObject());
                             editDocumentAction.actionPerformed(null);
@@ -349,7 +350,7 @@ public final class QueryResultPanel extends javax.swing.JPanel implements Result
         return resultViews.get(resultView).getPages();
     }
 
-    public DBObject getResultTableSelectedDocument() {
+    public Document getResultTableSelectedDocument() {
         final JTable table = getResultTable();
         int row = table.getSelectedRow();
         if (row == -1) {
@@ -392,7 +393,7 @@ public final class QueryResultPanel extends javax.swing.JPanel implements Result
             @Override
             public void run() {
                 ResultPages pages = getResultPages();
-                int documentCount = pages.getTotalElementsCount();
+                long documentCount = pages.getTotalElementsCount();
                 totalDocumentsLabel.setText(
                     Bundle.totalDocuments(documentCount));
                 int page = documentCount == 0 ? 0 : pages.getPageIndex();
@@ -615,6 +616,9 @@ public final class QueryResultPanel extends javax.swing.JPanel implements Result
     private final EditJsonValueNodeAction editJsonValueNodeAction = new EditJsonValueNodeAction(this, null);
 
     @Getter
+    private final FindWithJsonPropertyNodeAction findWithJsonPropertyNodeAction = new FindWithJsonPropertyNodeAction(this, null);
+
+    @Getter
     private final Action refreshDocumentsAction = new RefreshDocumentsAction(this);
 
     @Getter
@@ -707,6 +711,10 @@ public final class QueryResultPanel extends javax.swing.JPanel implements Result
                 if (node instanceof JsonPropertyNode) {
                     JsonPropertyNode propertyNode = (JsonPropertyNode) node;
                     JsonProperty property = propertyNode.getUserObject();
+                    if(lookup.lookup(CollectionInfo.class) != null) {
+                        findWithJsonPropertyNodeAction.setPropertyNode(propertyNode);
+                        menu.add(new JMenuItem(findWithJsonPropertyNodeAction));
+                    }
                     menu.add(new JMenuItem(new CopyKeyValuePairToClipboardAction(property)));
                     menu.add(new JMenuItem(new CopyKeyToClipboardAction(property)));
                     menu.add(new JMenuItem(new CopyValueToClipboardAction(property.getValue())));
@@ -737,7 +745,7 @@ public final class QueryResultPanel extends javax.swing.JPanel implements Result
 
     private JPopupMenu createFlatTableContextMenu(int row, int column) {
         final JPopupMenu menu = new JPopupMenu();
-        final DBObject document = getFlatTablePages().getPageContent().get(row);
+        final Document document = getFlatTablePages().getPageContent().get(row);
         menu.add(new JMenuItem(new CopyDocumentToClipboardAction(document)));
         final DocumentsFlatTableModel model = (DocumentsFlatTableModel) resultFlatTable.getModel();
         final JsonProperty property = new JsonProperty(

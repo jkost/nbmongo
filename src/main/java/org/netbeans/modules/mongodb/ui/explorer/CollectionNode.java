@@ -23,11 +23,14 @@
  */
 package org.netbeans.modules.mongodb.ui.explorer;
 
+import org.netbeans.modules.mongodb.properties.LocalizedProperties;
 import com.mongodb.BasicDBObject;
 import org.netbeans.modules.mongodb.resources.Images;
-import com.mongodb.DB;
-import com.mongodb.DBCollection;
 import com.mongodb.MongoException;
+import com.mongodb.MongoNamespace;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.IndexOptions;
 import org.netbeans.modules.mongodb.ui.windows.MapReduceTopComponent;
 import org.netbeans.modules.mongodb.ui.util.TopComponentUtils;
 import java.awt.event.ActionEvent;
@@ -38,8 +41,10 @@ import java.util.List;
 import java.util.Map;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
+import org.bson.BsonDocument;
+import org.bson.BsonString;
+import org.bson.Document;
 import org.netbeans.modules.mongodb.CollectionInfo;
-import org.netbeans.modules.mongodb.CollectionStats;
 import org.netbeans.modules.mongodb.indexes.CreateIndexPanel;
 import org.netbeans.modules.mongodb.indexes.Index;
 import org.netbeans.modules.mongodb.native_tools.MongoNativeToolsAction;
@@ -73,6 +78,7 @@ import org.openide.windows.TopComponent;
  * @author Yann D'Isanto
  */
 @Messages({
+    "ACTION_OpenCollectionInNewTab=Open in new tab",
     "ACTION_DropCollection=Drop Collection",
     "ACTION_RenameCollection=Rename Collection",
     "ACTION_ClearCollection=Clear Collection",
@@ -111,17 +117,19 @@ final class CollectionNode extends AbstractNode {
         content.add(new OpenCookie() {
             @Override
             public void open() {
-                TopComponent tc = TopComponentUtils.find(CollectionView.class, collection);
-                if (tc == null) {
-                    tc = new CollectionView(collection, lookup);
-                    tc.open();
+                if (TopComponentUtils.isNotActivated(CollectionView.class, collection)) {
+                    TopComponent tc = TopComponentUtils.find(CollectionView.class, collection);
+                    if (tc == null) {
+                        tc = new CollectionView(collection, lookup);
+                        tc.open();
+                    }
+                    tc.requestActive();
                 }
-                tc.requestActive();
             }
         });
         setIconBaseWithExtension(SystemCollectionPredicate.get().eval(collection.getName())
-                ? Images.SYSTEM_COLLECTION_ICON_PATH
-                : Images.COLLECTION_ICON_PATH);
+            ? Images.SYSTEM_COLLECTION_ICON_PATH
+            : Images.COLLECTION_ICON_PATH);
     }
 
     @Override
@@ -130,28 +138,15 @@ final class CollectionNode extends AbstractNode {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     protected Sheet createSheet() {
         Sheet sheet = Sheet.createDefault();
         Sheet.Set set = Sheet.createPropertiesSet();
-        DBCollection col = getLookup().lookup(DBCollection.class);
-        final CollectionStats stats = new CollectionStats(col.isCapped(), col.getStats());
-        set.put(new LocalizedProperties(CollectionNode.class)
-                .stringProperty("serverUsed", stats.getServerUsed())
-                .stringProperty("serverUsed", stats.getServerUsed())
-                .stringProperty("ns", stats.getNs())
-                .stringProperty("capped", stats.getCapped())
-                .stringProperty("count", stats.getCount())
-                .stringProperty("size", stats.getSize())
-                .stringProperty("storageSize", stats.getStorageSize())
-                .stringProperty("numExtents", stats.getNumExtents())
-                .stringProperty("nindexes", stats.getNindexes())
-                .stringProperty("lastExtentSize", stats.getLastExtentSize())
-                .stringProperty("paddingFactor", stats.getPaddingFactor())
-                .stringProperty("systemFlags", stats.getSystemFlags())
-                .stringProperty("userFlags", stats.getUserFlags())
-                .stringProperty("totalIndexSize", stats.getTotalIndexSize())
-                .stringProperty("ok", stats.getOk())
-                .toArray());
+        MongoCollection<Document> col = getLookup().lookup(MongoCollection.class);
+        MongoDatabase db = getLookup().lookup(MongoDatabase.class);
+        BsonDocument commandDocument = new BsonDocument("collStats", new BsonString(collection.getName()));
+        Document result = db.runCommand(commandDocument);
+        set.put(new LocalizedProperties(CollectionNode.class).fromDocument(result).toArray());
         sheet.put(set);
         return sheet;
     }
@@ -173,6 +168,7 @@ final class CollectionNode extends AbstractNode {
         }
         final List<Action> actions = new LinkedList<>();
         actions.add(SystemAction.get(OpenAction.class));
+        actions.add(new OpenCollectionInNewTabAction());
         actions.add(new OpenMapReduceWindowAction(getLookup()));
         actions.add(null);
         actions.add(new RefreshChildrenAction(Bundle.ACTION_RefreshIndexes(), childFactory));
@@ -203,17 +199,17 @@ final class CollectionNode extends AbstractNode {
         childFactory.refresh();
     }
 
-    private class CollectionConverter implements InstanceContent.Convertor<CollectionInfo, DBCollection> {
+    private class CollectionConverter implements InstanceContent.Convertor<CollectionInfo, MongoCollection> {
 
         @Override
-        public DBCollection convert(CollectionInfo t) {
-            DB db = getLookup().lookup(DB.class);
+        public MongoCollection<Document> convert(CollectionInfo t) {
+            MongoDatabase db = getLookup().lookup(MongoDatabase.class);
             return db.getCollection(t.getName());
         }
 
         @Override
-        public Class<? extends DBCollection> type(CollectionInfo t) {
-            return DBCollection.class;
+        public Class<? extends MongoCollection> type(CollectionInfo t) {
+            return MongoCollection.class;
         }
 
         @Override
@@ -227,6 +223,22 @@ final class CollectionNode extends AbstractNode {
         }
     }
 
+    public class OpenCollectionInNewTabAction extends AbstractAction {
+
+        public OpenCollectionInNewTabAction() {
+            super(Bundle.ACTION_OpenCollectionInNewTab());
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            Lookup lookup = getLookup();
+            final CollectionInfo collection = lookup.lookup(CollectionInfo.class);
+            CollectionView newTab = new CollectionView(collection, lookup);
+            newTab.open();
+            newTab.requestActive();
+        }
+    }
+
     public class DropCollectionAction extends AbstractAction {
 
         public DropCollectionAction() {
@@ -237,18 +249,18 @@ final class CollectionNode extends AbstractNode {
         public void actionPerformed(ActionEvent e) {
             final CollectionInfo ci = getLookup().lookup(CollectionInfo.class);
             final Object dlgResult = DialogDisplayer.getDefault().notify(new NotifyDescriptor.Confirmation(
-                    Bundle.dropCollectionConfirmText(ci.getName()),
-                    NotifyDescriptor.YES_NO_OPTION));
+                Bundle.dropCollectionConfirmText(ci.getName()),
+                NotifyDescriptor.YES_NO_OPTION));
             if (dlgResult.equals(NotifyDescriptor.OK_OPTION)) {
                 try {
-                    getLookup().lookup(DBCollection.class).drop();
+                    getLookup().lookup(MongoCollection.class).drop();
                     ((DBNode) getParentNode()).refreshChildren();
                     for (TopComponent topComponent : TopComponentUtils.findAll(ci, CollectionView.class, MapReduceTopComponent.class)) {
                         topComponent.close();
                     }
                 } catch (MongoException ex) {
                     DialogDisplayer.getDefault().notify(
-                            new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE));
+                        new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE));
                 }
             }
         }
@@ -261,17 +273,19 @@ final class CollectionNode extends AbstractNode {
         }
 
         @Override
+        @SuppressWarnings("unchecked")
         public void actionPerformed(ActionEvent e) {
             final NotifyDescriptor.InputLine input = new ValidatingInputLine(
-                    Bundle.renameCollectionText(collection.getName()),
-                    Bundle.ACTION_RenameCollection(),
-                    new CollectionNameValidator(getLookup()));
+                Bundle.renameCollectionText(collection.getName()),
+                Bundle.ACTION_RenameCollection(),
+                new CollectionNameValidator(getLookup()));
             input.setInputText(collection.getName());
             final Object dlgResult = DialogDisplayer.getDefault().notify(input);
             if (dlgResult.equals(NotifyDescriptor.OK_OPTION)) {
                 try {
                     final String name = input.getInputText().trim();
-                    getLookup().lookup(DBCollection.class).rename(name);
+                    MongoCollection<Document> collection = getLookup().lookup(MongoCollection.class);
+                    collection.renameCollection(new MongoNamespace(collection.getNamespace().getDatabaseName(), name));
                     final DBNode parentNode = (DBNode) getParentNode();
                     parentNode.refreshChildren();
 
@@ -292,7 +306,7 @@ final class CollectionNode extends AbstractNode {
                     }
                 } catch (MongoException ex) {
                     DialogDisplayer.getDefault().notify(
-                            new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE));
+                        new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE));
                 }
             }
         }
@@ -308,18 +322,18 @@ final class CollectionNode extends AbstractNode {
         public void actionPerformed(ActionEvent e) {
             final CollectionInfo ci = getLookup().lookup(CollectionInfo.class);
             final Object dlgResult = DialogDisplayer.getDefault().notify(new NotifyDescriptor.Confirmation(
-                    Bundle.clearCollectionConfirmText(ci.getName()),
-                    NotifyDescriptor.YES_NO_OPTION));
+                Bundle.clearCollectionConfirmText(ci.getName()),
+                NotifyDescriptor.YES_NO_OPTION));
             if (dlgResult.equals(NotifyDescriptor.OK_OPTION)) {
                 try {
-                    getLookup().lookup(DBCollection.class).remove(new BasicDBObject());
+                    getLookup().lookup(MongoCollection.class).deleteMany(new BasicDBObject());
                     for (TopComponent topComponent : TopComponentUtils.findAll(ci, CollectionView.class, MapReduceTopComponent.class)) {
                         ((QueryResultPanelContainer) topComponent).getResultPanel().refreshResults();
 
                     }
                 } catch (MongoException ex) {
                     DialogDisplayer.getDefault().notify(
-                            new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE));
+                        new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE));
                 }
             }
         }
@@ -332,29 +346,22 @@ final class CollectionNode extends AbstractNode {
         }
 
         @Override
+        @SuppressWarnings("unchecked")
         public void actionPerformed(ActionEvent e) {
             Index index = CreateIndexPanel.showDialog();
             if (index != null) {
-                DBCollection collection = getLookup().lookup(DBCollection.class);
-                final BasicDBObject keys = new BasicDBObject();
+                MongoCollection<Document> collection = getLookup().lookup(MongoCollection.class);
+                Document keys = new Document();
                 for (Index.Key key : index.getKeys()) {
-                    keys.append(key.getField(), key.getSort().getValue());
+                    keys.append(key.getField(), key.getType().getValue());
                 }
-                final BasicDBObject options = new BasicDBObject();
-                if (index.getName() != null) {
-                    options.append("name", index.getName());
+                try {
+                    collection.createIndex(keys, index.getOptions());
+                    refreshChildren();
+                } catch (MongoException ex) {
+                    DialogDisplayer.getDefault().notify(
+                        new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE));
                 }
-                if (index.isSparse()) {
-                    options.append("sparse", true);
-                }
-                if (index.isUnique()) {
-                    options.append("unique", true);
-                }
-                if (index.isDropDuplicates()) {
-                    options.append("dropDups", true);
-                }
-                collection.createIndex(keys, options);
-                refreshChildren();
             }
         }
     }

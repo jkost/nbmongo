@@ -17,9 +17,9 @@
  */
 package org.netbeans.modules.mongodb.ui;
 
-import com.mongodb.DBCollection;
-import com.mongodb.DBCursor;
-import com.mongodb.DBObject;
+import com.mongodb.client.FindIterable;
+import com.mongodb.client.MongoCollection;
+import org.bson.Document;
 import org.netbeans.modules.mongodb.QueryExecutor;
 import org.netbeans.modules.mongodb.QueryResult;
 
@@ -31,15 +31,15 @@ import org.netbeans.modules.mongodb.QueryResult;
  */
 public final class QueryWorker extends QueryResultWorker implements QueryExecutor {
 
-    private final DBCollection collection;
+    private final MongoCollection<Document> collection;
 
-    private final DBObject criteria;
+    private final Document criteria;
 
-    private final DBObject projection;
+    private final Document projection;
 
-    private final DBObject sort;
+    private final Document sort;
 
-    public QueryWorker(String name, DBCollection collection, DBObject criteria, DBObject projection, DBObject sort, int cacheLoadingBlockSize) {
+    public QueryWorker(String name, MongoCollection<Document> collection, Document criteria, Document projection, Document sort, int cacheLoadingBlockSize) {
         super(name, cacheLoadingBlockSize);
         this.collection = collection;
         this.criteria = criteria;
@@ -49,10 +49,9 @@ public final class QueryWorker extends QueryResultWorker implements QueryExecuto
 
     @Override
     protected QueryResult createQuery() throws Exception {
-        DBCursor cursor = collection.find(criteria, projection);
-        if (sort != null) {
-            cursor.sort(sort);
-        }
-        return new QueryResult.DBCursorResult(cursor, this);
+        FindIterable<Document> query = criteria != null ? collection.find(criteria) : collection.find();
+        query = query.projection(projection).sort(sort);
+        long size = criteria != null ? collection.count(criteria) : collection.count();
+        return new QueryResult.MongoCursorResult(query.iterator(), this, size);
     }
 }

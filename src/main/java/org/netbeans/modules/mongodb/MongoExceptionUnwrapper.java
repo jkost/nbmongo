@@ -17,9 +17,8 @@
  */
 package org.netbeans.modules.mongodb;
 
-import com.mongodb.DBObject;
 import com.mongodb.MongoException;
-import com.mongodb.util.JSON;
+import org.bson.Document;
 
 /**
  * Unwrapps a MongoException message.
@@ -34,10 +33,10 @@ public class MongoExceptionUnwrapper {
         if(ex instanceof MongoException) {
             String msgValue = ex.getMessage();
             try {
-                DBObject jsonMsg = (DBObject) JSON.parse(ex.getMessage());
-                msgValue = (String) jsonMsg.get("err");
+                Document document = Document.parse(ex.getMessage());
+                msgValue = document.getString("err");
                 if(msgValue == null || msgValue.isEmpty()) {
-                    msgValue = (String) jsonMsg.get("errmsg");
+                    msgValue = document.getString("errmsg");
                 }
             } catch(Exception ignored) { }
             message = msgValue;

@@ -23,11 +23,11 @@
  */
 package org.netbeans.modules.mongodb.ui.explorer;
 
+import org.netbeans.modules.mongodb.properties.LocalizedProperties;
 import org.netbeans.modules.mongodb.resources.Images;
-import com.mongodb.BasicDBObject;
-import com.mongodb.DB;
-import com.mongodb.DBObject;
 import com.mongodb.MongoException;
+import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.CreateCollectionOptions;
 import org.netbeans.modules.mongodb.ui.windows.MapReduceTopComponent;
 import java.awt.event.ActionEvent;
 import java.util.Arrays;
@@ -35,7 +35,9 @@ import java.util.LinkedList;
 import java.util.List;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
-import org.netbeans.modules.mongodb.DatabaseStats;
+import org.bson.BsonDocument;
+import org.bson.BsonInt32;
+import org.bson.Document;
 import org.netbeans.modules.mongodb.DbInfo;
 import org.netbeans.modules.mongodb.MongoConnection;
 import org.netbeans.modules.mongodb.native_tools.MongoNativeToolsAction;
@@ -95,7 +97,7 @@ final class DBNode extends AbstractNode {
     DBNode(DbInfo info, InstanceContent content, ProxyLookup lookup, CollectionNodesFactory childFactory) {
         super(Children.create(childFactory, true), lookup);
         this.childFactory = childFactory;
-        content.add(info, new DBConverter());
+        content.add(info, new MongoDatabaseConverter());
         setName(info.getDbName());
         setDisplayName(info.getDbName());
         setIconBaseWithExtension(Images.DB_ICON_PATH);
@@ -105,26 +107,10 @@ final class DBNode extends AbstractNode {
     protected Sheet createSheet() {
         Sheet sheet = Sheet.createDefault();
         Sheet.Set set = Sheet.createPropertiesSet();
-        DB db = getLookup().lookup(DB.class);
-        if (db != null) {
-            final DatabaseStats stats = new DatabaseStats(db.getStats());
-            set.put(new LocalizedProperties(DBNode.class)
-                .stringProperty("serverUsed", stats.getServerUsed())
-                .stringProperty("db", stats.getDb())
-                .stringProperty("collections", stats.getCollections())
-                .stringProperty("objects", stats.getObjects())
-                .stringProperty("avgObjSize", stats.getAvgObjSize())
-                .stringProperty("dataSize", stats.getDataSize())
-                .stringProperty("storageSize", stats.getStorageSize())
-                .stringProperty("numExtents", stats.getNumExtents())
-                .stringProperty("indexes", stats.getIndexes())
-                .stringProperty("indexSize", stats.getIndexSize())
-                .stringProperty("fileSize", stats.getFileSize())
-                .stringProperty("nsSizeMB", stats.getNsSizeMB())
-                .stringProperty("dataFileVersion", stats.getDataFileVersion())
-                .stringProperty("ok", stats.getOk())
-                .toArray());
-        }
+        MongoDatabase db = getLookup().lookup(MongoDatabase.class);
+        BsonDocument commandDocument = new BsonDocument("dbStats", new BsonInt32(1)).append("scale", new BsonInt32(1));
+        Document result = db.runCommand(commandDocument);
+        set.put(new LocalizedProperties(DBNode.class).fromDocument(result).toArray());
         sheet.put(set);
         return sheet;
     }
@@ -158,18 +144,18 @@ final class DBNode extends AbstractNode {
         childFactory.refresh();
     }
 
-    private class DBConverter implements InstanceContent.Convertor<DbInfo, DB> {
+    private class MongoDatabaseConverter implements InstanceContent.Convertor<DbInfo, MongoDatabase> {
 
         @Override
-        public DB convert(DbInfo t) {
+        public MongoDatabase convert(DbInfo t) {
             DbInfo info = getLookup().lookup(DbInfo.class);
             MongoConnection connection = getLookup().lookup(MongoConnection.class);
-            return connection.getClient().getDB(info.getDbName());
+            return connection.getClient().getDatabase(info.getDbName());
         }
 
         @Override
-        public Class<? extends DB> type(DbInfo t) {
-            return DB.class;
+        public Class<? extends MongoDatabase> type(DbInfo t) {
+            return MongoDatabase.class;
         }
 
         @Override
@@ -197,11 +183,10 @@ final class DBNode extends AbstractNode {
                 new CollectionNameValidator(getLookup()));
             final Object dlgResult = DialogDisplayer.getDefault().notify(input);
             if (dlgResult.equals(NotifyDescriptor.OK_OPTION)) {
-                final String collectionName = input.getInputText().trim();
-                final DB db = getLookup().lookup(DB.class);
-                final DBObject collectionOptions = new BasicDBObject("capped", false);
+                String collectionName = input.getInputText().trim();
+                MongoDatabase db = getLookup().lookup(MongoDatabase.class);
                 try {
-                    db.createCollection(collectionName, collectionOptions);
+                    db.createCollection(collectionName, new CreateCollectionOptions().capped(false));
                     childFactory.refresh();
                 } catch (MongoException ex) {
                     DialogDisplayer.getDefault().notify(
@@ -213,21 +198,21 @@ final class DBNode extends AbstractNode {
     }
 
     public final class DropDatabaseAction extends AbstractAction {
-        
+
         public DropDatabaseAction() {
             super(Bundle.ACTION_DropDatabase());
         }
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            final DB db = getLookup().lookup(DB.class);
+            MongoDatabase db = getLookup().lookup(MongoDatabase.class);
 
-            final Object dlgResult = DialogDisplayer.getDefault().notify(new NotifyDescriptor.Confirmation(
+            Object dlgResult = DialogDisplayer.getDefault().notify(new NotifyDescriptor.Confirmation(
                 Bundle.dropDatabaseConfirmText(db.getName()),
                 NotifyDescriptor.YES_NO_OPTION));
             if (dlgResult.equals(NotifyDescriptor.OK_OPTION)) {
                 try {
-                    db.dropDatabase();
+                    db.drop();
                     ((ConnectionNode) getParentNode()).refreshChildren();
                     final DbInfo dbInfo = getLookup().lookup(DbInfo.class);
                     for (TopComponent topComponent : TopComponentUtils.findAll(dbInfo, CollectionView.class, MapReduceTopComponent.class)) {

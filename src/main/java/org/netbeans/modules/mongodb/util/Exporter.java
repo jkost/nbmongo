@@ -17,11 +17,9 @@
  */
 package org.netbeans.modules.mongodb.util;
 
-import com.mongodb.DB;
-import com.mongodb.DBCollection;
-import com.mongodb.DBCursor;
-import com.mongodb.DBObject;
-import com.mongodb.util.JSON;
+import com.mongodb.client.FindIterable;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -29,6 +27,7 @@ import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import org.bson.Document;
 import org.openide.util.Exceptions;
 
 /**
@@ -37,11 +36,11 @@ import org.openide.util.Exceptions;
  */
 public final class Exporter implements Runnable {
 
-    private final DB db;
+    private final MongoDatabase db;
 
     private final ExportProperties properties;
 
-    public Exporter(DB db, ExportProperties properties) {
+    public Exporter(MongoDatabase db, ExportProperties properties) {
         this.db = db;
         this.properties = properties;
     }
@@ -78,16 +77,14 @@ public final class Exporter implements Runnable {
 
     private void export(Writer writer) {
         final PrintWriter output = new PrintWriter(writer);
-        final DBCollection collection = db.getCollection(properties.getCollection());
-        final DBCursor cursor = collection.find(properties.getCriteria(), properties.getProjection());
-        if (properties.getSort() != null) {
-            cursor.sort(properties.getSort());
-        }
+        final MongoCollection<Document> collection = db.getCollection(properties.getCollection());
+        Document filter = properties.getCriteria();
+        FindIterable<Document> query = filter != null ? collection.find(filter) : collection.find();
         if (properties.isJsonArray()) {
             output.print("[");
         }
         boolean first = true;
-        for (DBObject document : cursor) {
+        for (Document document : query.sort(properties.getSort())) {
             if (Thread.interrupted()) {
                 return;
             }
@@ -96,7 +93,7 @@ public final class Exporter implements Runnable {
             } else if (properties.isJsonArray()) {
                 output.print(",");
             }
-            final String json = JSON.serialize(document);
+            final String json = document.toJson();
             output.print(json);
             if (properties.isJsonArray() == false) {
                 output.println();

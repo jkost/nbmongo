@@ -17,9 +17,6 @@
  */
 package org.netbeans.modules.mongodb.ui.util;
 
-import com.mongodb.DBObject;
-import com.mongodb.util.JSON;
-import com.mongodb.util.JSONParseException;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
@@ -39,6 +36,8 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.EditorKit;
 import lombok.Getter;
+import org.bson.Document;
+import org.bson.json.JsonParseException;
 import org.netbeans.api.editor.mimelookup.MimeLookup;
 import org.netbeans.modules.mongodb.util.Json;
 import org.openide.DialogDescriptor;
@@ -138,7 +137,6 @@ public class JsonEditor extends JPanel {
                     notificationLineSupport.setInformationMessage(Bundle.HINT_nextResult());
                 } else {
                     notificationLineSupport.setInformationMessage(Bundle.HINT_noResultFound());
-//                    editor.setSelectionStart(0);
                     editor.setSelectionEnd(editor.getSelectionStart());
                 }
             }
@@ -183,6 +181,11 @@ public class JsonEditor extends JPanel {
         editor.setCaretPosition(0);
     }
 
+    public void setJson(Document document) {
+        editor.setText(Json.prettify(document));
+        editor.setCaretPosition(0);
+    }
+
     /**
      * Displays a modal dialog to input json.
      *
@@ -191,9 +194,9 @@ public class JsonEditor extends JPanel {
      * @return a DBObject representing the input json or null if the dialog has
      * been cancelled.
      */
-    public static DBObject show(String title, String defaultJson) {
+    public static Document show(String title, Document document) {
         JsonEditor editor = new JsonEditor();
-        String json = defaultJson.trim().isEmpty() ? "{}" : Json.prettify(defaultJson);
+        String json = document != null ? Json.prettify(document) : "{}";
         boolean doLoop = true;
         while (doLoop) {
             doLoop = false;
@@ -207,8 +210,8 @@ public class JsonEditor extends JPanel {
             if (desc.getValue().equals(NotifyDescriptor.OK_OPTION)) {
                 try {
                     json = editor.getJson();
-                    return (DBObject) JSON.parse(json);
-                } catch (JSONParseException ex) {
+                    return Document.parse(json);
+                } catch (JsonParseException ex) {
                     DialogDisplayer.getDefault().notify(
                         new NotifyDescriptor.Message(Bundle.invalidJson(), NotifyDescriptor.ERROR_MESSAGE));
                     doLoop = true;
@@ -224,11 +227,10 @@ public class JsonEditor extends JPanel {
      * @param title the dialog title
      * @param json the json to display
      */
-    public static void showReadOnly(String title, String json) {
+    public static void showReadOnly(String title, Document document) {
         JsonEditor editor = new JsonEditor();
         editor.editor.setEditable(false);
-        editor.setJson(Json.prettify(json));
-//            final DialogDescriptor desc = new DialogDescriptor(editor, title);
+        editor.setJson(Json.prettify(document));
         final DialogDescriptor desc = new DialogDescriptor(editor, title, true, NotifyDescriptor.PLAIN_MESSAGE, NotifyDescriptor.OK_OPTION, null);
         editor.setNotificationLineSupport(desc.createNotificationLineSupport());
         final JDialog dialog = (JDialog) DialogDisplayer.getDefault().createDialog(desc);

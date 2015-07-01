@@ -17,14 +17,15 @@
  */
 package org.netbeans.modules.mongodb.ui.windows.collectionview;
 
-import com.mongodb.DBCollection;
-import com.mongodb.DBCursor;
-import com.mongodb.DBObject;
 import com.mongodb.MongoException;
+import com.mongodb.client.FindIterable;
+import com.mongodb.client.MongoCollection;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
+import org.bson.Document;
+import org.bson.conversions.Bson;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 
@@ -38,10 +39,10 @@ public final class CollectionQueryResult {
 
     @Getter
     @Setter
-    private DBCollection dbCollection;
+    private MongoCollection<Document> collection;
 
     @Getter
-    private final List<DBObject> documents = new ArrayList<>();
+    private final List<Document> documents = new ArrayList<>();
 
     @Getter
     @Setter
@@ -52,46 +53,48 @@ public final class CollectionQueryResult {
     private int page = 1;
 
     @Getter
-    private int totalDocumentsCount = 0;
+    private long totalDocumentsCount = 0;
 
     @Getter
     @Setter
-    private DBObject criteria;
+    private Bson criteria;
 
     @Getter
     @Setter
-    private DBObject projection;
+    private Bson projection;
 
     @Getter
     @Setter
-    private DBObject sort;
+    private Bson sort;
 
     @Setter
     private CollectionQueryResultUpdateListener view;
 
     private boolean viewRefreshNecessary;
 
-    public CollectionQueryResult(DBCollection dbCollection) {
-        this.dbCollection = dbCollection;
+    public CollectionQueryResult(MongoCollection<Document> dbCollection) {
+        this.collection = dbCollection;
     }
 
     public void update() {
         documents.clear();
         fireUpdateStarting();
-        if (dbCollection == null) {
+        if (collection == null) {
             // TODO: error message?
             return;
         }
-        try (DBCursor cursor = dbCollection.find(criteria, projection)) {
-            if (sort != null) {
-                cursor.sort(sort);
+        try {
+            
+            totalDocumentsCount = criteria != null ? collection.count(criteria) : collection.count();
+            FindIterable<Document> query = criteria != null ? collection.find(criteria) : collection.find();
+            query = query.projection(projection).sort(sort);
+            if (pageSize > 0) {
+                final int toSkip = (page - 1) * pageSize;
+                query.skip(toSkip).limit(pageSize);
             }
-            totalDocumentsCount = cursor.count();
-            try (DBCursor pageCursor = getPageCursor(cursor)) {
-                for (DBObject document : pageCursor) {
-                    documents.add(document);
-                    fireDocumentAdded(document);
-                }
+            for (Document document : query) {
+                documents.add(document);
+                fireDocumentAdded(document);                
             }
         } catch (MongoException ex) {
             DialogDisplayer.getDefault().notify(
@@ -102,7 +105,7 @@ public final class CollectionQueryResult {
         viewRefreshNecessary = true;
     }
 
-    public void updateDocument(DBObject oldDocument, DBObject newDocument) {
+    public void updateDocument(Document oldDocument, Document newDocument) {
         int index = documents.indexOf(oldDocument);
         if (index == -1) {
             throw new IllegalArgumentException("try to updated unknown document");
@@ -116,19 +119,11 @@ public final class CollectionQueryResult {
             return;
         }
         fireUpdateStarting();
-        for (DBObject dBObject : documents) {
-            fireDocumentAdded(dBObject);
+        for (Document document : documents) {
+            fireDocumentAdded(document);
         }
         fireUpdateFinished();
         viewRefreshNecessary = false;
-    }
-
-    private DBCursor getPageCursor(DBCursor queryCursor) {
-        if (pageSize > 0) {
-            final int toSkip = (page - 1) * pageSize;
-            return queryCursor.skip(toSkip).limit(pageSize);
-        }
-        return queryCursor;
     }
 
     private void fireUpdateStarting() {
@@ -137,13 +132,13 @@ public final class CollectionQueryResult {
         }
     }
 
-    private void fireDocumentAdded(DBObject document) {
+    private void fireDocumentAdded(Document document) {
         if (view != null) {
             view.documentAdded(this, document);
         }
     }
 
-    private void fireDocumentUpdated(DBObject document, int index) {
+    private void fireDocumentUpdated(Document document, int index) {
         if (view != null) {
             view.documentUpdated(this, document, index);
         }

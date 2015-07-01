@@ -106,6 +106,24 @@ public interface Images {
     @StaticResource
     String KEY_DELETE_ICON_PATH = "org/netbeans/modules/mongodb/images/key_delete.png"; //NOI18N
 
+    @StaticResource
+    String BULLET_BLUE_ICON_PATH = "org/netbeans/modules/mongodb/images/bullet_blue.png"; //NOI18N
+
+    @StaticResource
+    String MAP_ICON_PATH = "org/netbeans/modules/mongodb/images/map.png"; //NOI18N
+
+    @StaticResource
+    String MAP_MAGNIFY_ICON_PATH = "org/netbeans/modules/mongodb/images/map_magnify.png"; //NOI18N
+
+    @StaticResource
+    String WORLD_ICON_PATH = "org/netbeans/modules/mongodb/images/world.png"; //NOI18N
+
+    @StaticResource
+    String TEXT_ALIGN_JUSTIFY_ICON_PATH = "org/netbeans/modules/mongodb/images/text_align_justify.png"; //NOI18N
+
+    @StaticResource
+    String SHADING_ICON_PATH = "org/netbeans/modules/mongodb/images/shading.png"; //NOI18N
+
     Image COLLECTION_ICON = ImageUtilities.loadImage(COLLECTION_ICON_PATH);
 
     Image SYSTEM_COLLECTION_ICON = ImageUtilities.loadImage(SYSTEM_COLLECTION_ICON_PATH);
@@ -153,5 +171,15 @@ public interface Images {
     Image KEY_ADD_ICON = ImageUtilities.loadImage(KEY_ADD_ICON_PATH);
 
     Image KEY_DELETE_ICON = ImageUtilities.loadImage(KEY_DELETE_ICON_PATH);
+
+    Image MAP_ICON = ImageUtilities.loadImage(MAP_ICON_PATH);
+
+    Image MAP_MAGNIFY_ICON = ImageUtilities.loadImage(MAP_MAGNIFY_ICON_PATH);
+
+    Image WORLD_ICON = ImageUtilities.loadImage(WORLD_ICON_PATH);
+
+    Image TEXT_ALIGN_JUSTIFY_ICON = ImageUtilities.loadImage(TEXT_ALIGN_JUSTIFY_ICON_PATH);
+
+    Image SHADING_ICON = ImageUtilities.loadImage(SHADING_ICON_PATH);
 
 }

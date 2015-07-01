@@ -23,7 +23,7 @@ import org.jdesktop.swingx.treetable.DefaultMutableTreeTableNode;
  *
  * @author Yann D'Isanto
  */
-public class CollectionViewTreeTableNode<T> extends DefaultMutableTreeTableNode {
+public abstract class CollectionViewTreeTableNode<T> extends DefaultMutableTreeTableNode implements JsonNode {
     
     public CollectionViewTreeTableNode(T userObject) {
         super(userObject);

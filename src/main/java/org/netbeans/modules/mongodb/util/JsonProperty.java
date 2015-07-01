@@ -17,6 +17,8 @@
  */
 package org.netbeans.modules.mongodb.util;
 
+import org.bson.Document;
+
 /**
  *
  * @author Yann D'Isanto
@@ -38,5 +40,9 @@ public final class JsonProperty {
 
     public Object getValue() {
         return value;
+    }
+
+    public Document asDocument() {
+        return new Document(name, value);
     }
 }

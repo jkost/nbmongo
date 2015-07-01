@@ -17,9 +17,9 @@
  */
 package org.netbeans.modules.mongodb.util;
 
-import com.mongodb.DBObject;
 import java.io.File;
 import java.nio.charset.Charset;
+import org.bson.Document;
 
 /**
  *
@@ -29,11 +29,11 @@ public final class ExportPropertiesBuilder {
     
     private String collection;
     
-    private DBObject criteria;
+    private Document criteria;
 
-    private DBObject projection;
+    private Document projection;
 
-    private DBObject sort;
+    private Document sort;
     
     private boolean jsonArray;
 
@@ -54,17 +54,17 @@ public final class ExportPropertiesBuilder {
         return this;
     }
 
-    public ExportPropertiesBuilder criteria(DBObject criteria) {
+    public ExportPropertiesBuilder criteria(Document criteria) {
         this.criteria = criteria;
         return this;
     }
 
-    public ExportPropertiesBuilder projection(DBObject projection) {
+    public ExportPropertiesBuilder projection(Document projection) {
         this.projection = projection;
         return this;
     }
 
-    public ExportPropertiesBuilder sort(DBObject sort) {
+    public ExportPropertiesBuilder sort(Document sort) {
         this.sort = sort;
         return this;
     }

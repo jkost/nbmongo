@@ -17,7 +17,7 @@
  */
 package org.netbeans.modules.mongodb.ui.util;
 
-import com.mongodb.DB;
+import com.mongodb.client.MongoDatabase;
 import org.openide.util.Lookup;
 
 /**
@@ -55,7 +55,11 @@ public final class CollectionNameValidator implements ValidatingInputLine.InputV
                     Bundle.VALIDATION_forbidden_character(character));
             }
         }
-        if (lookup.lookup(DB.class).getCollectionNames().contains(value)) {
+//        if (lookup.lookup(DB.class).getCollectionNames().contains(value)) {
+//            throw new IllegalArgumentException(
+//                Bundle.VALIDATION_exists("collection", value));
+//        }
+        if (lookup.lookup(MongoDatabase.class).getCollection(value) != null) {
             throw new IllegalArgumentException(
                 Bundle.VALIDATION_exists("collection", value));
         }

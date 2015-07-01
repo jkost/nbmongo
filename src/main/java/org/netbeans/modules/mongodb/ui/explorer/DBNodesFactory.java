@@ -25,6 +25,7 @@ package org.netbeans.modules.mongodb.ui.explorer;
 
 import com.mongodb.MongoClient;
 import com.mongodb.MongoSocketException;
+import java.util.Collections;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import org.netbeans.modules.mongodb.ConnectionInfo;
@@ -53,7 +54,7 @@ final class DBNodesFactory extends RefreshableChildFactory<DbInfo> {
                 if (connectionDBName != null) {
                     list.add(new DbInfo(connectionDBName, lookup));
                 } else {
-                    for (String dbName : mongo.getDatabaseNames()) {
+                    for (String dbName : mongo.listDatabaseNames()) {
                         list.add(new DbInfo(dbName, lookup));
                     }
                 }
@@ -61,6 +62,7 @@ final class DBNodesFactory extends RefreshableChildFactory<DbInfo> {
         } catch (MongoSocketException ex) {
             connection.disconnect();
         }
+        Collections.sort(list);
         return true;
     }
 

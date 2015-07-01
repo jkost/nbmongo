@@ -19,8 +19,12 @@ package org.netbeans.modules.mongodb.indexes;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.EnumMap;
 import java.util.Enumeration;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import javax.swing.DefaultListModel;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
@@ -36,6 +40,7 @@ import org.netbeans.modules.mongodb.ui.util.ValidablePanel;
 import org.openide.DialogDescriptor;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
+import org.openide.util.NbBundle;
 import org.openide.util.NbBundle.Messages;
 
 /**
@@ -43,15 +48,11 @@ import org.openide.util.NbBundle.Messages;
  * @author Yann D'Isanto
  */
 @Messages({
-    "CreateIndexPanel.fieldsLabel.text=Fields",
-    "CreateIndexPanel.dropDupsCheckBox.text=drop duplicates",
-    "CreateIndexPanel.uniqueCheckBox.text=unique",
-    "CreateIndexPanel.sparseCheckBox.text=sparse",
-    "CreateIndexPanel.okButton.text=Ok",
-    "CreateIndexPanel.cancelButton.text=Cancel",
-    "CreateIndexPanel.nameLabel.text=Name",
-    "CreateIndexPanel.addFieldButton.text=add",
-    "CreateIndexPanel.removeFieldButton.text=remove",
+    "CreateIndexPanel.globalOptionsPanel.TabConstraints.tabTitle=Global",
+    "CreateIndexPanel.textOptionsPanel.TabConstraints.tabTitle=Text",
+    "CreateIndexPanel.geo2DSphereOptionsPanel.TabConstraints.tabTitle=2D Sphere",
+    "CreateIndexPanel.geo2DOptionsPanel.TabConstraints.tabTitle=2D",
+    "CreateIndexPanel.geoHaystackOptionsPanel.TabConstraints.tabTitle=Haystack",
     "createIndexText=Create Index",
     "ACTION_Create_Index=Create Index",
     "VALIDATION_emptyName=specify the index name",
@@ -62,12 +63,18 @@ public class CreateIndexPanel extends ValidablePanel {
     private static final long serialVersionUID = 1L;
 
     private final DefaultListModel<Index.Key> keyFieldsListModel = new DefaultListModel<>();
-    
+
+    private final Map<Index.Type, javax.swing.JPanel> dynamicOptionsPanels = new EnumMap<>(Index.Type.class);
+
     /**
      * Creates new form CreateIndexPanel
      */
     public CreateIndexPanel() {
         initComponents();
+        dynamicOptionsPanels.put(Index.Type.TEXT, textOptionsPanel);
+        dynamicOptionsPanels.put(Index.Type.GEOSPATIAL_2D, geo2DOptionsPanel);
+        dynamicOptionsPanels.put(Index.Type.GEOSPATIAL_2DSPHERE, geo2DSphereOptionsPanel);
+        dynamicOptionsPanels.put(Index.Type.GEOSPATIAL_HAYSTACK, geoHaystackOptionsPanel);
         nameField.getDocument().addDocumentListener(new DocumentListener() {
 
             @Override
@@ -98,11 +105,13 @@ public class CreateIndexPanel extends ValidablePanel {
             @Override
             public void intervalAdded(ListDataEvent e) {
                 performValidation();
+                updateOptionsTabs();
             }
 
             @Override
             public void intervalRemoved(ListDataEvent e) {
                 performValidation();
+                updateOptionsTabs();
             }
 
             @Override
@@ -114,16 +123,43 @@ public class CreateIndexPanel extends ValidablePanel {
             @Override
             public void run() {
                 performValidation();
+                updateOptionsTabs();
             }
         });
     }
 
     @Override
     protected String computeValidationProblem() {
-        if(keyFieldsListModel.getSize() == 0) {
+        if (keyFieldsListModel.getSize() == 0) {
             return Bundle.VALIDATION_noKey();
         }
         return null;
+    }
+
+    private void updateOptionsTabs() {
+        Set<Index.Type> types = new HashSet<>();
+        for (Index.Key key : Collections.list(keyFieldsListModel.elements())) {
+            types.add(key.getType());
+        }
+        for (Index.Type type : dynamicOptionsPanels.keySet()) {
+            javax.swing.JPanel panel = dynamicOptionsPanels.get(type);
+            if (types.contains(type) == false) {
+                optionsTabbedPane.remove(panel);
+            } else if (panel.getParent() == null) {
+                optionsTabbedPane.add(getOptionsPanelTabTitle(panel), panel);
+            }
+        }
+    }
+
+    private String getOptionsPanelTabTitle(javax.swing.JPanel panel) {
+        return NbBundle.getMessage(
+            CreateIndexPanel.class,
+            new StringBuilder()
+            .append("CreateIndexPanel.")
+            .append(panel.getName())
+            .append(".TabConstraints.tabTitle")
+            .toString()
+        );
     }
 
     Index getIndex() {
@@ -132,12 +168,14 @@ public class CreateIndexPanel extends ValidablePanel {
             name.isEmpty() ? null : name,
             null,
             Collections.list(keyFieldsListModel.elements()),
-            sparseCheckBox.isSelected(),
-            uniqueCheckBox.isSelected(),
-            dropDupsCheckBox.isSelected()
+            globalOptionsPanel.getGlobalOptions(),
+            textOptionsPanel.getTextOptions(),
+            geo2DSphereOptionsPanel.getGeo2DSphereOptions(),
+            geo2DOptionsPanel.getGeo2DOptions(),
+            geoHaystackOptionsPanel.getGeoHaystackOptions()
         );
     }
-    
+
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -147,8 +185,6 @@ public class CreateIndexPanel extends ValidablePanel {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        uniqueCheckBox = new javax.swing.JCheckBox();
-        dropDupsCheckBox = new javax.swing.JCheckBox();
         nameLabel = new javax.swing.JLabel();
         nameField = new javax.swing.JTextField();
         addFieldButton = new javax.swing.JButton();
@@ -156,11 +192,13 @@ public class CreateIndexPanel extends ValidablePanel {
         removeFieldButton = new javax.swing.JButton();
         jScrollPane2 = new javax.swing.JScrollPane();
         keyFieldsList = new javax.swing.JList<Index.Key>();
-        sparseCheckBox = new javax.swing.JCheckBox();
-
-        org.openide.awt.Mnemonics.setLocalizedText(uniqueCheckBox, org.openide.util.NbBundle.getMessage(CreateIndexPanel.class, "CreateIndexPanel.uniqueCheckBox.text")); // NOI18N
-
-        org.openide.awt.Mnemonics.setLocalizedText(dropDupsCheckBox, org.openide.util.NbBundle.getMessage(CreateIndexPanel.class, "CreateIndexPanel.dropDupsCheckBox.text")); // NOI18N
+        optionsPanel = new javax.swing.JPanel();
+        optionsTabbedPane = new javax.swing.JTabbedPane();
+        globalOptionsPanel = new org.netbeans.modules.mongodb.indexes.GlobalOptionsPanel();
+        textOptionsPanel = new org.netbeans.modules.mongodb.indexes.TextOptionsPanel();
+        geo2DSphereOptionsPanel = new org.netbeans.modules.mongodb.indexes.Geo2DSphereOptionsPanel();
+        geo2DOptionsPanel = new org.netbeans.modules.mongodb.indexes.Geo2DOptionsPanel();
+        geoHaystackOptionsPanel = new org.netbeans.modules.mongodb.indexes.GeoHaystackOptionsPanel();
 
         org.openide.awt.Mnemonics.setLocalizedText(nameLabel, org.openide.util.NbBundle.getMessage(CreateIndexPanel.class, "CreateIndexPanel.nameLabel.text")); // NOI18N
 
@@ -184,7 +222,39 @@ public class CreateIndexPanel extends ValidablePanel {
         keyFieldsList.setModel(keyFieldsListModel);
         jScrollPane2.setViewportView(keyFieldsList);
 
-        org.openide.awt.Mnemonics.setLocalizedText(sparseCheckBox, org.openide.util.NbBundle.getMessage(CreateIndexPanel.class, "CreateIndexPanel.sparseCheckBox.text")); // NOI18N
+        optionsPanel.setBorder(javax.swing.BorderFactory.createTitledBorder(org.openide.util.NbBundle.getMessage(CreateIndexPanel.class, "optionsPanel.title"))); // NOI18N
+
+        globalOptionsPanel.setName("globalOptionsPanel"); // NOI18N
+        optionsTabbedPane.addTab(getOptionsPanelTabTitle(globalOptionsPanel), globalOptionsPanel);
+
+        textOptionsPanel.setName("textOptionsPanel"); // NOI18N
+        optionsTabbedPane.addTab(getOptionsPanelTabTitle(textOptionsPanel), textOptionsPanel);
+
+        geo2DSphereOptionsPanel.setName("geo2DSphereOptionsPanel"); // NOI18N
+        optionsTabbedPane.addTab(getOptionsPanelTabTitle(geo2DSphereOptionsPanel), geo2DSphereOptionsPanel);
+
+        geo2DOptionsPanel.setName("geo2DOptionsPanel"); // NOI18N
+        optionsTabbedPane.addTab(getOptionsPanelTabTitle(geo2DOptionsPanel), geo2DOptionsPanel);
+
+        geoHaystackOptionsPanel.setName("geoHaystackOptionsPanel"); // NOI18N
+        optionsTabbedPane.addTab(getOptionsPanelTabTitle(geoHaystackOptionsPanel), geoHaystackOptionsPanel);
+
+        javax.swing.GroupLayout optionsPanelLayout = new javax.swing.GroupLayout(optionsPanel);
+        optionsPanel.setLayout(optionsPanelLayout);
+        optionsPanelLayout.setHorizontalGroup(
+            optionsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(optionsPanelLayout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(optionsTabbedPane)
+                .addContainerGap())
+        );
+        optionsPanelLayout.setVerticalGroup(
+            optionsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(optionsPanelLayout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(optionsTabbedPane, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
@@ -194,27 +264,23 @@ public class CreateIndexPanel extends ValidablePanel {
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(jScrollPane2)
-                        .addContainerGap())
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(fieldsLabel)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(addFieldButton)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(removeFieldButton)
+                        .addComponent(optionsPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addContainerGap())
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(nameLabel)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(nameField)
                         .addGap(10, 10, 10))
-                    .addGroup(layout.createSequentialGroup()
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(dropDupsCheckBox)
-                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                .addComponent(sparseCheckBox, javax.swing.GroupLayout.Alignment.TRAILING)
-                                .addComponent(uniqueCheckBox, javax.swing.GroupLayout.Alignment.TRAILING)))
-                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
+                            .addComponent(jScrollPane2)
+                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                                .addComponent(fieldsLabel)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(addFieldButton)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(removeFieldButton)))
+                        .addContainerGap())))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -223,51 +289,54 @@ public class CreateIndexPanel extends ValidablePanel {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(nameLabel)
                     .addComponent(nameField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(sparseCheckBox)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(uniqueCheckBox)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(dropDupsCheckBox)
+                .addComponent(optionsPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(fieldsLabel)
                     .addComponent(removeFieldButton)
                     .addComponent(addFieldButton))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 178, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addComponent(jScrollPane2)
+                .addContainerGap())
         );
     }// </editor-fold>//GEN-END:initComponents
 
     private void addFieldButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addFieldButtonActionPerformed
-         Enumeration<Index.Key> keys = keyFieldsListModel.elements();
-         List<String> usedKeys = new ArrayList<>();
-         while(keys.hasMoreElements()) {
-             usedKeys.add(keys.nextElement().getField());
-         }
-         Index.Key key = IndexKeyPanel.showCreateDialog(usedKeys);
-         if(key != null) {
-             keyFieldsListModel.addElement(key);
-         }
+        Enumeration<Index.Key> keys = keyFieldsListModel.elements();
+        List<String> usedKeys = new ArrayList<>();
+        while (keys.hasMoreElements()) {
+            usedKeys.add(keys.nextElement().getField());
+        }
+        Index.Key key = IndexKeyPanel.showCreateDialog(usedKeys);
+        if (key != null) {
+            keyFieldsListModel.addElement(key);
+        }
     }//GEN-LAST:event_addFieldButtonActionPerformed
 
     private void removeFieldButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_removeFieldButtonActionPerformed
-        keyFieldsListModel.removeElementAt(keyFieldsList.getSelectedIndex());
+        int index = keyFieldsList.getSelectedIndex();
+        if (index > -1) {
+            keyFieldsListModel.removeElementAt(index);
+        }
     }//GEN-LAST:event_removeFieldButtonActionPerformed
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton addFieldButton;
-    private javax.swing.JCheckBox dropDupsCheckBox;
     private javax.swing.JLabel fieldsLabel;
+    private org.netbeans.modules.mongodb.indexes.Geo2DOptionsPanel geo2DOptionsPanel;
+    private org.netbeans.modules.mongodb.indexes.Geo2DSphereOptionsPanel geo2DSphereOptionsPanel;
+    private org.netbeans.modules.mongodb.indexes.GeoHaystackOptionsPanel geoHaystackOptionsPanel;
+    private org.netbeans.modules.mongodb.indexes.GlobalOptionsPanel globalOptionsPanel;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JList<Index.Key> keyFieldsList;
     private javax.swing.JTextField nameField;
     private javax.swing.JLabel nameLabel;
+    private javax.swing.JPanel optionsPanel;
+    private javax.swing.JTabbedPane optionsTabbedPane;
     private javax.swing.JButton removeFieldButton;
-    private javax.swing.JCheckBox sparseCheckBox;
-    private javax.swing.JCheckBox uniqueCheckBox;
+    private org.netbeans.modules.mongodb.indexes.TextOptionsPanel textOptionsPanel;
     // End of variables declaration//GEN-END:variables
 
     public static Index showDialog() {

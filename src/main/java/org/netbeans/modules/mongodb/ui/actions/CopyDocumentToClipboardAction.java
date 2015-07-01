@@ -17,9 +17,8 @@
  */
 package org.netbeans.modules.mongodb.ui.actions;
 
-import com.mongodb.DBObject;
-import com.mongodb.util.JSON;
 import java.awt.datatransfer.StringSelection;
+import org.bson.Document;
 import org.openide.util.NbBundle.Messages;
 
 /**
@@ -28,16 +27,16 @@ import org.openide.util.NbBundle.Messages;
  */
 @Messages({
     "ACTION_copyDocumentToClipboard=Copy document"})
-public final class CopyDocumentToClipboardAction extends CopyObjectToClipboardAction<DBObject> {
+public final class CopyDocumentToClipboardAction extends CopyObjectToClipboardAction<Document> {
     
     private static final long serialVersionUID = 1L;
 
-    public CopyDocumentToClipboardAction(DBObject dBObject) {
-        super(Bundle.ACTION_copyDocumentToClipboard(), dBObject);
+    public CopyDocumentToClipboardAction(Document document) {
+        super(Bundle.ACTION_copyDocumentToClipboard(), document);
     }
 
     @Override
-    public StringSelection convertToStringSelection(DBObject dbObject) {
-        return new StringSelection(JSON.serialize(dbObject));
+    public StringSelection convertToStringSelection(Document document) {
+        return new StringSelection(document.toJson());
     }
 }

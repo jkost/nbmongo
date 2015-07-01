@@ -15,8 +15,9 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-package org.netbeans.modules.mongodb.ui.explorer;
+package org.netbeans.modules.mongodb.properties;
 
+import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 import lombok.Getter;
 import org.openide.nodes.PropertySupport;
@@ -31,12 +32,20 @@ class LocalizedProperty<T> extends PropertySupport.ReadOnly<T> {
 
     public LocalizedProperty(ResourceBundle bundle, String prefix, String propertyName, Class<T> propertyType, T value) {
         super(
-            bundle.getString(nameKey(prefix, propertyName)),
+            safeResource(bundle, nameKey(prefix, propertyName), propertyName),
             propertyType,
-            bundle.getString(dislayNameKey(prefix, propertyName)),
-            bundle.getString(shortDescriptionKey(prefix, propertyName))
+            safeResource(bundle, dislayNameKey(prefix, propertyName), propertyName),
+            safeResource(bundle, shortDescriptionKey(prefix, propertyName), propertyName)
         );
         this.value = value;
+    }
+    
+    private static String safeResource(ResourceBundle bundle, String key, String fallback) {
+        try {
+            return bundle.getString(key);
+        } catch(MissingResourceException ex) {
+            return fallback;
+        }
     }
     
     private static String nameKey(String prefix, String propertyName) {

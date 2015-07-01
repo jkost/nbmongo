@@ -17,13 +17,14 @@
  */
 package org.netbeans.modules.mongodb.ui.windows.queryresultpanel.actions;
 
-import com.mongodb.DBCollection;
-import com.mongodb.DBObject;
 import com.mongodb.MongoException;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.model.Filters;
 import java.awt.event.ActionEvent;
 import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
+import org.bson.Document;
 import org.jdesktop.swingx.treetable.TreeTableNode;
 import org.netbeans.modules.mongodb.ui.util.JsonPropertyEditor;
 import org.netbeans.modules.mongodb.ui.windows.QueryResultPanel;
@@ -77,8 +78,9 @@ public final class EditJsonValueNodeAction extends QueryResultPanelAction {
             parentNode = parentNode.getParent();
         }
         try {
-            final DBCollection dbCollection = getResultPanel().getLookup().lookup(DBCollection.class);
-            dbCollection.save((DBObject) parentNode.getUserObject());
+            MongoCollection<Document> collection = getResultPanel().getLookup().lookup(MongoCollection.class);
+            Document document = (Document) parentNode.getUserObject();
+            collection.replaceOne(Filters.eq("_id", document.get("_id")), document);
         } catch (MongoException ex) {
             DialogDisplayer.getDefault().notify(
                 new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE));

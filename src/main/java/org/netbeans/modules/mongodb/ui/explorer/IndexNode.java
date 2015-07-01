@@ -17,21 +17,21 @@
  */
 package org.netbeans.modules.mongodb.ui.explorer;
 
-import com.mongodb.DBCollection;
+import org.netbeans.modules.mongodb.properties.LocalizedProperties;
+import com.mongodb.client.MongoCollection;
 import java.awt.event.ActionEvent;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
-import lombok.AllArgsConstructor;
+import org.bson.Document;
 import org.netbeans.modules.mongodb.indexes.Index;
 import org.netbeans.modules.mongodb.resources.Images;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.nodes.AbstractNode;
 import org.openide.nodes.Children;
-import org.openide.nodes.Node;
 import org.openide.nodes.Sheet;
 import org.openide.util.Lookup;
 import org.openide.util.NbBundle;
@@ -88,9 +88,8 @@ class IndexNode extends AbstractNode {
         set.put(new LocalizedProperties(IndexNode.class)
                 .stringProperty("name", index.getName())
                 .stringProperty("nameSpace", index.getNameSpace())
-                .booleanProperty("sparse", index.isSparse())
-                .booleanProperty("unique", index.isUnique())
-                .booleanProperty("dropDuplicates", index.isDropDuplicates())
+                .booleanProperty("sparse", index.getGlobalOptions().isSparse())
+                .booleanProperty("unique", index.getGlobalOptions().isUnique())
                 .toArray());
         sheet.put(set);
         return sheet;
@@ -107,8 +106,9 @@ class IndexNode extends AbstractNode {
         }
 
         @Override
+        @SuppressWarnings("unchecked")
         public void actionPerformed(ActionEvent e) {
-            DBCollection collection = getLookup().lookup(DBCollection.class);
+            MongoCollection<Document> collection = getLookup().lookup(MongoCollection.class);
             final Object dlgResult = DialogDisplayer.getDefault().notify(new NotifyDescriptor.Confirmation(
                     Bundle.dropIndexConfirmText(index.getName()),
                     NotifyDescriptor.YES_NO_OPTION));

@@ -54,7 +54,7 @@ public final class DatabaseNameValidator implements ValidatingInputLine.InputVal
             }
         }
         MongoConnection connection = lookup.lookup(MongoConnection.class);
-        for (String dbName : connection.getClient().getDatabaseNames()) {
+        for (String dbName : connection.getClient().listDatabaseNames()) {
             if (dbName.equalsIgnoreCase(value)) {
                 throw new IllegalArgumentException(
                     Bundle.VALIDATION_exists("database", value));

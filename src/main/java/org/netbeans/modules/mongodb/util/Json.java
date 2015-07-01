@@ -17,11 +17,10 @@
  */
 package org.netbeans.modules.mongodb.util;
 
-import com.github.jsonj.JsonElement;
-import com.github.jsonj.tools.JsonParser;
-import com.github.jsonj.tools.JsonSerializer;
-import com.mongodb.DBObject;
-import com.mongodb.util.JSON;
+import com.cedarsoftware.util.io.JsonWriter;
+import org.bson.Document;
+import org.bson.json.JsonMode;
+import org.bson.json.JsonWriterSettings;
 
 /**
  *
@@ -29,16 +28,14 @@ import com.mongodb.util.JSON;
  */
 public final class Json {
 
-    private static final JsonParser PARSER = new JsonParser();
+    private static final JsonWriterSettings jws = new JsonWriterSettings(JsonMode.STRICT, true);
     
-    
-    public static String prettify(DBObject dbObject) {
-        return prettify(JSON.serialize(dbObject));
+    public static String prettify(Document document) {
+        return document.toJson(jws);
     }
     
     public static String prettify(String json) {
-        final JsonElement element = PARSER.parse(json);
-        return JsonSerializer.serialize(element, true).replace("\t", "  ").trim();
+        return JsonWriter.formatJson(json);
     }
 
     private Json() {

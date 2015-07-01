@@ -17,12 +17,12 @@
  */
 package org.netbeans.modules.mongodb;
 
-import com.mongodb.DBCursor;
-import com.mongodb.DBObject;
-import com.mongodb.MapReduceOutput;
+import com.mongodb.client.MapReduceIterable;
+import com.mongodb.client.MongoCursor;
 import java.util.Iterator;
 import java.util.LinkedList;
 import lombok.Getter;
+import org.bson.Document;
 
 /**
  * Encapsulates the results of a query.
@@ -31,7 +31,7 @@ import lombok.Getter;
  */
 public interface QueryResult {
 
-    int getCount();
+    long getCount();
 
     QueryExecutor getExecutor();
 
@@ -39,12 +39,12 @@ public interface QueryResult {
 
     boolean isCapped();
 
-    DBObject next();
+    Document next();
 
     public static final QueryResult EMPTY = new QueryResult() {
 
         @Override
-        public int getCount() {
+        public long getCount() {
             return 0;
         }
 
@@ -64,24 +64,26 @@ public interface QueryResult {
         }
 
         @Override
-        public DBObject next() {
+        public Document next() {
             return null;
         }
 
     };
 
-    public class DBCursorResult implements QueryResult {
+    public class MongoCursorResult implements QueryResult {
 
-        private final DBCursor cursor;
+        private final MongoCursor<Document> cursor;
 
         @Getter
         private final QueryExecutor executor;
 
-        private Integer count = null;
+        @Getter
+        private final long count;
 
-        public DBCursorResult(DBCursor cursor, QueryExecutor queryExecutor) {
+        public MongoCursorResult(MongoCursor<Document> cursor, QueryExecutor queryExecutor, long count) {
             this.cursor = cursor;
             this.executor = queryExecutor;
+            this.count = count;
         }
 
         @Override
@@ -95,13 +97,8 @@ public interface QueryResult {
         }
 
         @Override
-        public DBObject next() {
+        public Document next() {
             return cursor.next();
-        }
-
-        @Override
-        public int getCount() {
-            return null == count ? count = cursor.count() : count;
         }
 
         @Override
@@ -109,7 +106,6 @@ public interface QueryResult {
             super.finalize();
             cursor.close();
         }
-        
     }
 
     public class MapReduceResult implements QueryResult {
@@ -122,16 +118,16 @@ public interface QueryResult {
         @Getter
         private boolean capped = false;
 
-        private final java.util.Collection<DBObject> data;
+        private final java.util.Collection<Document> data;
 
-        private final Iterator<DBObject> iterator;
+        private final Iterator<Document> iterator;
 
-        public MapReduceResult(MapReduceOutput out, QueryExecutor queryExecutor) {
+        public MapReduceResult(MapReduceIterable<Document> out, QueryExecutor queryExecutor) {
             this.data = new LinkedList<>();
             int num = 0;
-            for (DBObject object : out.results()) {
+            for (Document document : out) {
                 if (++num <= MAX_SIZE) {
-                    data.add(object);
+                    data.add(document);
                 } else {
                     capped = true;
                     break;
@@ -142,7 +138,7 @@ public interface QueryResult {
         }
 
         @Override
-        public int getCount() {
+        public long getCount() {
             return data.size();
         }
 
@@ -152,12 +148,12 @@ public interface QueryResult {
         }
 
         @Override
-        public DBObject next() {
+        public Document next() {
             return iterator.next();
         }
 
     }
-
+    
     public class CollectionResult implements QueryResult {
 
         @Getter
@@ -165,9 +161,9 @@ public interface QueryResult {
 
         private final int count;
 
-        private final Iterator<? extends DBObject> iterator;
+        private final Iterator<? extends Document> iterator;
 
-        public CollectionResult(java.util.Collection<? extends DBObject> data, QueryExecutor queryExecutor) {
+        public CollectionResult(java.util.Collection<? extends Document> data, QueryExecutor queryExecutor) {
             count = data.size();
             iterator = data.iterator();
             this.executor = queryExecutor;
@@ -179,12 +175,12 @@ public interface QueryResult {
         }
 
         @Override
-        public DBObject next() {
+        public Document next() {
             return iterator.next();
         }
 
         @Override
-        public int getCount() {
+        public long getCount() {
             return count;
         }
 

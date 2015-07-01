@@ -17,7 +17,6 @@
  */
 package org.netbeans.modules.mongodb;
 
-import com.mongodb.DBObject;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
@@ -29,6 +28,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+import org.bson.Document;
 
 /**
  * POJO that contains the data of an index.
@@ -87,12 +87,13 @@ public class Index {
         }
     };
 
-    public Index(DBObject indexInfo) {
-        name = (String) indexInfo.get("name");
-        nameSpace = (String) indexInfo.get("ns");
-        final DBObject keyObj = (DBObject)indexInfo.get("key");
-        for(String keyObjProperty: keyObj.keySet())
+    public Index(Document indexInfo) {
+        name = indexInfo.getString("name");
+        nameSpace = indexInfo.getString("ns");
+        final Document keyObj = indexInfo.get("key", Document.class);
+        for(String keyObjProperty: keyObj.keySet()) {
             keys.add(new Key(keyObjProperty, Integer.valueOf(1).equals(keyObj.get(keyObjProperty))));
+        }
         sparse = Boolean.TRUE.equals(indexInfo.get("sparse"));
         unique = Boolean.TRUE.equals(indexInfo.get("unique"));
         dropDuplicates = Boolean.TRUE.equals(indexInfo.get("dropDups"));

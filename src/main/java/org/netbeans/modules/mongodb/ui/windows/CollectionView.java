@@ -17,9 +17,7 @@
  */
 package org.netbeans.modules.mongodb.ui.windows;
 
-import com.mongodb.DBCollection;
-import com.mongodb.DBObject;
-import com.mongodb.util.JSON;
+import com.mongodb.client.MongoCollection;
 import org.netbeans.modules.mongodb.ui.QueryResultWorker;
 import org.netbeans.modules.mongodb.ui.QueryWorker;
 import org.netbeans.modules.mongodb.CollectionInfo;
@@ -27,8 +25,8 @@ import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 import javax.swing.Action;
 import lombok.Getter;
+import org.bson.Document;
 import org.netbeans.modules.mongodb.ConnectionInfo;
-import org.netbeans.modules.mongodb.DbInfo;
 import org.netbeans.modules.mongodb.resources.Images;
 import org.netbeans.modules.mongodb.ui.components.QueryEditor;
 import org.netbeans.modules.mongodb.ui.windows.QueryResultPanel.QueryResultWorkerFactory;
@@ -54,9 +52,8 @@ import org.openide.windows.TopComponent;
     "# {0} - current page",
     "# {1} - total page count",
     "pageCountLabel=Page {0} of {1}",
-    "# {0} - db name",
-    "# {1} - collection name",
-    "collectionViewTitle={0}.{1}",
+    "# {0} - collection namespace",
+    "collectionViewTitle={0}",
     "# {0} - connection name",
     "# {1} - view title",
     "collectionViewTooltip={0}: {1}",
@@ -82,6 +79,10 @@ public final class CollectionView extends TopComponent implements QueryResultWor
     private final Action clearQueryAction = new ClearQueryAction(this);
 
     public CollectionView(CollectionInfo collectionInfo, Lookup lookup) {
+        this(collectionInfo, lookup, null);
+    }
+    
+    public CollectionView(CollectionInfo collectionInfo, Lookup lookup, Document criteria) {
         super(lookup);
         this.lookup = lookup;
         isSystemCollection = SystemCollectionPredicate.get().eval(collectionInfo.getName());
@@ -91,7 +92,12 @@ public final class CollectionView extends TopComponent implements QueryResultWor
             ? Images.SYSTEM_COLLECTION_ICON
             : Images.COLLECTION_ICON);
         loadPreferences();
-        getResultPanel().refreshResults();
+        if(criteria != null) {
+            queryEditor.setCriteria(criteria);
+            updateQueryFieldsFromEditor();
+        } else {
+            getResultPanel().refreshResults();
+        }
     }
 
     public void setLookup(Lookup lookup) {
@@ -99,10 +105,9 @@ public final class CollectionView extends TopComponent implements QueryResultWor
     }
 
     public void updateTitle() {
-        final ConnectionInfo connectionInfo = lookup.lookup(ConnectionInfo.class);
-        final DbInfo dbInfo = lookup.lookup(DbInfo.class);
-        final CollectionInfo collectionInfo = lookup.lookup(CollectionInfo.class);
-        final String title = Bundle.collectionViewTitle(dbInfo.getDbName(), collectionInfo.getName());
+        ConnectionInfo connectionInfo = lookup.lookup(ConnectionInfo.class);
+        String collectionFullName = lookup.lookup(MongoCollection.class).getNamespace().getFullName();
+        String title = Bundle.collectionViewTitle(collectionFullName);
         setName(title);
         setToolTipText(
             Bundle.collectionViewTooltip(connectionInfo.getDisplayName(), title));
@@ -123,22 +128,23 @@ public final class CollectionView extends TopComponent implements QueryResultWor
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public QueryResultWorker createWorker() {
-        final DBObject criteria = queryEditor.getCriteria();
-        final DBObject projection = queryEditor.getProjection();
-        final DBObject sort = queryEditor.getSort();
-        final DBCollection collection = lookup.lookup(DBCollection.class);
+        Document criteria = queryEditor.getCriteria();
+        Document projection = queryEditor.getProjection();
+        Document sort = queryEditor.getSort();
+        MongoCollection<Document> collection = lookup.lookup(MongoCollection.class);
         return new QueryWorker(getName(), collection, criteria, projection, sort, 200);
     }
     
 
     public void updateQueryFieldsFromEditor() {
-        final DBObject criteria = queryEditor.getCriteria();
-        final DBObject projection = queryEditor.getProjection();
-        final DBObject sort = queryEditor.getSort();
-        criteriaField.setText(criteria != null ? JSON.serialize(criteria) : "");
-        projectionField.setText(projection != null ? JSON.serialize(projection) : "");
-        sortField.setText(sort != null ? JSON.serialize(sort) : "");
+        Document criteria = queryEditor.getCriteria();
+        Document projection = queryEditor.getProjection();
+        Document sort = queryEditor.getSort();
+        criteriaField.setText(criteria != null ? criteria.toJson() : "");
+        projectionField.setText(projection != null ? projection.toJson() : "");
+        sortField.setText(sort != null ? sort.toJson() : "");
         getResultPanel().refreshResults();
     }
 
@@ -147,13 +153,13 @@ public final class CollectionView extends TopComponent implements QueryResultWor
     }
 
     void loadPreferences() {
-        final Preferences prefs = prefs();
-        final String version = prefs.get("version", "1.0");
+        Preferences prefs = prefs();
+        String version = prefs.get("version", "1.0");
         getResultPanel().loadPreferences();
     }
 
     void writePreferences() {
-        final Preferences prefs = prefs();
+        Preferences prefs = prefs();
         prefs.put("version", "1.0");
         getResultPanel().writePreferences();
         try {

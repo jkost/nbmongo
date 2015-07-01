@@ -17,7 +17,7 @@
  */
 package org.netbeans.modules.mongodb.ui.wizards;
 
-import com.mongodb.DB;
+import com.mongodb.client.MongoDatabase;
 import java.io.File;
 import java.nio.charset.Charset;
 import javax.swing.JCheckBox;
@@ -47,7 +47,7 @@ public final class ImportVisualPanel1 extends JPanel {
     /**
      * Creates new form ImportVisualPanel1
      */
-    public ImportVisualPanel1(DB db) {
+    public ImportVisualPanel1(MongoDatabase db) {
         initComponents();
         collectionEditor = (JTextComponent) collectionComboBox.getEditor().getEditorComponent();
         dropCheckBox.setVisible(false);
@@ -59,7 +59,7 @@ public final class ImportVisualPanel1 extends JPanel {
             .setFileFilter(new JsonFileFilter())
             .setFilesOnly(true)
             .createFileChooser();
-        for (String collection : db.getCollectionNames()) {
+        for (String collection : db.listCollectionNames()) {
             collectionComboBox.addItem(collection);
         }
         for (Charset charset : Charset.availableCharsets().values()) {

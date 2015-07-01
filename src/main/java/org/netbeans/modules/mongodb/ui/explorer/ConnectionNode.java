@@ -23,15 +23,14 @@
  */
 package org.netbeans.modules.mongodb.ui.explorer;
 
-import com.mongodb.BasicDBObject;
-import com.mongodb.DB;
-import com.mongodb.DBObject;
 import org.netbeans.modules.mongodb.properties.ConnectionNameProperty;
 import org.netbeans.modules.mongodb.properties.MongoClientURIProperty;
 import org.netbeans.modules.mongodb.resources.Images;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
 import com.mongodb.MongoException;
+import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.CreateCollectionOptions;
 import org.netbeans.modules.mongodb.ui.windows.MapReduceTopComponent;
 import org.netbeans.modules.mongodb.ui.util.TopComponentUtils;
 import java.awt.Image;
@@ -122,6 +121,7 @@ class ConnectionNode extends AbstractNode implements PropertyChangeListener {
             }
         });
         content.add(connectionHandler);
+        content.add(connection, new ConnectionConverter());
     }
 
     public boolean isConnected() {
@@ -273,7 +273,6 @@ class ConnectionNode extends AbstractNode implements PropertyChangeListener {
 
         @Override
         public void actionPerformed(ActionEvent e) {
-//            connect(true);
             connectionHandler.connect();
         }
 
@@ -287,7 +286,6 @@ class ConnectionNode extends AbstractNode implements PropertyChangeListener {
 
         @Override
         public void actionPerformed(ActionEvent e) {
-//            disconnecter.close();
             connectionHandler.disconnect();
         }
 
@@ -310,9 +308,8 @@ class ConnectionNode extends AbstractNode implements PropertyChangeListener {
                 final String dbName = input.getInputText().trim();
                 MongoConnection connection = getLookup().lookup(MongoConnection.class);
                 try {
-                    final DB db = connection.getClient().getDB(dbName);
-                    final DBObject collectionOptions = new BasicDBObject("capped", false);
-                    db.createCollection("default", collectionOptions);
+                    final MongoDatabase db = connection.getClient().getDatabase(dbName);
+                    db.createCollection("default", new CreateCollectionOptions().capped(false));
                     refreshChildren();
                 } catch (MongoException ex) {
                     DialogDisplayer.getDefault().notify(

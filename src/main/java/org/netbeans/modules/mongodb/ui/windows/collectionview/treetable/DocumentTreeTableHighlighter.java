@@ -17,9 +17,9 @@
  */
 package org.netbeans.modules.mongodb.ui.windows.collectionview.treetable;
 
-import com.mongodb.DBObject;
 import java.awt.Color;
 import java.awt.Component;
+import org.bson.Document;
 import org.jdesktop.swingx.decorator.AbstractHighlighter;
 import org.jdesktop.swingx.decorator.ComponentAdapter;
 import org.jdesktop.swingx.decorator.HighlightPredicate;
@@ -39,9 +39,9 @@ public final class DocumentTreeTableHighlighter extends AbstractHighlighter {
             @Override
             public boolean isHighlighted(Component renderer, ComponentAdapter adapter) {
                 final Object value = adapter.getValue();
-                if (value instanceof DBObject) {
-                    final DBObject dbObject = (DBObject) value;
-                    return dbObject.get("_id") != null;
+                if (value instanceof Document) {
+                    final Document document = (Document) value;
+                    return document.get("_id") != null;
                 }
                 return false;
             }

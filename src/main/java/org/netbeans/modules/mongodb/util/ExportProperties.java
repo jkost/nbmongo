@@ -17,10 +17,10 @@
  */
 package org.netbeans.modules.mongodb.util;
 
-import com.mongodb.DBObject;
 import java.io.File;
 import java.nio.charset.Charset;
 import java.util.Objects;
+import org.bson.Document;
 
 /**
  *
@@ -30,11 +30,11 @@ public final class ExportProperties {
 
     private final String collection;
 
-    private final DBObject criteria;
+    private final Document criteria;
 
-    private final DBObject projection;
+    private final Document projection;
 
-    private final DBObject sort;
+    private final Document sort;
 
     private final boolean jsonArray;
     
@@ -42,7 +42,7 @@ public final class ExportProperties {
     
     private final Charset encoding;
 
-    public ExportProperties(String collection, DBObject criteria, DBObject projection, DBObject sort, boolean jsonArray, File file, Charset encoding) {
+    public ExportProperties(String collection, Document criteria, Document projection, Document sort, boolean jsonArray, File file, Charset encoding) {
         this.collection = Objects.requireNonNull(collection);
         this.criteria = criteria;
         this.projection = projection;
@@ -56,15 +56,15 @@ public final class ExportProperties {
         return collection;
     }
 
-    public DBObject getCriteria() {
+    public Document getCriteria() {
         return criteria;
     }
 
-    public DBObject getProjection() {
+    public Document getProjection() {
         return projection;
     }
 
-    public DBObject getSort() {
+    public Document getSort() {
         return sort;
     }
 

@@ -17,7 +17,6 @@
  */
 package org.netbeans.modules.mongodb.ui.windows.collectionview.treetable;
 
-import com.mongodb.DBObject;
 import org.netbeans.modules.mongodb.options.JsonCellRenderingOptions;
 import java.awt.Color;
 import java.awt.Component;
@@ -35,7 +34,10 @@ import javax.swing.UIManager;
 import javax.swing.border.Border;
 import javax.swing.plaf.UIResource;
 import javax.swing.tree.TreeCellRenderer;
+import javax.swing.tree.TreeNode;
+import org.bson.Document;
 import org.bson.types.ObjectId;
+import org.jdesktop.swingx.treetable.TreeTableNode;
 import org.netbeans.modules.mongodb.options.LabelCategory;
 import org.netbeans.modules.mongodb.options.LabelFontConf;
 import org.netbeans.modules.mongodb.util.JsonProperty;
@@ -47,7 +49,7 @@ import org.netbeans.modules.mongodb.util.JsonProperty;
 public final class JsonTreeTableCellRenderer extends JPanel implements TreeCellRenderer {
 
     private static final long serialVersionUID = 1L;
-    
+
     private static final Map<Class<?>, LabelCategory> LABEL_CATEGORIES = new HashMap<>();
 
     static {
@@ -58,11 +60,12 @@ public final class JsonTreeTableCellRenderer extends JPanel implements TreeCellR
         LABEL_CATEGORIES.put(ObjectId.class, LabelCategory.ID);
     }
 
-    private static final String ARRAY_COMMENT = "[ ]";
-
+//    private static final String ARRAY_COMMENT = "[ ]";
     private static final String OBJECT_COMMENT = "{ }";
 
     private final JsonCellRenderingOptions options = JsonCellRenderingOptions.INSTANCE;
+
+    private final JLabel indexLabel = new JLabel();
 
     private final JLabel keyLabel = new JLabel();
 
@@ -94,15 +97,20 @@ public final class JsonTreeTableCellRenderer extends JPanel implements TreeCellR
 
     public JsonTreeTableCellRenderer() {
         super(new GridBagLayout());
-        add(keyLabel, new GridBagConstraints(0, 0, 1, 1, 1.0, 1.0,
+        add(indexLabel, new GridBagConstraints(0, 0, 1, 1, 1.0, 1.0,
+            GridBagConstraints.WEST,
+            GridBagConstraints.NONE,
+            new Insets(0, 0, 0, 3), 0, 0));
+        add(keyLabel, new GridBagConstraints(1, 0, 1, 1, 1.0, 1.0,
             GridBagConstraints.WEST,
             GridBagConstraints.NONE,
             new Insets(0, 0, 0, 2), 0, 0));
-        add(valueLabel, new GridBagConstraints(1, 0, 1, 1, 10.0, 1.0,
+        add(valueLabel, new GridBagConstraints(2, 0, 1, 1, 10.0, 1.0,
             GridBagConstraints.WEST,
             GridBagConstraints.HORIZONTAL,
             new Insets(0, 0, 0, 1), 2, 0));
         setOpaque(true);
+        indexLabel.setOpaque(true);
         keyLabel.setOpaque(true);
         valueLabel.setOpaque(true);
         inited = true;
@@ -113,19 +121,40 @@ public final class JsonTreeTableCellRenderer extends JPanel implements TreeCellR
     public Component getTreeCellRendererComponent(JTree tree, Object node, boolean selected, boolean expanded, boolean leaf, int row, boolean hasFocus) {
         setBackground(selected ? getBackgroundSelectionColor() : getBackgroundNonSelectionColor());
         setBorder(selected ? selectionBorder : nonSelectionBorder);
+
+        final LabelFontConf commentFontConf = options.getLabelFontConf(LabelCategory.COMMENT);
+        indexLabel.setText("");
+        indexLabel.setFont(commentFontConf.getFont());
+        if (selected) {
+            indexLabel.setForeground(getTextSelectionColor());
+            indexLabel.setBackground(getBackgroundSelectionColor());
+        } else {
+            indexLabel.setForeground(commentFontConf.getForeground());
+            indexLabel.setBackground(commentFontConf.getBackground());
+        }
+        if (node instanceof TreeTableNode) {
+            TreeTableNode parent = ((TreeTableNode) node).getParent();
+            if (parent instanceof JsonNode && ((JsonNode) parent).isArrayValue()) {
+                int index = parent.getIndex((TreeNode) node);
+                if (index > -1) {
+                    indexLabel.setText(String.format("%d -", index));
+                }
+            }
+        }
+
         if (node instanceof DBObjectNode) {
-            DBObject value = ((DBObjectNode) node).getUserObject();
+            Document value = ((DBObjectNode) node).getUserObject();
             final boolean isDocumentNode = node instanceof DocumentNode;
             final LabelFontConf keyFontConf = options.getLabelFontConf(isDocumentNode
                 ? LabelCategory.DOCUMENT
                 : LabelCategory.KEY);
-            final LabelFontConf valueFontConf = options.getLabelFontConf(LabelCategory.COMMENT);
+            final LabelFontConf valueFontConf = commentFontConf;
             keyLabel.setFont(keyFontConf.getFont());
             valueLabel.setFont(valueFontConf.getFont());
             valueLabel.setText("");
             if (isDocumentNode) {
                 final Object id = value.get("_id");
-                if(id != null) {
+                if (id != null) {
                     keyLabel.setText(String.valueOf(id));
                 } else {
                     keyLabel.setText("");
@@ -134,7 +163,7 @@ public final class JsonTreeTableCellRenderer extends JPanel implements TreeCellR
             } else {
                 keyLabel.setText("");
                 if (value instanceof List) {
-                    valueLabel.setText(ARRAY_COMMENT);
+                    valueLabel.setText(computeArrayLabel(((List) value).size()));
                 } else if (value instanceof Map) {
                     valueLabel.setText(OBJECT_COMMENT);
                 }
@@ -166,20 +195,20 @@ public final class JsonTreeTableCellRenderer extends JPanel implements TreeCellR
         final Object value = property.getValue();
         LabelFontConf keyFontConf = options.getLabelFontConf(LabelCategory.KEY);
         LabelFontConf valueFontConf = options.getLabelFontConf(LabelCategory.COMMENT);
-        if (node.isLeaf() && value != null && (value instanceof List) == false && (value instanceof Map) == false) {
+        if (node.isLeaf() && node.isSimpleValue()) {
             final LabelCategory valueLabelCategory = LABEL_CATEGORIES.get(value.getClass());
             keyFontConf = options.getLabelFontConf((value instanceof ObjectId) ? LabelCategory.ID : LabelCategory.KEY);
-            if(valueLabelCategory != null) {
+            if (valueLabelCategory != null) {
                 valueFontConf = options.getLabelFontConf(valueLabelCategory);
             }
-            
+
             keyLabel.setText(buildJsonKey(property.getName()));
             valueLabel.setText(value instanceof String ? buildJsonString(value) : value.toString());
         } else {
             keyLabel.setText(property.getName());
-            if (value instanceof List) {
-                valueLabel.setText(ARRAY_COMMENT);
-            } else if (value instanceof Map) {
+            if (node.isArrayValue()) {
+                valueLabel.setText(computeArrayLabel((node.getArrayValue()).size()));
+            } else if (node.isObjectValue()) {
                 valueLabel.setText(OBJECT_COMMENT);
             } else {
                 valueLabel.setText("");
@@ -302,4 +331,11 @@ public final class JsonTreeTableCellRenderer extends JPanel implements TreeCellR
         return backgroundNonSelectionColor;
     }
 
+    private String computeArrayLabel(int arraySize) {
+        return new StringBuilder()
+            .append('[')
+            .append(arraySize)
+            .append(']')
+            .toString();
+    }
 }

@@ -17,12 +17,12 @@
  */
 package org.netbeans.modules.mongodb.ui.explorer;
 
-import com.mongodb.DBCollection;
-import com.mongodb.DBObject;
+import com.mongodb.client.MongoCollection;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import lombok.AllArgsConstructor;
+import org.bson.Document;
 import org.netbeans.modules.mongodb.indexes.Index;
 import org.netbeans.modules.mongodb.indexes.IndexComparator;
 import org.openide.util.Lookup;
@@ -37,11 +37,12 @@ class IndexNodesFactory extends RefreshableChildFactory<Index> {
     private final Lookup lookup;
 
     @Override
+    @SuppressWarnings("unchecked")
     protected boolean createKeys(List<Index> list) {
-        DBCollection collection = lookup.lookup(DBCollection.class);
+        MongoCollection<Document> collection = lookup.lookup(MongoCollection.class);
         List<Index> indexes = new ArrayList<>();
-        for (DBObject indexObj : collection.getIndexInfo()) {
-            Index index = Index.fromDBObject(indexObj);
+        for (Document indexObj : collection.listIndexes()) {
+            Index index = Index.fromJson(indexObj);
             indexes.add(index);
         }
         Collections.sort(indexes, new IndexComparator());

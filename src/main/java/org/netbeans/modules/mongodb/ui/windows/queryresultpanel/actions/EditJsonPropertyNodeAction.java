@@ -17,12 +17,13 @@
  */
 package org.netbeans.modules.mongodb.ui.windows.queryresultpanel.actions;
 
-import com.mongodb.DBCollection;
-import com.mongodb.DBObject;
 import com.mongodb.MongoException;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.model.Filters;
 import java.awt.event.ActionEvent;
 import lombok.Getter;
 import lombok.Setter;
+import org.bson.Document;
 import org.jdesktop.swingx.treetable.TreeTableNode;
 import org.netbeans.modules.mongodb.ui.util.JsonPropertyEditor;
 import org.netbeans.modules.mongodb.ui.windows.QueryResultPanel;
@@ -59,6 +60,7 @@ public final class EditJsonPropertyNodeAction extends QueryResultPanelAction {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public void actionPerformed(ActionEvent e) {
         JsonProperty property = propertyNode.getUserObject();
         JsonProperty newProperty = JsonPropertyEditor.show(property);
@@ -67,17 +69,18 @@ public final class EditJsonPropertyNodeAction extends QueryResultPanelAction {
         }
         getResultPanel().getTreeTableModel().setUserObject(propertyNode, newProperty);
         TreeTableNode parentNode = propertyNode.getParent();
-        DBObject parent = (DBObject) parentNode.getUserObject();
+        Document document = (Document) parentNode.getUserObject();
         if (newProperty.getName().equals(property.getName()) == false) {
-            parent.removeField(property.getName());
+            document.remove(property.getName());
         }
-        parent.put(newProperty.getName(), newProperty.getValue());
+        document.put(newProperty.getName(), newProperty.getValue());
         while ((parentNode instanceof DocumentNode) == false) {
             parentNode = parentNode.getParent();
         }
         try {
-            final DBCollection dbCollection = getResultPanel().getLookup().lookup(DBCollection.class);
-            dbCollection.save((DBObject) parentNode.getUserObject());
+            final MongoCollection<Document> collection = getResultPanel().getLookup().lookup(MongoCollection.class);
+            collection.replaceOne(Filters.eq("_id", document.get("_id")), document);
+            
         } catch (MongoException ex) {
             DialogDisplayer.getDefault().notify(
                 new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE));

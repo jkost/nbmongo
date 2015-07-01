@@ -63,7 +63,6 @@ public final class ExportQueryResultAction extends QueryResultPanelAction {
     public void actionPerformed(ActionEvent e) {
         final Lookup lookup = getResultPanel().getLookup();
         final CollectionInfo collectionInfo = lookup.lookup(CollectionInfo.class);
-//        final QueryEditor queryEditor = getView().getQueryEditor();
         final Map<String, Object> properties = new HashMap<>();
         properties.put(ExportWizardAction.PROP_COLLECTION, collectionInfo.getName());
         properties.put("criteria", queryEditor.getCriteria());
