@@ -18,6 +18,7 @@
 package org.netbeans.modules.mongodb.indexes;
 
 import java.util.List;
+import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.DocumentEvent;
@@ -62,6 +63,13 @@ public class IndexKeyPanel extends ValidablePanel {
 
             @Override
             public void changedUpdate(DocumentEvent e) {
+            }
+        });
+        SwingUtilities.invokeLater(new Runnable() {
+
+            @Override
+            public void run() {
+                performValidation();
             }
         });
     }
