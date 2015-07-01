@@ -50,14 +50,14 @@ final class IndexKeyNode extends AbstractNode {
         Sheet.Set set = Sheet.createPropertiesSet();
         set.put(new LocalizedProperties(IndexKeyNode.class)
                 .stringProperty("field", key.getField())
-                .objectStringProperty("sort", key.getSort())
+                .objectStringProperty("sort", key.getType())
                 .toArray());
         sheet.put(set);
         return sheet;
     }
 
     public String getIconPath() {
-        switch (key.getSort()) {
+        switch (key.getType()) {
             case ASCENDING:
                 return Images.SORT_ASC_ICON_PATH;
             case DESCENDING:

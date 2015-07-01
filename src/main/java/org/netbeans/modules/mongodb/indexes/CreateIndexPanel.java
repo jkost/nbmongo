@@ -19,8 +19,12 @@ package org.netbeans.modules.mongodb.indexes;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.EnumMap;
 import java.util.Enumeration;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import javax.swing.DefaultListModel;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
@@ -36,6 +40,7 @@ import org.netbeans.modules.mongodb.ui.util.ValidablePanel;
 import org.openide.DialogDescriptor;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
+import org.openide.util.NbBundle;
 import org.openide.util.NbBundle.Messages;
 
 /**
@@ -43,6 +48,11 @@ import org.openide.util.NbBundle.Messages;
  * @author Yann D'Isanto
  */
 @Messages({
+    "CreateIndexPanel.globalOptionsPanel.TabConstraints.tabTitle=Global",
+    "CreateIndexPanel.textOptionsPanel.TabConstraints.tabTitle=Text",
+    "CreateIndexPanel.geo2DSphereOptionsPanel.TabConstraints.tabTitle=2D Sphere",
+    "CreateIndexPanel.geo2DOptionsPanel.TabConstraints.tabTitle=2D",
+    "CreateIndexPanel.geoHaystackOptionsPanel.TabConstraints.tabTitle=Haystack",
     "createIndexText=Create Index",
     "ACTION_Create_Index=Create Index",
     "VALIDATION_emptyName=specify the index name",
@@ -54,11 +64,17 @@ public class CreateIndexPanel extends ValidablePanel {
 
     private final DefaultListModel<Index.Key> keyFieldsListModel = new DefaultListModel<>();
 
+    private final Map<Index.Type, javax.swing.JPanel> dynamicOptionsPanels = new EnumMap<>(Index.Type.class);
+
     /**
      * Creates new form CreateIndexPanel
      */
     public CreateIndexPanel() {
         initComponents();
+        dynamicOptionsPanels.put(Index.Type.TEXT, textOptionsPanel);
+        dynamicOptionsPanels.put(Index.Type.GEOSPATIAL_2D, geo2DOptionsPanel);
+        dynamicOptionsPanels.put(Index.Type.GEOSPATIAL_2DSPHERE, geo2DSphereOptionsPanel);
+        dynamicOptionsPanels.put(Index.Type.GEOSPATIAL_HAYSTACK, geoHaystackOptionsPanel);
         nameField.getDocument().addDocumentListener(new DocumentListener() {
 
             @Override
@@ -89,11 +105,13 @@ public class CreateIndexPanel extends ValidablePanel {
             @Override
             public void intervalAdded(ListDataEvent e) {
                 performValidation();
+                updateOptionsTabs();
             }
 
             @Override
             public void intervalRemoved(ListDataEvent e) {
                 performValidation();
+                updateOptionsTabs();
             }
 
             @Override
@@ -105,6 +123,7 @@ public class CreateIndexPanel extends ValidablePanel {
             @Override
             public void run() {
                 performValidation();
+                updateOptionsTabs();
             }
         });
     }
@@ -115,6 +134,32 @@ public class CreateIndexPanel extends ValidablePanel {
             return Bundle.VALIDATION_noKey();
         }
         return null;
+    }
+
+    private void updateOptionsTabs() {
+        Set<Index.Type> types = new HashSet<>();
+        for (Index.Key key : Collections.list(keyFieldsListModel.elements())) {
+            types.add(key.getType());
+        }
+        for (Index.Type type : dynamicOptionsPanels.keySet()) {
+            javax.swing.JPanel panel = dynamicOptionsPanels.get(type);
+            if (types.contains(type) == false) {
+                optionsTabbedPane.remove(panel);
+            } else if (panel.getParent() == null) {
+                optionsTabbedPane.add(getOptionsPanelTabTitle(panel), panel);
+            }
+        }
+    }
+
+    private String getOptionsPanelTabTitle(javax.swing.JPanel panel) {
+        return NbBundle.getMessage(
+            CreateIndexPanel.class,
+            new StringBuilder()
+            .append("CreateIndexPanel.")
+            .append(panel.getName())
+            .append(".TabConstraints.tabTitle")
+            .toString()
+        );
     }
 
     Index getIndex() {
@@ -179,11 +224,20 @@ public class CreateIndexPanel extends ValidablePanel {
 
         optionsPanel.setBorder(javax.swing.BorderFactory.createTitledBorder(org.openide.util.NbBundle.getMessage(CreateIndexPanel.class, "optionsPanel.title"))); // NOI18N
 
-        optionsTabbedPane.addTab(org.openide.util.NbBundle.getMessage(CreateIndexPanel.class, "CreateIndexPanel.globalOptionsPanel.TabConstraints.tabTitle"), globalOptionsPanel); // NOI18N
-        optionsTabbedPane.addTab(org.openide.util.NbBundle.getMessage(CreateIndexPanel.class, "CreateIndexPanel.textOptionsPanel.TabConstraints.tabTitle"), textOptionsPanel); // NOI18N
-        optionsTabbedPane.addTab(org.openide.util.NbBundle.getMessage(CreateIndexPanel.class, "CreateIndexPanel.geo2DSphereOptionsPanel.TabConstraints.tabTitle"), geo2DSphereOptionsPanel); // NOI18N
-        optionsTabbedPane.addTab(org.openide.util.NbBundle.getMessage(CreateIndexPanel.class, "CreateIndexPanel.geo2DOptionsPanel.TabConstraints.tabTitle"), geo2DOptionsPanel); // NOI18N
-        optionsTabbedPane.addTab(org.openide.util.NbBundle.getMessage(CreateIndexPanel.class, "CreateIndexPanel.geoHaystackOptionsPanel.TabConstraints.tabTitle"), geoHaystackOptionsPanel); // NOI18N
+        globalOptionsPanel.setName("globalOptionsPanel"); // NOI18N
+        optionsTabbedPane.addTab(getOptionsPanelTabTitle(globalOptionsPanel), globalOptionsPanel);
+
+        textOptionsPanel.setName("textOptionsPanel"); // NOI18N
+        optionsTabbedPane.addTab(getOptionsPanelTabTitle(textOptionsPanel), textOptionsPanel);
+
+        geo2DSphereOptionsPanel.setName("geo2DSphereOptionsPanel"); // NOI18N
+        optionsTabbedPane.addTab(getOptionsPanelTabTitle(geo2DSphereOptionsPanel), geo2DSphereOptionsPanel);
+
+        geo2DOptionsPanel.setName("geo2DOptionsPanel"); // NOI18N
+        optionsTabbedPane.addTab(getOptionsPanelTabTitle(geo2DOptionsPanel), geo2DOptionsPanel);
+
+        geoHaystackOptionsPanel.setName("geoHaystackOptionsPanel"); // NOI18N
+        optionsTabbedPane.addTab(getOptionsPanelTabTitle(geoHaystackOptionsPanel), geoHaystackOptionsPanel);
 
         javax.swing.GroupLayout optionsPanelLayout = new javax.swing.GroupLayout(optionsPanel);
         optionsPanel.setLayout(optionsPanelLayout);

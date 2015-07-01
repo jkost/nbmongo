@@ -67,7 +67,7 @@ public class Index {
         for (String field : keyObj.keySet()) {
             keys.add(new Key(
                 field,
-                KeySort.valueOf(keyObj.get(field))
+                Type.valueOf(keyObj.get(field))
             ));
         }
         return new Index(
@@ -129,7 +129,7 @@ public class Index {
         private String field;
 
         @Getter
-        private KeySort sort;
+        private Type type;
 
     }
 
@@ -143,7 +143,7 @@ public class Index {
         "GEOSPATIAL_2DSPHERE=2dsphere",
         "GEOSPATIAL_HAYSTACK=geoHaystack"
     })
-    public static enum KeySort {
+    public static enum Type {
 
         ASCENDING(1),
         DESCENDING(-1),
@@ -156,7 +156,7 @@ public class Index {
         @Getter
         private final Object value;
 
-        public static KeySort valueOf(Object value) {
+        public static Type valueOf(Object value) {
             if (value instanceof Number) {
                 return valueOf(((Number) value).intValue());
             } else {
@@ -164,7 +164,7 @@ public class Index {
             }
         }
 
-        public static KeySort valueOf(int sortValue) {
+        public static Type valueOf(int sortValue) {
             switch (sortValue) {
                 case 1:
                     return ASCENDING;
@@ -175,7 +175,7 @@ public class Index {
             }
         }
 
-        public static KeySort parse(String value) {
+        public static Type parse(String value) {
             switch (value) {
                 case "hashed":
                     return HASHED;
@@ -192,7 +192,7 @@ public class Index {
             }
         }
 
-        private final ResourceBundle bundle = NbBundle.getBundle(KeySort.class);
+        private final ResourceBundle bundle = NbBundle.getBundle(Type.class);
 
         @Override
         public String toString() {

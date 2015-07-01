@@ -353,7 +353,7 @@ final class CollectionNode extends AbstractNode {
                 MongoCollection<Document> collection = getLookup().lookup(MongoCollection.class);
                 Document keys = new Document();
                 for (Index.Key key : index.getKeys()) {
-                    keys.append(key.getField(), key.getSort().getValue());
+                    keys.append(key.getField(), key.getType().getValue());
                 }
                 try {
                     collection.createIndex(keys, index.getOptions());

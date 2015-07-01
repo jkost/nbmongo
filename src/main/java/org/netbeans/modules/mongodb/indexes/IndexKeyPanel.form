@@ -20,7 +20,7 @@
               <EmptySpace max="-2" attributes="0"/>
               <Component id="keyField" pref="179" max="32767" attributes="0"/>
               <EmptySpace max="-2" attributes="0"/>
-              <Component id="sortComboBox" min="-2" max="-2" attributes="0"/>
+              <Component id="typeComboBox" min="-2" max="-2" attributes="0"/>
               <EmptySpace max="-2" attributes="0"/>
           </Group>
       </Group>
@@ -31,7 +31,7 @@
               <EmptySpace max="-2" attributes="0"/>
               <Group type="103" groupAlignment="3" attributes="0">
                   <Component id="keyField" alignment="3" min="-2" max="-2" attributes="0"/>
-                  <Component id="sortComboBox" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="typeComboBox" alignment="3" min="-2" max="-2" attributes="0"/>
               </Group>
               <EmptySpace max="32767" attributes="0"/>
           </Group>
@@ -41,10 +41,10 @@
   <SubComponents>
     <Component class="javax.swing.JTextField" name="keyField">
     </Component>
-    <Component class="javax.swing.JComboBox" name="sortComboBox">
+    <Component class="javax.swing.JComboBox" name="typeComboBox">
       <AuxValues>
-        <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="new javax.swing.JComboBox&lt;&gt;(KeySort.values())&#xd;&#xa;"/>
-        <AuxValue name="JavaCodeGenerator_TypeParameters" type="java.lang.String" value="&lt;KeySort&gt;"/>
+        <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="new javax.swing.JComboBox&lt;&gt;(Index.Type.values())&#xd; "/>
+        <AuxValue name="JavaCodeGenerator_TypeParameters" type="java.lang.String" value="&lt;Index.Type&gt;"/>
       </AuxValues>
     </Component>
   </SubComponents>

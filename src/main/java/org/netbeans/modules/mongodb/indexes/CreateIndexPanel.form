@@ -163,55 +163,70 @@
           <Layout class="org.netbeans.modules.form.compat2.layouts.support.JTabbedPaneSupportLayout"/>
           <SubComponents>
             <Component class="org.netbeans.modules.mongodb.indexes.GlobalOptionsPanel" name="globalOptionsPanel">
+              <Properties>
+                <Property name="name" type="java.lang.String" value="globalOptionsPanel" noResource="true"/>
+              </Properties>
               <Constraints>
                 <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.support.JTabbedPaneSupportLayout" value="org.netbeans.modules.form.compat2.layouts.support.JTabbedPaneSupportLayout$JTabbedPaneConstraintsDescription">
-                  <JTabbedPaneConstraints tabName="Global">
-                    <Property name="tabTitle" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-                      <ResourceString bundle="org/netbeans/modules/mongodb/indexes/Bundle.properties" key="CreateIndexPanel.globalOptionsPanel.TabConstraints.tabTitle" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
+                  <JTabbedPaneConstraints tabName="&lt;User Code&gt;">
+                    <Property name="tabTitle" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+                      <Connection code="getOptionsPanelTabTitle(globalOptionsPanel)" type="code"/>
                     </Property>
                   </JTabbedPaneConstraints>
                 </Constraint>
               </Constraints>
             </Component>
             <Component class="org.netbeans.modules.mongodb.indexes.TextOptionsPanel" name="textOptionsPanel">
+              <Properties>
+                <Property name="name" type="java.lang.String" value="textOptionsPanel" noResource="true"/>
+              </Properties>
               <Constraints>
                 <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.support.JTabbedPaneSupportLayout" value="org.netbeans.modules.form.compat2.layouts.support.JTabbedPaneSupportLayout$JTabbedPaneConstraintsDescription">
-                  <JTabbedPaneConstraints tabName="Text">
-                    <Property name="tabTitle" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-                      <ResourceString bundle="org/netbeans/modules/mongodb/indexes/Bundle.properties" key="CreateIndexPanel.textOptionsPanel.TabConstraints.tabTitle" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
+                  <JTabbedPaneConstraints tabName="&lt;User Code&gt;">
+                    <Property name="tabTitle" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+                      <Connection code="getOptionsPanelTabTitle(textOptionsPanel)" type="code"/>
                     </Property>
                   </JTabbedPaneConstraints>
                 </Constraint>
               </Constraints>
             </Component>
             <Component class="org.netbeans.modules.mongodb.indexes.Geo2DSphereOptionsPanel" name="geo2DSphereOptionsPanel">
+              <Properties>
+                <Property name="name" type="java.lang.String" value="geo2DSphereOptionsPanel" noResource="true"/>
+              </Properties>
               <Constraints>
                 <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.support.JTabbedPaneSupportLayout" value="org.netbeans.modules.form.compat2.layouts.support.JTabbedPaneSupportLayout$JTabbedPaneConstraintsDescription">
-                  <JTabbedPaneConstraints tabName="2D Sphere">
-                    <Property name="tabTitle" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-                      <ResourceString bundle="org/netbeans/modules/mongodb/indexes/Bundle.properties" key="CreateIndexPanel.geo2DSphereOptionsPanel.TabConstraints.tabTitle" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
+                  <JTabbedPaneConstraints tabName="&lt;User Code&gt;">
+                    <Property name="tabTitle" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+                      <Connection code="getOptionsPanelTabTitle(geo2DSphereOptionsPanel)" type="code"/>
                     </Property>
                   </JTabbedPaneConstraints>
                 </Constraint>
               </Constraints>
             </Component>
             <Component class="org.netbeans.modules.mongodb.indexes.Geo2DOptionsPanel" name="geo2DOptionsPanel">
+              <Properties>
+                <Property name="name" type="java.lang.String" value="geo2DOptionsPanel" noResource="true"/>
+              </Properties>
               <Constraints>
                 <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.support.JTabbedPaneSupportLayout" value="org.netbeans.modules.form.compat2.layouts.support.JTabbedPaneSupportLayout$JTabbedPaneConstraintsDescription">
-                  <JTabbedPaneConstraints tabName="2D">
-                    <Property name="tabTitle" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-                      <ResourceString bundle="org/netbeans/modules/mongodb/indexes/Bundle.properties" key="CreateIndexPanel.geo2DOptionsPanel.TabConstraints.tabTitle" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
+                  <JTabbedPaneConstraints tabName="&lt;User Code&gt;">
+                    <Property name="tabTitle" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+                      <Connection code="getOptionsPanelTabTitle(geo2DOptionsPanel)" type="code"/>
                     </Property>
                   </JTabbedPaneConstraints>
                 </Constraint>
               </Constraints>
             </Component>
             <Component class="org.netbeans.modules.mongodb.indexes.GeoHaystackOptionsPanel" name="geoHaystackOptionsPanel">
+              <Properties>
+                <Property name="name" type="java.lang.String" value="geoHaystackOptionsPanel" noResource="true"/>
+              </Properties>
               <Constraints>
                 <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.support.JTabbedPaneSupportLayout" value="org.netbeans.modules.form.compat2.layouts.support.JTabbedPaneSupportLayout$JTabbedPaneConstraintsDescription">
-                  <JTabbedPaneConstraints tabName="Haystack">
-                    <Property name="tabTitle" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-                      <ResourceString bundle="org/netbeans/modules/mongodb/indexes/Bundle.properties" key="CreateIndexPanel.geoHaystackOptionsPanel.TabConstraints.tabTitle" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
+                  <JTabbedPaneConstraints tabName="&lt;User Code&gt;">
+                    <Property name="tabTitle" type="java.lang.String" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+                      <Connection code="getOptionsPanelTabTitle(geoHaystackOptionsPanel)" type="code"/>
                     </Property>
                   </JTabbedPaneConstraints>
                 </Constraint>

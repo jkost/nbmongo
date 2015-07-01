@@ -22,7 +22,6 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-import org.netbeans.modules.mongodb.indexes.Index.KeySort;
 import org.netbeans.modules.mongodb.ui.util.ValidablePanel;
 import org.openide.DialogDescriptor;
 import org.openide.DialogDisplayer;
@@ -48,7 +47,7 @@ public class IndexKeyPanel extends ValidablePanel {
     IndexKeyPanel(List<String> forbiddenKeys) {
         initComponents();
         this.forbiddenKeys = forbiddenKeys;
-        sortComboBox.setSelectedItem(KeySort.ASCENDING);
+        typeComboBox.setSelectedItem(Index.Type.ASCENDING);
         keyField.getDocument().addDocumentListener(new DocumentListener() {
 
             @Override
@@ -80,7 +79,7 @@ public class IndexKeyPanel extends ValidablePanel {
     }
 
     Index.Key getKey() {
-        return new Index.Key(keyField.getText(), (KeySort) sortComboBox.getSelectedItem());
+        return new Index.Key(keyField.getText(), (Index.Type) typeComboBox.getSelectedItem());
     }
     
     /**
@@ -93,8 +92,8 @@ public class IndexKeyPanel extends ValidablePanel {
     private void initComponents() {
 
         keyField = new javax.swing.JTextField();
-        sortComboBox = new javax.swing.JComboBox<>(KeySort.values())
-        ;
+        typeComboBox = new javax.swing.JComboBox<>(Index.Type.values())
+ ;
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
@@ -104,7 +103,7 @@ public class IndexKeyPanel extends ValidablePanel {
                 .addContainerGap()
                 .addComponent(keyField, javax.swing.GroupLayout.DEFAULT_SIZE, 179, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(sortComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(typeComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -113,7 +112,7 @@ public class IndexKeyPanel extends ValidablePanel {
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(keyField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(sortComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(typeComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
@@ -121,7 +120,7 @@ public class IndexKeyPanel extends ValidablePanel {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JTextField keyField;
-    private javax.swing.JComboBox<KeySort> sortComboBox;
+    private javax.swing.JComboBox<Index.Type> typeComboBox;
     // End of variables declaration//GEN-END:variables
 
     public static Index.Key showCreateDialog(List<String> usedKeys) {
