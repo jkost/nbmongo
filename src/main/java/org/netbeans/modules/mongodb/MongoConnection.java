@@ -64,7 +64,6 @@ public class MongoConnection {
                         final ConnectionInfo connection = getLookup().lookup(ConnectionInfo.class);
                         try {
                             client = new MongoClient(connection.getMongoURI());
-                            client.getDatabaseNames();  // ensure connection works
                             fireConnectionStateChanged(ConnectionState.CONNECTED);
                         } catch (MongoException ex) {
                             DialogDisplayer.getDefault().notify(
@@ -124,7 +123,6 @@ public class MongoConnection {
 
         @Override
         public void close() {
-//            RequestProcessor.getDefault().post(this);
             run();
         }
 
