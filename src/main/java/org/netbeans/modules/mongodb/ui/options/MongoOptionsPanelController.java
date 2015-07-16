@@ -31,9 +31,9 @@ import org.openide.util.NbBundle.Messages;
 @OptionsPanelController.SubRegistration(
         displayName = "#AdvancedOption_DisplayName_Mongo",
         keywords = "#AdvancedOption_Keywords_Mongo",
-        keywordsCategory = "Advanced/Mongo"
+        keywordsCategory = "Advanced/MongoDB"
 )
-@Messages({"AdvancedOption_DisplayName_Mongo=Mongo", "AdvancedOption_Keywords_Mongo=mongo"})
+@Messages({"AdvancedOption_DisplayName_Mongo=MongoDB", "AdvancedOption_Keywords_Mongo=mongo,mongodb"})
 public final class MongoOptionsPanelController extends OptionsPanelController {
 
     private MongoOptionsPanel panel;

@@ -50,8 +50,8 @@ import org.openide.util.NbPreferences;
  * @author Tim Boudreau
  * @author Yann D'Isanto
  */
-@ServicesTabNodeRegistration(displayName = "Mongo DB", iconResource = Images.MONGO_ICON_PATH, position = 3, name = "mongodb")
-@Messages("MongoNodeName=Mongo DB")
+@ServicesTabNodeRegistration(displayName = "#MongoNodeName", iconResource = Images.MONGO_ICON_PATH, position = 3, name = "mongodb")
+@Messages("MongoNodeName=MongoDB")
 public final class MongoServicesNode extends AbstractNode {
 
     private final ConnectionNodesFactory factory;
