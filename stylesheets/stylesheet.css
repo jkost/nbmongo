@@ -680,6 +680,12 @@ a.download-button span {
   color: #fff;
 }
 
+a.travis-link img {
+  display: inline-block;
+  float: right;
+  padding: 5px 10px;
+}
+
 footer {
   margin-bottom: 60px;
   padding-bottom: 60px;
