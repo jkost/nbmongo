@@ -2,8 +2,3 @@
 language: java
 
 sudo: false
-
-# whitelist
-branches:
-  only:
-    - master
