@@ -40,6 +40,7 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 import org.netbeans.modules.mongodb.CollectionInfo;
 import org.netbeans.modules.mongodb.CollectionStats;
+import org.netbeans.modules.mongodb.api.MongoErrorCode;
 import org.netbeans.modules.mongodb.indexes.CreateIndexPanel;
 import org.netbeans.modules.mongodb.indexes.Index;
 import org.netbeans.modules.mongodb.native_tools.MongoNativeToolsAction;
@@ -52,12 +53,14 @@ import org.netbeans.modules.mongodb.ui.wizards.ExportWizardAction;
 import org.netbeans.modules.mongodb.ui.wizards.ImportWizardAction;
 import org.netbeans.modules.mongodb.util.SystemCollectionPredicate;
 import org.openide.DialogDisplayer;
+import org.openide.ErrorManager;
 import org.openide.NotifyDescriptor;
 import org.openide.actions.OpenAction;
 import org.openide.cookies.OpenCookie;
 import org.openide.nodes.AbstractNode;
 import org.openide.nodes.Children;
 import org.openide.nodes.Sheet;
+import org.openide.util.Exceptions;
 import org.openide.util.Lookup;
 import org.openide.util.NbBundle.Messages;
 import org.openide.util.actions.SystemAction;
@@ -120,8 +123,8 @@ final class CollectionNode extends AbstractNode {
             }
         });
         setIconBaseWithExtension(SystemCollectionPredicate.get().eval(collection.getName())
-                ? Images.SYSTEM_COLLECTION_ICON_PATH
-                : Images.COLLECTION_ICON_PATH);
+            ? Images.SYSTEM_COLLECTION_ICON_PATH
+            : Images.COLLECTION_ICON_PATH);
     }
 
     @Override
@@ -131,11 +134,12 @@ final class CollectionNode extends AbstractNode {
 
     @Override
     protected Sheet createSheet() {
-        Sheet sheet = Sheet.createDefault();
-        Sheet.Set set = Sheet.createPropertiesSet();
+        Sheet sheet = new Sheet();
         DBCollection col = getLookup().lookup(DBCollection.class);
-        final CollectionStats stats = new CollectionStats(col.isCapped(), col.getStats());
-        set.put(new LocalizedProperties(CollectionNode.class)
+        try {
+            final CollectionStats stats = new CollectionStats(col.isCapped(), col.getStats());
+            Sheet.Set set = Sheet.createPropertiesSet();
+            set.put(new LocalizedProperties(CollectionNode.class)
                 .stringProperty("serverUsed", stats.getServerUsed())
                 .stringProperty("serverUsed", stats.getServerUsed())
                 .stringProperty("ns", stats.getNs())
@@ -152,7 +156,14 @@ final class CollectionNode extends AbstractNode {
                 .stringProperty("totalIndexSize", stats.getTotalIndexSize())
                 .stringProperty("ok", stats.getOk())
                 .toArray());
-        sheet.put(set);
+            sheet.put(set);
+        } catch (MongoException ex) {
+            if (MongoErrorCode.of(ex) != MongoErrorCode.Unauthorized) {
+                ErrorManager.getDefault().notify(ex);
+            }
+        } catch (Exception ex) {
+            Exceptions.printStackTrace(ex);
+        }
         return sheet;
     }
 
@@ -237,8 +248,8 @@ final class CollectionNode extends AbstractNode {
         public void actionPerformed(ActionEvent e) {
             final CollectionInfo ci = getLookup().lookup(CollectionInfo.class);
             final Object dlgResult = DialogDisplayer.getDefault().notify(new NotifyDescriptor.Confirmation(
-                    Bundle.dropCollectionConfirmText(ci.getName()),
-                    NotifyDescriptor.YES_NO_OPTION));
+                Bundle.dropCollectionConfirmText(ci.getName()),
+                NotifyDescriptor.YES_NO_OPTION));
             if (dlgResult.equals(NotifyDescriptor.OK_OPTION)) {
                 try {
                     getLookup().lookup(DBCollection.class).drop();
@@ -248,7 +259,7 @@ final class CollectionNode extends AbstractNode {
                     }
                 } catch (MongoException ex) {
                     DialogDisplayer.getDefault().notify(
-                            new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE));
+                        new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE));
                 }
             }
         }
@@ -263,9 +274,9 @@ final class CollectionNode extends AbstractNode {
         @Override
         public void actionPerformed(ActionEvent e) {
             final NotifyDescriptor.InputLine input = new ValidatingInputLine(
-                    Bundle.renameCollectionText(collection.getName()),
-                    Bundle.ACTION_RenameCollection(),
-                    new CollectionNameValidator(getLookup()));
+                Bundle.renameCollectionText(collection.getName()),
+                Bundle.ACTION_RenameCollection(),
+                new CollectionNameValidator(getLookup()));
             input.setInputText(collection.getName());
             final Object dlgResult = DialogDisplayer.getDefault().notify(input);
             if (dlgResult.equals(NotifyDescriptor.OK_OPTION)) {
@@ -292,7 +303,7 @@ final class CollectionNode extends AbstractNode {
                     }
                 } catch (MongoException ex) {
                     DialogDisplayer.getDefault().notify(
-                            new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE));
+                        new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE));
                 }
             }
         }
@@ -308,8 +319,8 @@ final class CollectionNode extends AbstractNode {
         public void actionPerformed(ActionEvent e) {
             final CollectionInfo ci = getLookup().lookup(CollectionInfo.class);
             final Object dlgResult = DialogDisplayer.getDefault().notify(new NotifyDescriptor.Confirmation(
-                    Bundle.clearCollectionConfirmText(ci.getName()),
-                    NotifyDescriptor.YES_NO_OPTION));
+                Bundle.clearCollectionConfirmText(ci.getName()),
+                NotifyDescriptor.YES_NO_OPTION));
             if (dlgResult.equals(NotifyDescriptor.OK_OPTION)) {
                 try {
                     getLookup().lookup(DBCollection.class).remove(new BasicDBObject());
@@ -319,7 +330,7 @@ final class CollectionNode extends AbstractNode {
                     }
                 } catch (MongoException ex) {
                     DialogDisplayer.getDefault().notify(
-                            new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE));
+                        new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE));
                 }
             }
         }
