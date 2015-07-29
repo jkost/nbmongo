@@ -6,7 +6,7 @@ a node to the Services tab. Right click it to add connections.
 
 Current release: [8.1.2](https://github.com/le-yams/netbeans-mongodb/releases/tag/nbmongo-8.1.2)
 
-Next version (master) status: ![](https://travis-ci.org/le-yams/nbmongo.svg?branch=master)
+Next version (master) status: ![](https://le-yams.ci.cloudbees.com/buildStatus/icon?job=NBMongo%20master%20build)
 
 Main features
 -------------
@@ -44,3 +44,8 @@ Licenses
 -------
  * GPLv2
  * MIT
+
+
+Other
+-----
+![](https://www.cloudbees.com/sites/default/files/styles/large/public/Button-Powered-by-CB.png)
