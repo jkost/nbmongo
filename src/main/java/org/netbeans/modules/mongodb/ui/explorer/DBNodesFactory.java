@@ -25,6 +25,7 @@ package org.netbeans.modules.mongodb.ui.explorer;
 
 import com.mongodb.MongoClient;
 import com.mongodb.MongoSocketException;
+import com.mongodb.MongoTimeoutException;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import org.netbeans.modules.mongodb.ConnectionInfo;
@@ -58,7 +59,7 @@ final class DBNodesFactory extends RefreshableChildFactory<DbInfo> {
                     }
                 }
             }
-        } catch (MongoSocketException ex) {
+        } catch (MongoSocketException | MongoTimeoutException ex) {
             connection.disconnect();
         }
         return true;
