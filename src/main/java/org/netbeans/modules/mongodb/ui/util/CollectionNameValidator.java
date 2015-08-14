@@ -17,7 +17,12 @@
  */
 package org.netbeans.modules.mongodb.ui.util;
 
+import com.mongodb.MongoException;
 import com.mongodb.client.MongoDatabase;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+import org.netbeans.modules.mongodb.api.MongoErrorCode;
 import org.openide.util.Lookup;
 
 /**
@@ -33,9 +38,18 @@ public final class CollectionNameValidator implements ValidatingInputLine.InputV
     private static final String SYSTEM_PREFIX = "system.";
 
     private final Lookup lookup;
+    
+    private final Set<String> existingCollections = new HashSet<>();
 
     public CollectionNameValidator(Lookup lookup) {
         this.lookup = lookup;
+        try {
+            lookup.lookup(MongoDatabase.class).listCollectionNames().into(existingCollections);
+        } catch (MongoException ex) {
+            if (MongoErrorCode.of(ex) != MongoErrorCode.Unauthorized) {
+                throw ex;
+            }
+        }
     }
 
     @Override
@@ -59,7 +73,7 @@ public final class CollectionNameValidator implements ValidatingInputLine.InputV
 //            throw new IllegalArgumentException(
 //                Bundle.VALIDATION_exists("collection", value));
 //        }
-        if (lookup.lookup(MongoDatabase.class).getCollection(value) != null) {
+        if (existingCollections.contains(value)) {
             throw new IllegalArgumentException(
                 Bundle.VALIDATION_exists("collection", value));
         }
