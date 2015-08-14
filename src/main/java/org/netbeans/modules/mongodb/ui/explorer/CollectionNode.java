@@ -24,6 +24,7 @@
 package org.netbeans.modules.mongodb.ui.explorer;
 
 import com.mongodb.BasicDBObject;
+import com.mongodb.CommandResult;
 import org.netbeans.modules.mongodb.resources.Images;
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
@@ -53,14 +54,13 @@ import org.netbeans.modules.mongodb.ui.wizards.ExportWizardAction;
 import org.netbeans.modules.mongodb.ui.wizards.ImportWizardAction;
 import org.netbeans.modules.mongodb.util.SystemCollectionPredicate;
 import org.openide.DialogDisplayer;
-import org.openide.ErrorManager;
 import org.openide.NotifyDescriptor;
+import org.openide.NotifyDescriptor.Message;
 import org.openide.actions.OpenAction;
 import org.openide.cookies.OpenCookie;
 import org.openide.nodes.AbstractNode;
 import org.openide.nodes.Children;
 import org.openide.nodes.Sheet;
-import org.openide.util.Exceptions;
 import org.openide.util.Lookup;
 import org.openide.util.NbBundle.Messages;
 import org.openide.util.actions.SystemAction;
@@ -136,7 +136,8 @@ final class CollectionNode extends AbstractNode {
     protected Sheet createSheet() {
         Sheet sheet = new Sheet();
         DBCollection col = getLookup().lookup(DBCollection.class);
-        try {
+        CommandResult collStats = col.getStats();
+        if (collStats.ok()) {
             final CollectionStats stats = new CollectionStats(col.isCapped(), col.getStats());
             Sheet.Set set = Sheet.createPropertiesSet();
             set.put(new LocalizedProperties(CollectionNode.class)
@@ -157,12 +158,11 @@ final class CollectionNode extends AbstractNode {
                 .stringProperty("ok", stats.getOk())
                 .toArray());
             sheet.put(set);
-        } catch (MongoException ex) {
+        } else {
+            MongoException ex = collStats.getException();
             if (MongoErrorCode.of(ex) != MongoErrorCode.Unauthorized) {
-                ErrorManager.getDefault().notify(ex);
+                DialogDisplayer.getDefault().notify(new Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE));
             }
-        } catch (Exception ex) {
-            Exceptions.printStackTrace(ex);
         }
         return sheet;
     }

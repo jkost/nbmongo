@@ -25,6 +25,7 @@ package org.netbeans.modules.mongodb.ui.explorer;
 
 import org.netbeans.modules.mongodb.resources.Images;
 import com.mongodb.BasicDBObject;
+import com.mongodb.CommandResult;
 import com.mongodb.DB;
 import com.mongodb.DBObject;
 import com.mongodb.MongoException;
@@ -48,10 +49,10 @@ import org.netbeans.modules.mongodb.ui.wizards.ExportWizardAction;
 import org.netbeans.modules.mongodb.ui.wizards.ImportWizardAction;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
+import org.openide.NotifyDescriptor.Message;
 import org.openide.nodes.AbstractNode;
 import org.openide.nodes.Children;
 import org.openide.nodes.Sheet;
-import org.openide.util.Exceptions;
 import org.openide.util.NbBundle.Messages;
 import org.openide.util.lookup.AbstractLookup;
 import org.openide.util.lookup.InstanceContent;
@@ -107,11 +108,14 @@ final class DBNode extends AbstractNode {
     protected Sheet createSheet() {
         Sheet sheet = new Sheet();
         DB db = getLookup().lookup(DB.class);
-        if (db != null) {
-            try {
-                DatabaseStats stats = new DatabaseStats(db.getStats());
-                Sheet.Set set = Sheet.createPropertiesSet();
-                set.put(new LocalizedProperties(DBNode.class)
+        if (db == null) {
+            return sheet;
+        }
+        CommandResult dbStats = db.command("dbstats");
+        if (dbStats.ok()) {
+            DatabaseStats stats = new DatabaseStats(dbStats);
+            Sheet.Set set = Sheet.createPropertiesSet();
+            set.put(new LocalizedProperties(DBNode.class)
                     .stringProperty("serverUsed", stats.getServerUsed())
                     .stringProperty("db", stats.getDb())
                     .stringProperty("collections", stats.getCollections())
@@ -127,13 +131,11 @@ final class DBNode extends AbstractNode {
                     .stringProperty("dataFileVersion", stats.getDataFileVersion())
                     .stringProperty("ok", stats.getOk())
                     .toArray());
-                sheet.put(set);
-            } catch (MongoException ex) {
-                if (MongoErrorCode.of(ex) != MongoErrorCode.Unauthorized) {
-                    Exceptions.printStackTrace(ex);
-                }
-            } catch(Exception ex) {
-                Exceptions.printStackTrace(ex);
+            sheet.put(set);
+        } else {
+            MongoException ex = dbStats.getException();
+            if (MongoErrorCode.of(ex) != MongoErrorCode.Unauthorized) {
+                DialogDisplayer.getDefault().notify(new Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE));
             }
         }
         return sheet;
@@ -202,9 +204,9 @@ final class DBNode extends AbstractNode {
         @Override
         public void actionPerformed(ActionEvent e) {
             final NotifyDescriptor.InputLine input = new ValidatingInputLine(
-                Bundle.addCollectionText(),
-                Bundle.ACTION_AddCollection(),
-                new CollectionNameValidator(getLookup()));
+                    Bundle.addCollectionText(),
+                    Bundle.ACTION_AddCollection(),
+                    new CollectionNameValidator(getLookup()));
             final Object dlgResult = DialogDisplayer.getDefault().notify(input);
             if (dlgResult.equals(NotifyDescriptor.OK_OPTION)) {
                 final String collectionName = input.getInputText().trim();
@@ -215,7 +217,7 @@ final class DBNode extends AbstractNode {
                     childFactory.refresh();
                 } catch (MongoException ex) {
                     DialogDisplayer.getDefault().notify(
-                        new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE));
+                            new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE));
                 }
 
             }
@@ -233,8 +235,8 @@ final class DBNode extends AbstractNode {
             final DB db = getLookup().lookup(DB.class);
 
             final Object dlgResult = DialogDisplayer.getDefault().notify(new NotifyDescriptor.Confirmation(
-                Bundle.dropDatabaseConfirmText(db.getName()),
-                NotifyDescriptor.YES_NO_OPTION));
+                    Bundle.dropDatabaseConfirmText(db.getName()),
+                    NotifyDescriptor.YES_NO_OPTION));
             if (dlgResult.equals(NotifyDescriptor.OK_OPTION)) {
                 try {
                     db.dropDatabase();
@@ -245,7 +247,7 @@ final class DBNode extends AbstractNode {
                     }
                 } catch (MongoException ex) {
                     DialogDisplayer.getDefault().notify(
-                        new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE));
+                            new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE));
                 }
             }
         }
