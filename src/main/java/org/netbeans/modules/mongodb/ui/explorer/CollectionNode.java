@@ -30,7 +30,6 @@ import com.mongodb.MongoException;
 import com.mongodb.MongoNamespace;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
-import com.mongodb.client.model.IndexOptions;
 import org.netbeans.modules.mongodb.ui.windows.MapReduceTopComponent;
 import org.netbeans.modules.mongodb.ui.util.TopComponentUtils;
 import java.awt.event.ActionEvent;
@@ -45,6 +44,7 @@ import org.bson.BsonDocument;
 import org.bson.BsonString;
 import org.bson.Document;
 import org.netbeans.modules.mongodb.CollectionInfo;
+import org.netbeans.modules.mongodb.api.MongoErrorCode;
 import org.netbeans.modules.mongodb.indexes.CreateIndexPanel;
 import org.netbeans.modules.mongodb.indexes.Index;
 import org.netbeans.modules.mongodb.native_tools.MongoNativeToolsAction;
@@ -58,6 +58,7 @@ import org.netbeans.modules.mongodb.ui.wizards.ImportWizardAction;
 import org.netbeans.modules.mongodb.util.SystemCollectionPredicate;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
+import org.openide.NotifyDescriptor.Message;
 import org.openide.actions.OpenAction;
 import org.openide.cookies.OpenCookie;
 import org.openide.nodes.AbstractNode;
@@ -128,8 +129,8 @@ final class CollectionNode extends AbstractNode {
             }
         });
         setIconBaseWithExtension(SystemCollectionPredicate.get().eval(collection.getName())
-            ? Images.SYSTEM_COLLECTION_ICON_PATH
-            : Images.COLLECTION_ICON_PATH);
+                ? Images.SYSTEM_COLLECTION_ICON_PATH
+                : Images.COLLECTION_ICON_PATH);
     }
 
     @Override
@@ -145,9 +146,15 @@ final class CollectionNode extends AbstractNode {
         MongoCollection<Document> col = getLookup().lookup(MongoCollection.class);
         MongoDatabase db = getLookup().lookup(MongoDatabase.class);
         BsonDocument commandDocument = new BsonDocument("collStats", new BsonString(collection.getName()));
-        Document result = db.runCommand(commandDocument);
-        set.put(new LocalizedProperties(CollectionNode.class).fromDocument(result).toArray());
-        sheet.put(set);
+        try {
+            Document result = db.runCommand(commandDocument);
+            set.put(new LocalizedProperties(CollectionNode.class).fromDocument(result).toArray());
+            sheet.put(set);
+        } catch (MongoException ex) {
+            if (MongoErrorCode.of(ex) != MongoErrorCode.Unauthorized) {
+                DialogDisplayer.getDefault().notify(new Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE));
+            }
+        }
         return sheet;
     }
 
@@ -249,8 +256,8 @@ final class CollectionNode extends AbstractNode {
         public void actionPerformed(ActionEvent e) {
             final CollectionInfo ci = getLookup().lookup(CollectionInfo.class);
             final Object dlgResult = DialogDisplayer.getDefault().notify(new NotifyDescriptor.Confirmation(
-                Bundle.dropCollectionConfirmText(ci.getName()),
-                NotifyDescriptor.YES_NO_OPTION));
+                    Bundle.dropCollectionConfirmText(ci.getName()),
+                    NotifyDescriptor.YES_NO_OPTION));
             if (dlgResult.equals(NotifyDescriptor.OK_OPTION)) {
                 try {
                     getLookup().lookup(MongoCollection.class).drop();
@@ -260,7 +267,7 @@ final class CollectionNode extends AbstractNode {
                     }
                 } catch (MongoException ex) {
                     DialogDisplayer.getDefault().notify(
-                        new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE));
+                            new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE));
                 }
             }
         }
@@ -276,9 +283,9 @@ final class CollectionNode extends AbstractNode {
         @SuppressWarnings("unchecked")
         public void actionPerformed(ActionEvent e) {
             final NotifyDescriptor.InputLine input = new ValidatingInputLine(
-                Bundle.renameCollectionText(collection.getName()),
-                Bundle.ACTION_RenameCollection(),
-                new CollectionNameValidator(getLookup()));
+                    Bundle.renameCollectionText(collection.getName()),
+                    Bundle.ACTION_RenameCollection(),
+                    new CollectionNameValidator(getLookup()));
             input.setInputText(collection.getName());
             final Object dlgResult = DialogDisplayer.getDefault().notify(input);
             if (dlgResult.equals(NotifyDescriptor.OK_OPTION)) {
@@ -306,7 +313,7 @@ final class CollectionNode extends AbstractNode {
                     }
                 } catch (MongoException ex) {
                     DialogDisplayer.getDefault().notify(
-                        new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE));
+                            new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE));
                 }
             }
         }
@@ -322,8 +329,8 @@ final class CollectionNode extends AbstractNode {
         public void actionPerformed(ActionEvent e) {
             final CollectionInfo ci = getLookup().lookup(CollectionInfo.class);
             final Object dlgResult = DialogDisplayer.getDefault().notify(new NotifyDescriptor.Confirmation(
-                Bundle.clearCollectionConfirmText(ci.getName()),
-                NotifyDescriptor.YES_NO_OPTION));
+                    Bundle.clearCollectionConfirmText(ci.getName()),
+                    NotifyDescriptor.YES_NO_OPTION));
             if (dlgResult.equals(NotifyDescriptor.OK_OPTION)) {
                 try {
                     getLookup().lookup(MongoCollection.class).deleteMany(new BasicDBObject());
@@ -333,7 +340,7 @@ final class CollectionNode extends AbstractNode {
                     }
                 } catch (MongoException ex) {
                     DialogDisplayer.getDefault().notify(
-                        new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE));
+                            new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE));
                 }
             }
         }
@@ -365,7 +372,7 @@ final class CollectionNode extends AbstractNode {
                     } catch (MongoException ex) {
                         retryOnFailure = true;
                         DialogDisplayer.getDefault().notify(
-                            new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE));
+                                new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE));
                     }
                 }
             } while (retryOnFailure);

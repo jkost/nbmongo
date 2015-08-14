@@ -40,6 +40,7 @@ import org.bson.BsonInt32;
 import org.bson.Document;
 import org.netbeans.modules.mongodb.DbInfo;
 import org.netbeans.modules.mongodb.MongoConnection;
+import org.netbeans.modules.mongodb.api.MongoErrorCode;
 import org.netbeans.modules.mongodb.native_tools.MongoNativeToolsAction;
 import org.netbeans.modules.mongodb.ui.util.CollectionNameValidator;
 import org.netbeans.modules.mongodb.ui.util.TopComponentUtils;
@@ -49,6 +50,7 @@ import org.netbeans.modules.mongodb.ui.wizards.ExportWizardAction;
 import org.netbeans.modules.mongodb.ui.wizards.ImportWizardAction;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
+import org.openide.NotifyDescriptor.Message;
 import org.openide.nodes.AbstractNode;
 import org.openide.nodes.Children;
 import org.openide.nodes.Sheet;
@@ -109,9 +111,15 @@ final class DBNode extends AbstractNode {
         Sheet.Set set = Sheet.createPropertiesSet();
         MongoDatabase db = getLookup().lookup(MongoDatabase.class);
         BsonDocument commandDocument = new BsonDocument("dbStats", new BsonInt32(1)).append("scale", new BsonInt32(1));
-        Document result = db.runCommand(commandDocument);
-        set.put(new LocalizedProperties(DBNode.class).fromDocument(result).toArray());
-        sheet.put(set);
+        try {
+            Document result = db.runCommand(commandDocument);
+            set.put(new LocalizedProperties(DBNode.class).fromDocument(result).toArray());
+            sheet.put(set);
+        } catch (MongoException ex) {
+            if (MongoErrorCode.of(ex) != MongoErrorCode.Unauthorized) {
+                DialogDisplayer.getDefault().notify(new Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE));
+            }
+        }
         return sheet;
     }
 
