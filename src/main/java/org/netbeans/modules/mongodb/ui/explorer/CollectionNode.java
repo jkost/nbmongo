@@ -50,15 +50,12 @@ import org.netbeans.modules.mongodb.indexes.Index;
 import org.netbeans.modules.mongodb.native_tools.MongoNativeToolsAction;
 import org.netbeans.modules.mongodb.ui.actions.OpenMapReduceWindowAction;
 import org.netbeans.modules.mongodb.ui.util.CollectionNameValidator;
-import org.netbeans.modules.mongodb.ui.util.ValidatingInputLine;
+import org.netbeans.modules.mongodb.ui.util.DialogNotification;
 import org.netbeans.modules.mongodb.ui.windows.CollectionView;
 import org.netbeans.modules.mongodb.ui.windows.QueryResultPanelContainer;
 import org.netbeans.modules.mongodb.ui.wizards.ExportWizardAction;
 import org.netbeans.modules.mongodb.ui.wizards.ImportWizardAction;
 import org.netbeans.modules.mongodb.util.SystemCollectionPredicate;
-import org.openide.DialogDisplayer;
-import org.openide.NotifyDescriptor;
-import org.openide.NotifyDescriptor.Message;
 import org.openide.actions.OpenAction;
 import org.openide.cookies.OpenCookie;
 import org.openide.nodes.AbstractNode;
@@ -152,7 +149,7 @@ final class CollectionNode extends AbstractNode {
             sheet.put(set);
         } catch (MongoException ex) {
             if (MongoErrorCode.of(ex) != MongoErrorCode.Unauthorized) {
-                DialogDisplayer.getDefault().notify(new Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE));
+                DialogNotification.error(ex);
             }
         }
         return sheet;
@@ -255,10 +252,7 @@ final class CollectionNode extends AbstractNode {
         @Override
         public void actionPerformed(ActionEvent e) {
             final CollectionInfo ci = getLookup().lookup(CollectionInfo.class);
-            final Object dlgResult = DialogDisplayer.getDefault().notify(new NotifyDescriptor.Confirmation(
-                    Bundle.dropCollectionConfirmText(ci.getName()),
-                    NotifyDescriptor.YES_NO_OPTION));
-            if (dlgResult.equals(NotifyDescriptor.OK_OPTION)) {
+            if (DialogNotification.confirm(Bundle.dropCollectionConfirmText(ci.getName()))) {
                 try {
                     getLookup().lookup(MongoCollection.class).drop();
                     ((DBNode) getParentNode()).refreshChildren();
@@ -266,8 +260,7 @@ final class CollectionNode extends AbstractNode {
                         topComponent.close();
                     }
                 } catch (MongoException ex) {
-                    DialogDisplayer.getDefault().notify(
-                            new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE));
+                    DialogNotification.error(ex);
                 }
             }
         }
@@ -282,15 +275,13 @@ final class CollectionNode extends AbstractNode {
         @Override
         @SuppressWarnings("unchecked")
         public void actionPerformed(ActionEvent e) {
-            final NotifyDescriptor.InputLine input = new ValidatingInputLine(
-                    Bundle.renameCollectionText(collection.getName()),
-                    Bundle.ACTION_RenameCollection(),
-                    new CollectionNameValidator(getLookup()));
-            input.setInputText(collection.getName());
-            final Object dlgResult = DialogDisplayer.getDefault().notify(input);
-            if (dlgResult.equals(NotifyDescriptor.OK_OPTION)) {
-                try {
-                    final String name = input.getInputText().trim();
+            try {
+                String result = DialogNotification.validatingInput(
+                        Bundle.renameCollectionText(collection.getName()),
+                        Bundle.ACTION_RenameCollection(),
+                        new CollectionNameValidator(getLookup()));
+                if (result != null) {
+                    String name = result.trim();
                     MongoCollection<Document> collection = getLookup().lookup(MongoCollection.class);
                     collection.renameCollection(new MongoNamespace(collection.getNamespace().getDatabaseName(), name));
                     final DBNode parentNode = (DBNode) getParentNode();
@@ -311,10 +302,9 @@ final class CollectionNode extends AbstractNode {
                             mapReduceComponent.updateCollectionLabel();
                         }
                     }
-                } catch (MongoException ex) {
-                    DialogDisplayer.getDefault().notify(
-                            new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE));
                 }
+            } catch (MongoException ex) {
+                DialogNotification.error(ex);
             }
         }
     }
@@ -328,10 +318,7 @@ final class CollectionNode extends AbstractNode {
         @Override
         public void actionPerformed(ActionEvent e) {
             final CollectionInfo ci = getLookup().lookup(CollectionInfo.class);
-            final Object dlgResult = DialogDisplayer.getDefault().notify(new NotifyDescriptor.Confirmation(
-                    Bundle.clearCollectionConfirmText(ci.getName()),
-                    NotifyDescriptor.YES_NO_OPTION));
-            if (dlgResult.equals(NotifyDescriptor.OK_OPTION)) {
+            if (DialogNotification.confirm(Bundle.clearCollectionConfirmText(ci.getName()))) {
                 try {
                     getLookup().lookup(MongoCollection.class).deleteMany(new BasicDBObject());
                     for (TopComponent topComponent : TopComponentUtils.findAll(ci, CollectionView.class, MapReduceTopComponent.class)) {
@@ -339,8 +326,7 @@ final class CollectionNode extends AbstractNode {
 
                     }
                 } catch (MongoException ex) {
-                    DialogDisplayer.getDefault().notify(
-                            new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE));
+                    DialogNotification.error(ex);
                 }
             }
         }
@@ -371,8 +357,7 @@ final class CollectionNode extends AbstractNode {
                         refreshChildren();
                     } catch (MongoException ex) {
                         retryOnFailure = true;
-                        DialogDisplayer.getDefault().notify(
-                                new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE));
+                        DialogNotification.error(ex);
                     }
                 }
             } while (retryOnFailure);

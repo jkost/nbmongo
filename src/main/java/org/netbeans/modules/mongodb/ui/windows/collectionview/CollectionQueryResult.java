@@ -26,8 +26,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.bson.Document;
 import org.bson.conversions.Bson;
-import org.openide.DialogDisplayer;
-import org.openide.NotifyDescriptor;
+import org.netbeans.modules.mongodb.ui.util.DialogNotification;
 
 /**
  *
@@ -97,8 +96,7 @@ public final class CollectionQueryResult {
                 fireDocumentAdded(document);                
             }
         } catch (MongoException ex) {
-            DialogDisplayer.getDefault().notify(
-                new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE));
+            DialogNotification.error(ex);
 
         }
         fireUpdateFinished();

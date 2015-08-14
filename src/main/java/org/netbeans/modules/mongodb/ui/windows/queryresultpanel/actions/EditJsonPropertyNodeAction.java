@@ -25,13 +25,12 @@ import lombok.Getter;
 import lombok.Setter;
 import org.bson.Document;
 import org.jdesktop.swingx.treetable.TreeTableNode;
+import org.netbeans.modules.mongodb.ui.util.DialogNotification;
 import org.netbeans.modules.mongodb.ui.util.JsonPropertyEditor;
 import org.netbeans.modules.mongodb.ui.windows.QueryResultPanel;
 import org.netbeans.modules.mongodb.ui.windows.collectionview.treetable.DocumentNode;
 import org.netbeans.modules.mongodb.ui.windows.collectionview.treetable.JsonPropertyNode;
 import org.netbeans.modules.mongodb.util.JsonProperty;
-import org.openide.DialogDisplayer;
-import org.openide.NotifyDescriptor;
 import org.openide.util.NbBundle.Messages;
 
 /**
@@ -82,8 +81,7 @@ public final class EditJsonPropertyNodeAction extends QueryResultPanelAction {
             collection.replaceOne(Filters.eq("_id", document.get("_id")), document);
             
         } catch (MongoException ex) {
-            DialogDisplayer.getDefault().notify(
-                new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE));
+            DialogNotification.error(ex);
         }
     }
 }

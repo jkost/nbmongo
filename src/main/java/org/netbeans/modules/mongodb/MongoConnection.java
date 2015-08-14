@@ -23,8 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 import lombok.Getter;
 import org.netbeans.api.progress.ProgressUtils;
-import org.openide.DialogDisplayer;
-import org.openide.NotifyDescriptor;
+import org.netbeans.modules.mongodb.ui.util.DialogNotification;
 import org.openide.util.Lookup;
 import org.openide.util.NbBundle.Messages;
 
@@ -65,10 +64,8 @@ public class MongoConnection {
                             client = new MongoClient(connection.getMongoURI());
                             fireConnectionStateChanged(ConnectionState.CONNECTED);
                         } catch (MongoException ex) {
-                            DialogDisplayer.getDefault().notify(
-                                new NotifyDescriptor.Message(
-                                    "error connectiong to mongo database: " + ex.getLocalizedMessage(),
-                                    NotifyDescriptor.ERROR_MESSAGE));
+                            DialogNotification.error(
+                                    "error connectiong to mongo database: " + ex.getLocalizedMessage());
                             MongoClient client = MongoConnection.this.client;
                             MongoConnection.this.client = null;
                             if (client != null) {

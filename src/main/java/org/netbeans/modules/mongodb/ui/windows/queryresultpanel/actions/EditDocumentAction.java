@@ -26,10 +26,9 @@ import lombok.Getter;
 import lombok.Setter;
 import org.bson.Document;
 import org.netbeans.modules.mongodb.resources.Images;
+import org.netbeans.modules.mongodb.ui.util.DialogNotification;
 import org.netbeans.modules.mongodb.ui.util.JsonEditor;
 import org.netbeans.modules.mongodb.ui.windows.QueryResultPanel;
-import org.openide.DialogDisplayer;
-import org.openide.NotifyDescriptor;
 import org.openide.util.NbBundle.Messages;
 
 /**
@@ -51,9 +50,9 @@ public class EditDocumentAction extends QueryResultPanelAction {
 
     public EditDocumentAction(QueryResultPanel resultPanel) {
         super(resultPanel,
-            Bundle.ACTION_editDocument(),
-            new ImageIcon(Images.EDIT_DOCUMENT_ICON),
-            Bundle.ACTION_editDocument_tooltip());
+                Bundle.ACTION_editDocument(),
+                new ImageIcon(Images.EDIT_DOCUMENT_ICON),
+                Bundle.ACTION_editDocument_tooltip());
     }
 
     @Override
@@ -63,16 +62,15 @@ public class EditDocumentAction extends QueryResultPanelAction {
             return;
         }
         final Document modifiedDocument = JsonEditor.show(
-            Bundle.editDocumentTitle(),
-            document);
+                Bundle.editDocumentTitle(),
+                document);
         if (modifiedDocument != null) {
             try {
                 MongoCollection<Document> collection = getResultPanel().getLookup().lookup(MongoCollection.class);
                 collection.replaceOne(Filters.eq("_id", document.get("_id")), document);
                 getResultPanel().getResultCache().editObject(document, modifiedDocument);
             } catch (MongoException ex) {
-                DialogDisplayer.getDefault().notify(
-                    new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE));
+                DialogNotification.error(ex);
             }
         }
     }

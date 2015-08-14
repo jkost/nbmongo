@@ -37,12 +37,9 @@ public final class CollectionNameValidator implements ValidatingInputLine.InputV
 
     private static final String SYSTEM_PREFIX = "system.";
 
-    private final Lookup lookup;
-    
     private final Set<String> existingCollections = new HashSet<>();
 
     public CollectionNameValidator(Lookup lookup) {
-        this.lookup = lookup;
         try {
             lookup.lookup(MongoDatabase.class).listCollectionNames().into(existingCollections);
         } catch (MongoException ex) {
@@ -69,10 +66,6 @@ public final class CollectionNameValidator implements ValidatingInputLine.InputV
                     Bundle.VALIDATION_forbidden_character(character));
             }
         }
-//        if (lookup.lookup(DB.class).getCollectionNames().contains(value)) {
-//            throw new IllegalArgumentException(
-//                Bundle.VALIDATION_exists("collection", value));
-//        }
         if (existingCollections.contains(value)) {
             throw new IllegalArgumentException(
                 Bundle.VALIDATION_exists("collection", value));

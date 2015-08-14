@@ -49,10 +49,8 @@ import org.netbeans.modules.mongodb.MongoConnection.ConnectionState;
 import org.netbeans.modules.mongodb.native_tools.MongoNativeToolsAction;
 import org.netbeans.modules.mongodb.properties.MongoClientURIPropertyEditor;
 import org.netbeans.modules.mongodb.ui.util.DatabaseNameValidator;
-import org.netbeans.modules.mongodb.ui.util.ValidatingInputLine;
+import org.netbeans.modules.mongodb.ui.util.DialogNotification;
 import org.netbeans.modules.mongodb.ui.windows.CollectionView;
-import org.openide.DialogDisplayer;
-import org.openide.NotifyDescriptor;
 import org.openide.nodes.AbstractNode;
 import org.openide.nodes.Children;
 import org.openide.nodes.PropertySupport;
@@ -299,21 +297,19 @@ class ConnectionNode extends AbstractNode implements PropertyChangeListener {
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            final NotifyDescriptor.InputLine input = new ValidatingInputLine(
+            
+            String dbName = DialogNotification.validatingInput(
                 Bundle.createDatabaseText(),
                 Bundle.ACTION_CreateDatabase(),
                 new DatabaseNameValidator(getLookup()));
-            final Object dlgResult = DialogDisplayer.getDefault().notify(input);
-            if (dlgResult.equals(NotifyDescriptor.OK_OPTION)) {
-                final String dbName = input.getInputText().trim();
+            if (dbName != null) {
                 MongoConnection connection = getLookup().lookup(MongoConnection.class);
                 try {
-                    final MongoDatabase db = connection.getClient().getDatabase(dbName);
+                    final MongoDatabase db = connection.getClient().getDatabase(dbName.trim());
                     db.createCollection("default", new CreateCollectionOptions().capped(false));
                     refreshChildren();
                 } catch (MongoException ex) {
-                    DialogDisplayer.getDefault().notify(
-                        new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE));
+                    DialogNotification.error(ex);
                 }
             }
         }

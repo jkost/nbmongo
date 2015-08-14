@@ -43,14 +43,11 @@ import org.netbeans.modules.mongodb.MongoConnection;
 import org.netbeans.modules.mongodb.api.MongoErrorCode;
 import org.netbeans.modules.mongodb.native_tools.MongoNativeToolsAction;
 import org.netbeans.modules.mongodb.ui.util.CollectionNameValidator;
+import org.netbeans.modules.mongodb.ui.util.DialogNotification;
 import org.netbeans.modules.mongodb.ui.util.TopComponentUtils;
-import org.netbeans.modules.mongodb.ui.util.ValidatingInputLine;
 import org.netbeans.modules.mongodb.ui.windows.CollectionView;
 import org.netbeans.modules.mongodb.ui.wizards.ExportWizardAction;
 import org.netbeans.modules.mongodb.ui.wizards.ImportWizardAction;
-import org.openide.DialogDisplayer;
-import org.openide.NotifyDescriptor;
-import org.openide.NotifyDescriptor.Message;
 import org.openide.nodes.AbstractNode;
 import org.openide.nodes.Children;
 import org.openide.nodes.Sheet;
@@ -117,7 +114,7 @@ final class DBNode extends AbstractNode {
             sheet.put(set);
         } catch (MongoException ex) {
             if (MongoErrorCode.of(ex) != MongoErrorCode.Unauthorized) {
-                DialogDisplayer.getDefault().notify(new Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE));
+                DialogNotification.error(ex);
             }
         }
         return sheet;
@@ -185,20 +182,17 @@ final class DBNode extends AbstractNode {
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            final NotifyDescriptor.InputLine input = new ValidatingInputLine(
-                Bundle.addCollectionText(),
-                Bundle.ACTION_AddCollection(),
-                new CollectionNameValidator(getLookup()));
-            final Object dlgResult = DialogDisplayer.getDefault().notify(input);
-            if (dlgResult.equals(NotifyDescriptor.OK_OPTION)) {
-                String collectionName = input.getInputText().trim();
+            String collectionName = DialogNotification.validatingInput(
+                    Bundle.addCollectionText(),
+                    Bundle.ACTION_AddCollection(),
+                    new CollectionNameValidator(getLookup()));
+            if (collectionName != null) {
                 MongoDatabase db = getLookup().lookup(MongoDatabase.class);
                 try {
-                    db.createCollection(collectionName, new CreateCollectionOptions().capped(false));
+                    db.createCollection(collectionName.trim(), new CreateCollectionOptions().capped(false));
                     childFactory.refresh();
                 } catch (MongoException ex) {
-                    DialogDisplayer.getDefault().notify(
-                        new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE));
+                    DialogNotification.error(ex);
                 }
 
             }
@@ -215,10 +209,7 @@ final class DBNode extends AbstractNode {
         public void actionPerformed(ActionEvent e) {
             MongoDatabase db = getLookup().lookup(MongoDatabase.class);
 
-            Object dlgResult = DialogDisplayer.getDefault().notify(new NotifyDescriptor.Confirmation(
-                Bundle.dropDatabaseConfirmText(db.getName()),
-                NotifyDescriptor.YES_NO_OPTION));
-            if (dlgResult.equals(NotifyDescriptor.OK_OPTION)) {
+            if (DialogNotification.confirm(Bundle.dropDatabaseConfirmText(db.getName()))) {
                 try {
                     db.drop();
                     ((ConnectionNode) getParentNode()).refreshChildren();
@@ -227,8 +218,7 @@ final class DBNode extends AbstractNode {
                         topComponent.close();
                     }
                 } catch (MongoException ex) {
-                    DialogDisplayer.getDefault().notify(
-                        new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE));
+                    DialogNotification.error(ex);
                 }
             }
         }

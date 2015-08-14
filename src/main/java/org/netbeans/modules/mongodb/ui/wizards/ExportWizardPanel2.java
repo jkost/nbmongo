@@ -22,8 +22,7 @@ import java.nio.charset.Charset;
 import javax.swing.JFileChooser;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import org.openide.DialogDisplayer;
-import org.openide.NotifyDescriptor;
+import org.netbeans.modules.mongodb.ui.util.DialogNotification;
 import org.openide.WizardDescriptor;
 import org.openide.WizardValidationException;
 import org.openide.util.ChangeSupport;
@@ -66,8 +65,7 @@ public class ExportWizardPanel2 implements WizardDescriptor.ValidatingPanel<Wiza
         if (file.exists()) {
             final String title = Bundle.overwrite_file_confirmation_title();
             final String message = Bundle.overwrite_file_confirmation(file.getName());
-            final NotifyDescriptor.Confirmation confirmation = new NotifyDescriptor.Confirmation(message, title, NotifyDescriptor.YES_NO_OPTION);
-            if (DialogDisplayer.getDefault().notify(confirmation) == NotifyDescriptor.NO_OPTION) {
+            if(DialogNotification.confirm(message, title) == false) {
                 throw new WizardValidationException(null, null, null);
             }
         }

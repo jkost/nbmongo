@@ -19,8 +19,7 @@ package org.netbeans.modules.mongodb.ui.options;
 
 import java.io.File;
 import org.netbeans.modules.mongodb.options.MongoNativeToolsFolderPredicate;
-import org.openide.DialogDisplayer;
-import org.openide.NotifyDescriptor;
+import org.netbeans.modules.mongodb.ui.util.DialogNotification;
 import org.openide.filesystems.FileChooserBuilder;
 
 /**
@@ -40,9 +39,7 @@ public final class MongoToolsFolderSelectionApprover implements FileChooserBuild
                 return true;
             }
         }
-        DialogDisplayer.getDefault().notify(
-            new NotifyDescriptor.Message("The selected folder doesn't contain the mongo tools executables",
-                NotifyDescriptor.ERROR_MESSAGE));
+        DialogNotification.error("The selected folder doesn't contain the mongo tools executables");
         return false;
     }
 }

@@ -28,7 +28,7 @@ import javax.swing.Action;
 import org.bson.Document;
 import org.netbeans.modules.mongodb.indexes.Index;
 import org.netbeans.modules.mongodb.resources.Images;
-import org.openide.DialogDisplayer;
+import org.netbeans.modules.mongodb.ui.util.DialogNotification;
 import org.openide.NotifyDescriptor;
 import org.openide.nodes.AbstractNode;
 import org.openide.nodes.Children;
@@ -109,10 +109,7 @@ class IndexNode extends AbstractNode {
         @SuppressWarnings("unchecked")
         public void actionPerformed(ActionEvent e) {
             MongoCollection<Document> collection = getLookup().lookup(MongoCollection.class);
-            final Object dlgResult = DialogDisplayer.getDefault().notify(new NotifyDescriptor.Confirmation(
-                    Bundle.dropIndexConfirmText(index.getName()),
-                    NotifyDescriptor.YES_NO_OPTION));
-            if (dlgResult.equals(NotifyDescriptor.OK_OPTION)) {
+            if (DialogNotification.confirm(Bundle.dropIndexConfirmText(index.getName()))) {
                 collection.dropIndex(index.getName());
                 ((CollectionNode) getParentNode()).refreshChildren();
             }

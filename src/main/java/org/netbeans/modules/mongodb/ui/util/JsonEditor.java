@@ -212,8 +212,7 @@ public class JsonEditor extends JPanel {
                     json = editor.getJson();
                     return Document.parse(json);
                 } catch (JsonParseException ex) {
-                    DialogDisplayer.getDefault().notify(
-                        new NotifyDescriptor.Message(Bundle.invalidJson(), NotifyDescriptor.ERROR_MESSAGE));
+                    DialogNotification.error(Bundle.invalidJson());
                     doLoop = true;
                 }
             }

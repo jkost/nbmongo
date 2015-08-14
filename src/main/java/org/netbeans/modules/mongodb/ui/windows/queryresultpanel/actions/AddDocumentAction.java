@@ -23,10 +23,9 @@ import java.awt.event.ActionEvent;
 import javax.swing.ImageIcon;
 import org.bson.Document;
 import org.netbeans.modules.mongodb.resources.Images;
+import org.netbeans.modules.mongodb.ui.util.DialogNotification;
 import org.netbeans.modules.mongodb.ui.util.JsonEditor;
 import org.netbeans.modules.mongodb.ui.windows.QueryResultPanel;
-import org.openide.DialogDisplayer;
-import org.openide.NotifyDescriptor;
 import org.openide.util.NbBundle.Messages;
 
 /**
@@ -61,8 +60,7 @@ public final class AddDocumentAction extends QueryResultPanelAction {
                 dbCollection.insertOne(document);
                 getResultPanel().refreshResults();
             } catch (MongoException ex) {
-                DialogDisplayer.getDefault().notify(
-                    new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE));
+                DialogNotification.error(ex);
             }
         }
     }

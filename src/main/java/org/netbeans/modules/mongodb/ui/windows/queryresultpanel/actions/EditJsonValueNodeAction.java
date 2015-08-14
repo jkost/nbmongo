@@ -26,13 +26,12 @@ import lombok.Getter;
 import lombok.Setter;
 import org.bson.Document;
 import org.jdesktop.swingx.treetable.TreeTableNode;
+import org.netbeans.modules.mongodb.ui.util.DialogNotification;
 import org.netbeans.modules.mongodb.ui.util.JsonPropertyEditor;
 import org.netbeans.modules.mongodb.ui.windows.QueryResultPanel;
 import org.netbeans.modules.mongodb.ui.windows.collectionview.treetable.DocumentNode;
 import org.netbeans.modules.mongodb.ui.windows.collectionview.treetable.JsonValueNode;
 import org.netbeans.modules.mongodb.util.JsonProperty;
-import org.openide.DialogDisplayer;
-import org.openide.NotifyDescriptor;
 import org.openide.util.NbBundle.Messages;
 
 /**
@@ -45,7 +44,7 @@ import org.openide.util.NbBundle.Messages;
     "ACTION_editJsonValue_tooltip=Edit Selected JSON Value"
 })
 public final class EditJsonValueNodeAction extends QueryResultPanelAction {
-    
+
     private static final long serialVersionUID = 1L;
 
     @Getter
@@ -54,9 +53,9 @@ public final class EditJsonValueNodeAction extends QueryResultPanelAction {
 
     public EditJsonValueNodeAction(QueryResultPanel resultPanel, JsonValueNode valueNode) {
         super(resultPanel,
-            Bundle.ACTION_editJsonValue(),
-            null,
-            Bundle.ACTION_editJsonValue_tooltip());
+                Bundle.ACTION_editJsonValue(),
+                null,
+                Bundle.ACTION_editJsonValue_tooltip());
         this.valueNode = valueNode;
     }
 
@@ -82,8 +81,7 @@ public final class EditJsonValueNodeAction extends QueryResultPanelAction {
             Document document = (Document) parentNode.getUserObject();
             collection.replaceOne(Filters.eq("_id", document.get("_id")), document);
         } catch (MongoException ex) {
-            DialogDisplayer.getDefault().notify(
-                new NotifyDescriptor.Message(ex.getLocalizedMessage(), NotifyDescriptor.ERROR_MESSAGE));
+            DialogNotification.error(ex);
         }
     }
 }

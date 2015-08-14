@@ -28,8 +28,7 @@ import lombok.Getter;
 import org.bson.Document;
 import org.bson.json.JsonParseException;
 import org.netbeans.api.editor.mimelookup.MimeLookup;
-import org.openide.DialogDisplayer;
-import org.openide.NotifyDescriptor;
+import org.netbeans.modules.mongodb.ui.util.DialogNotification;
 import org.openide.util.NbBundle;
 import org.openide.windows.WindowManager;
 
@@ -46,7 +45,7 @@ public final class QueryEditor extends javax.swing.JPanel {
     private final EditorKit jsonEditorKit = MimeLookup.getLookup("text/x-json").lookup(EditorKit.class);
 
     private JDialog dialog;
-    
+
     private int dialogResult;
 
     @Getter
@@ -99,8 +98,8 @@ public final class QueryEditor extends javax.swing.JPanel {
 
     private void setEditorValue(JEditorPane editor, Document value) {
         final String text = value != null
-            ? Json.prettify(value)
-            : "{}";
+                ? Json.prettify(value)
+                : "{}";
         editor.setText(text);
     }
 
@@ -108,30 +107,24 @@ public final class QueryEditor extends javax.swing.JPanel {
         try {
             parseCriteria();
         } catch (JsonParseException ex) {
-            DialogDisplayer.getDefault().notify(
-                new NotifyDescriptor.Message(Bundle.invalidCriteriaJson(),
-                    NotifyDescriptor.ERROR_MESSAGE));
+            DialogNotification.error(Bundle.invalidCriteriaJson());
             return false;
         }
         try {
             parseProjection();
         } catch (JsonParseException ex) {
-            DialogDisplayer.getDefault().notify(
-                new NotifyDescriptor.Message(Bundle.invalidProjectionJson(),
-                    NotifyDescriptor.ERROR_MESSAGE));
+            DialogNotification.error(Bundle.invalidProjectionJson());
             return false;
         }
         try {
             parseSort();
         } catch (JsonParseException ex) {
-            DialogDisplayer.getDefault().notify(
-                new NotifyDescriptor.Message(Bundle.invalidSortJson(),
-                    NotifyDescriptor.ERROR_MESSAGE));
+            DialogNotification.error(Bundle.invalidSortJson());
             return false;
         }
         return true;
     }
-    
+
     private void refreshInput() {
         setEditorValue(criteriaEditor, criteria);
         setEditorValue(projectionEditor, projection);
