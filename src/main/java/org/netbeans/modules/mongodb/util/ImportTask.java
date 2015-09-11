@@ -38,7 +38,7 @@ public final class ImportTask extends AbstractTask<Importer> {
 
     @Override
     public String getLabel() {
-        return Bundle.TASK_export_label(getRunnable().getProperties().getCollection());
+        return Bundle.TASK_import_label(getRunnable().getProperties().getCollection());
     }
 
 }
