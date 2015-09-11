@@ -17,7 +17,7 @@
  */
 package org.netbeans.modules.mongodb.ui.actions;
 
-import org.netbeans.modules.mongodb.util.JsonProperty;
+import org.netbeans.modules.mongodb.util.BsonProperty;
 import org.openide.util.NbBundle.Messages;
 
 /**
@@ -29,7 +29,7 @@ public final class CopyKeyToClipboardAction extends CopyObjectToClipboardAction<
     
     private static final long serialVersionUID = 1L;
 
-    public CopyKeyToClipboardAction(JsonProperty property) {
+    public CopyKeyToClipboardAction(BsonProperty property) {
         super(Bundle.ACTION_copyKeyToClipboard(), property.getName());
     }
 }

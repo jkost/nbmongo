@@ -22,7 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
-import org.bson.Document;
+import org.bson.BsonDocument;
 
 /**
  * Caches the data of a database query. Uses lazy loading to get new results
@@ -38,7 +38,7 @@ public final class ResultCache {
      */
     public static final ResultCache EMPTY = new ResultCache(QueryResult.EMPTY, 0);
 
-    private final List<Document> cache = new ArrayList<>();
+    private final List<BsonDocument> cache = new ArrayList<>();
 
     @Getter
     protected QueryResult queryResult;
@@ -55,23 +55,23 @@ public final class ResultCache {
         loadNextObjects(loadingBlockSize);
     }
 
-    public List<Document> get(int offset, int length) {
+    public List<BsonDocument> get(int offset, int length) {
         int toIndex = offset + length;
         int missingObjects = toIndex - cache.size();
         loadNextObjects(missingObjects);
         return cache.subList(offset, Math.min(cache.size(), toIndex));
     }
     
-    public void editObject(Document oldObject, Document newObject) {
+    public void editObject(BsonDocument oldObject, BsonDocument newObject) {
         int index = cache.indexOf(oldObject);
         if(index > -1) {
             editObject(index, newObject);
         }
     }
     
-    public void editObject(int index, Document object) {
+    public void editObject(int index, BsonDocument object) {
         if(index < cache.size()) {
-            Document oldValue = cache.set(index, object);
+            BsonDocument oldValue = cache.set(index, object);
             fireObjectUpdated(index, oldValue, object);
         }
     }
@@ -100,7 +100,7 @@ public final class ResultCache {
         listeners.remove(listener);
     }
     
-    private void fireObjectUpdated(int index, Document oldValue, Document newValue) {
+    private void fireObjectUpdated(int index, BsonDocument oldValue, BsonDocument newValue) {
         for (Listener listener : listeners) {
             listener.objectUpdated(index, oldValue, newValue);
         }
@@ -108,7 +108,7 @@ public final class ResultCache {
     
     public static interface Listener {
         
-        void objectUpdated(int index, Document oldValue, Document newValue);
+        void objectUpdated(int index, BsonDocument oldValue, BsonDocument newValue);
     }
 
 }

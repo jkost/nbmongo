@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 lea
+ * Copyright (C) 2015 Yann D'Isanto
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -26,7 +26,7 @@ import org.openide.NotifyDescriptor.Message;
 
 /**
  *
- * @author lea
+ * @author Yann D'Isanto
  */
 public final class DialogNotification {
 

@@ -21,11 +21,9 @@ import java.awt.event.ActionEvent;
 import lombok.Getter;
 import lombok.Setter;
 import org.netbeans.modules.mongodb.CollectionInfo;
-import org.netbeans.modules.mongodb.ui.util.JsonPropertyEditor;
 import org.netbeans.modules.mongodb.ui.windows.CollectionView;
 import org.netbeans.modules.mongodb.ui.windows.QueryResultPanel;
-import org.netbeans.modules.mongodb.ui.windows.collectionview.treetable.JsonPropertyNode;
-import org.netbeans.modules.mongodb.util.JsonProperty;
+import org.netbeans.modules.mongodb.ui.windows.collectionview.treetable.BsonPropertyNode;
 import org.openide.util.Lookup;
 import org.openide.util.NbBundle.Messages;
 
@@ -34,36 +32,32 @@ import org.openide.util.NbBundle.Messages;
  * @author Yann D'Isanto
  */
 @Messages({
-    "findWithJsonPropertyTitle=Find with json property",
-    "ACTION_findWithJsonProperty=Find with json property",
-    "ACTION_findWithJsonProperty_tooltip=Find with selected JSON Property"
+    "ACTION_findWithBsonProperty=Find with this property",
+    "ACTION_findWithBsonProperty_tooltip=Perform a find on the collection with this property"
 })
-public final class FindWithJsonPropertyNodeAction extends QueryResultPanelAction {
+public final class FindWithBsonPropertyNodeAction extends QueryResultPanelAction {
 
     private static final long serialVersionUID = 1L;
 
     @Getter
     @Setter
-    private JsonPropertyNode propertyNode;
+    private BsonPropertyNode propertyNode;
 
-    public FindWithJsonPropertyNodeAction(QueryResultPanel resultPanel, JsonPropertyNode propertyNode) {
+    public FindWithBsonPropertyNodeAction(QueryResultPanel resultPanel, BsonPropertyNode propertyNode) {
         super(resultPanel,
-            Bundle.ACTION_findWithJsonProperty(),
+            Bundle.ACTION_findWithBsonProperty(),
             null,
-            Bundle.ACTION_findWithJsonProperty_tooltip());
+            Bundle.ACTION_findWithBsonProperty_tooltip());
         this.propertyNode = propertyNode;
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public void actionPerformed(ActionEvent e) {
-        JsonProperty property = propertyNode.getUserObject();
         Lookup lookup = getResultPanel().getLookup();
         CollectionInfo collection = lookup.lookup(CollectionInfo.class);
         if (collection != null) {
-            CollectionView view = new CollectionView(collection, lookup, property.asDocument());
-//            view.getQueryEditor().setCriteria(property.asDocument());
-//            view.updateQueryFieldsFromEditor();
+            CollectionView view = new CollectionView(collection, lookup, propertyNode.getBsonProperty().asDocument());
             view.open();
             view.requestActive();
         }

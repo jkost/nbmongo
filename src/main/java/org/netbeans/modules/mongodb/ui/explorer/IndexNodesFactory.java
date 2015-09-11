@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import lombok.AllArgsConstructor;
+import org.bson.BsonDocument;
 import org.bson.Document;
 import org.netbeans.modules.mongodb.indexes.Index;
 import org.netbeans.modules.mongodb.indexes.IndexComparator;
@@ -39,7 +40,7 @@ class IndexNodesFactory extends RefreshableChildFactory<Index> {
     @Override
     @SuppressWarnings("unchecked")
     protected boolean createKeys(List<Index> list) {
-        MongoCollection<Document> collection = lookup.lookup(MongoCollection.class);
+        MongoCollection<BsonDocument> collection = lookup.lookup(MongoCollection.class);
         List<Index> indexes = new ArrayList<>();
         for (Document indexObj : collection.listIndexes()) {
             Index index = Index.fromJson(indexObj);

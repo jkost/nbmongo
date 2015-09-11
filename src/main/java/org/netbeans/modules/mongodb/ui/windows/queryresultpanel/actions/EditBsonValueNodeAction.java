@@ -19,19 +19,19 @@ package org.netbeans.modules.mongodb.ui.windows.queryresultpanel.actions;
 
 import com.mongodb.MongoException;
 import com.mongodb.client.MongoCollection;
-import com.mongodb.client.model.Filters;
+import static com.mongodb.client.model.Filters.eq;
 import java.awt.event.ActionEvent;
-import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
-import org.bson.Document;
+import org.bson.BsonArray;
+import org.bson.BsonDocument;
+import org.bson.BsonValue;
 import org.jdesktop.swingx.treetable.TreeTableNode;
+import org.netbeans.modules.mongodb.ui.util.BsonPropertyEditor;
 import org.netbeans.modules.mongodb.ui.util.DialogNotification;
-import org.netbeans.modules.mongodb.ui.util.JsonPropertyEditor;
 import org.netbeans.modules.mongodb.ui.windows.QueryResultPanel;
-import org.netbeans.modules.mongodb.ui.windows.collectionview.treetable.DocumentNode;
-import org.netbeans.modules.mongodb.ui.windows.collectionview.treetable.JsonValueNode;
-import org.netbeans.modules.mongodb.util.JsonProperty;
+import org.netbeans.modules.mongodb.ui.windows.collectionview.treetable.BsonValueNode;
+import org.netbeans.modules.mongodb.ui.windows.collectionview.treetable.RootNode;
 import org.openide.util.NbBundle.Messages;
 
 /**
@@ -39,47 +39,45 @@ import org.openide.util.NbBundle.Messages;
  * @author Yann D'Isanto
  */
 @Messages({
-    "editJsonValueTitle=Edit json value",
-    "ACTION_editJsonValue=Edit json value",
-    "ACTION_editJsonValue_tooltip=Edit Selected JSON Value"
+    "ACTION_editBsonValue=Edit this value",
+    "ACTION_editBsonValue_tooltip=Edit this Value"
 })
-public final class EditJsonValueNodeAction extends QueryResultPanelAction {
+public final class EditBsonValueNodeAction extends QueryResultPanelAction {
 
     private static final long serialVersionUID = 1L;
 
     @Getter
     @Setter
-    private JsonValueNode valueNode;
+    private BsonValueNode valueNode;
 
-    public EditJsonValueNodeAction(QueryResultPanel resultPanel, JsonValueNode valueNode) {
+    public EditBsonValueNodeAction(QueryResultPanel resultPanel, BsonValueNode valueNode) {
         super(resultPanel,
-                Bundle.ACTION_editJsonValue(),
+                Bundle.ACTION_editBsonValue(),
                 null,
-                Bundle.ACTION_editJsonValue_tooltip());
+                Bundle.ACTION_editBsonValue_tooltip());
         this.valueNode = valueNode;
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public void actionPerformed(ActionEvent e) {
-        Object value = valueNode.getUserObject();
-        Object newValue = JsonPropertyEditor.show("value", value);
+        BsonValue value = valueNode.getValue();
+        BsonValue newValue = BsonPropertyEditor.show("value", value);
         if (newValue == null || newValue.equals(value)) {
             return;
         }
         getResultPanel().getTreeTableModel().setUserObject(valueNode, newValue);
         TreeTableNode parentNode = valueNode.getParent();
-        JsonProperty parent = (JsonProperty) parentNode.getUserObject();
-        List<Object> list = (List<Object>) parent.getValue();
-        int index = list.indexOf(value);
-        list.set(index, newValue);
-        while ((parentNode instanceof DocumentNode) == false) {
+        BsonArray array = ((BsonValueNode) parentNode).getValue().asArray();
+        int index = array.indexOf(value);
+        array.set(index, newValue);
+        while ((parentNode.getParent() instanceof RootNode) == false) {
             parentNode = parentNode.getParent();
         }
         try {
-            MongoCollection<Document> collection = getResultPanel().getLookup().lookup(MongoCollection.class);
-            Document document = (Document) parentNode.getUserObject();
-            collection.replaceOne(Filters.eq("_id", document.get("_id")), document);
+            MongoCollection<BsonDocument> collection = getResultPanel().getLookup().lookup(MongoCollection.class);
+            BsonDocument document = (BsonDocument) parentNode.getUserObject();
+            collection.replaceOne(eq("_id", document.get("_id")), document);
         } catch (MongoException ex) {
             DialogNotification.error(ex);
         }

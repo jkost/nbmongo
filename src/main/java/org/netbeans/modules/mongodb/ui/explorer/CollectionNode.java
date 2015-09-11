@@ -140,7 +140,7 @@ final class CollectionNode extends AbstractNode {
     protected Sheet createSheet() {
         Sheet sheet = Sheet.createDefault();
         Sheet.Set set = Sheet.createPropertiesSet();
-        MongoCollection<Document> col = getLookup().lookup(MongoCollection.class);
+        MongoCollection<BsonDocument> col = getLookup().lookup(MongoCollection.class);
         MongoDatabase db = getLookup().lookup(MongoDatabase.class);
         BsonDocument commandDocument = new BsonDocument("collStats", new BsonString(collection.getName()));
         try {
@@ -206,9 +206,9 @@ final class CollectionNode extends AbstractNode {
     private class CollectionConverter implements InstanceContent.Convertor<CollectionInfo, MongoCollection> {
 
         @Override
-        public MongoCollection<Document> convert(CollectionInfo t) {
+        public MongoCollection<BsonDocument> convert(CollectionInfo t) {
             MongoDatabase db = getLookup().lookup(MongoDatabase.class);
-            return db.getCollection(t.getName());
+            return db.getCollection(t.getName(), BsonDocument.class);
         }
 
         @Override
@@ -282,7 +282,7 @@ final class CollectionNode extends AbstractNode {
                         new CollectionNameValidator(getLookup()));
                 if (result != null) {
                     String name = result.trim();
-                    MongoCollection<Document> collection = getLookup().lookup(MongoCollection.class);
+                    MongoCollection<BsonDocument> collection = getLookup().lookup(MongoCollection.class);
                     collection.renameCollection(new MongoNamespace(collection.getNamespace().getDatabaseName(), name));
                     final DBNode parentNode = (DBNode) getParentNode();
                     parentNode.refreshChildren();
@@ -347,7 +347,7 @@ final class CollectionNode extends AbstractNode {
                 retryOnFailure = false;
                 index = CreateIndexPanel.showDialog(index);
                 if (index != null) {
-                    MongoCollection<Document> collection = getLookup().lookup(MongoCollection.class);
+                    MongoCollection<BsonDocument> collection = getLookup().lookup(MongoCollection.class);
                     Document keys = new Document();
                     for (Index.Key key : index.getKeys()) {
                         keys.append(key.getField(), key.getType().getValue());

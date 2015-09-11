@@ -19,7 +19,7 @@ package org.netbeans.modules.mongodb.ui;
 
 import com.mongodb.client.MapReduceIterable;
 import com.mongodb.client.MongoCollection;
-import org.bson.Document;
+import org.bson.BsonDocument;
 import org.netbeans.modules.mongodb.QueryExecutor;
 import org.netbeans.modules.mongodb.QueryResult;
 
@@ -31,13 +31,13 @@ import org.netbeans.modules.mongodb.QueryResult;
  */
 public class MapReduceWorker extends QueryResultWorker implements QueryExecutor {
 
-    private final MongoCollection<Document> collection;
+    private final MongoCollection<BsonDocument> collection;
 
     private final String mapFunction;
 
     private final String reduceFunction;
 
-    public MapReduceWorker(MongoCollection<Document> collection, String map, String reduce, String name, int cacheLoadingBlockSize) {
+    public MapReduceWorker(MongoCollection<BsonDocument> collection, String map, String reduce, String name, int cacheLoadingBlockSize) {
         super(name, cacheLoadingBlockSize);
         this.collection = collection;
         this.mapFunction = map;
@@ -46,7 +46,7 @@ public class MapReduceWorker extends QueryResultWorker implements QueryExecutor 
 
     @Override
     protected QueryResult createQuery() throws Exception {
-        final MapReduceIterable<Document> out = collection.mapReduce(mapFunction, reduceFunction);
+        final MapReduceIterable<BsonDocument> out = collection.mapReduce(mapFunction, reduceFunction);
         return new QueryResult.MapReduceResult(out, this);
     }
 

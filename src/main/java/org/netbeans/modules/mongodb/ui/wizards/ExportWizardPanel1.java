@@ -21,7 +21,7 @@ import com.mongodb.client.MongoDatabase;
 import javax.swing.JComboBox;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import org.bson.Document;
+import org.bson.BsonDocument;
 import org.netbeans.modules.mongodb.ui.components.QueryEditor;
 import org.openide.WizardDescriptor;
 import org.openide.WizardValidationException;
@@ -68,10 +68,7 @@ public class ExportWizardPanel1 implements WizardDescriptor.ValidatingPanel<Wiza
     @Override
     public boolean isValid() {
         final JComboBox collectionField = component.getCollectionComboBox();
-        if (collectionField.getSelectedIndex() < 0) {
-            return false;
-        }
-        return true;
+        return collectionField.getSelectedIndex() >= 0;
     }
 
     @Override
@@ -82,9 +79,9 @@ public class ExportWizardPanel1 implements WizardDescriptor.ValidatingPanel<Wiza
         if (collection != null) {
             panel.getCollectionComboBox().setSelectedItem(collection);
         }
-        query.setCriteria((Document) wiz.getProperty(ExportWizardAction.PROP_CRITERIA));
-        query.setProjection((Document) wiz.getProperty(ExportWizardAction.PROP_PROJECTION));
-        query.setSort((Document) wiz.getProperty(ExportWizardAction.PROP_SORT));
+        query.setCriteria((BsonDocument) wiz.getProperty(ExportWizardAction.PROP_CRITERIA));
+        query.setProjection((BsonDocument) wiz.getProperty(ExportWizardAction.PROP_PROJECTION));
+        query.setSort((BsonDocument) wiz.getProperty(ExportWizardAction.PROP_SORT));
         panel.updateQueryFieldsFromEditor();
     }
 

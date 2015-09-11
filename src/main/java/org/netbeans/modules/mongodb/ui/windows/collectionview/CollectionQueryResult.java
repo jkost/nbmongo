@@ -24,7 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
-import org.bson.Document;
+import org.bson.BsonDocument;
 import org.bson.conversions.Bson;
 import org.netbeans.modules.mongodb.ui.util.DialogNotification;
 
@@ -38,10 +38,10 @@ public final class CollectionQueryResult {
 
     @Getter
     @Setter
-    private MongoCollection<Document> collection;
+    private MongoCollection<BsonDocument> collection;
 
     @Getter
-    private final List<Document> documents = new ArrayList<>();
+    private final List<BsonDocument> documents = new ArrayList<>();
 
     @Getter
     @Setter
@@ -71,7 +71,7 @@ public final class CollectionQueryResult {
 
     private boolean viewRefreshNecessary;
 
-    public CollectionQueryResult(MongoCollection<Document> dbCollection) {
+    public CollectionQueryResult(MongoCollection<BsonDocument> dbCollection) {
         this.collection = dbCollection;
     }
 
@@ -85,13 +85,13 @@ public final class CollectionQueryResult {
         try {
             
             totalDocumentsCount = criteria != null ? collection.count(criteria) : collection.count();
-            FindIterable<Document> query = criteria != null ? collection.find(criteria) : collection.find();
+            FindIterable<BsonDocument> query = criteria != null ? collection.find(criteria) : collection.find();
             query = query.projection(projection).sort(sort);
             if (pageSize > 0) {
                 final int toSkip = (page - 1) * pageSize;
                 query.skip(toSkip).limit(pageSize);
             }
-            for (Document document : query) {
+            for (BsonDocument document : query) {
                 documents.add(document);
                 fireDocumentAdded(document);                
             }
@@ -103,7 +103,7 @@ public final class CollectionQueryResult {
         viewRefreshNecessary = true;
     }
 
-    public void updateDocument(Document oldDocument, Document newDocument) {
+    public void updateDocument(BsonDocument oldDocument, BsonDocument newDocument) {
         int index = documents.indexOf(oldDocument);
         if (index == -1) {
             throw new IllegalArgumentException("try to updated unknown document");
@@ -117,7 +117,7 @@ public final class CollectionQueryResult {
             return;
         }
         fireUpdateStarting();
-        for (Document document : documents) {
+        for (BsonDocument document : documents) {
             fireDocumentAdded(document);
         }
         fireUpdateFinished();
@@ -130,13 +130,13 @@ public final class CollectionQueryResult {
         }
     }
 
-    private void fireDocumentAdded(Document document) {
+    private void fireDocumentAdded(BsonDocument document) {
         if (view != null) {
             view.documentAdded(this, document);
         }
     }
 
-    private void fireDocumentUpdated(Document document, int index) {
+    private void fireDocumentUpdated(BsonDocument document, int index) {
         if (view != null) {
             view.documentUpdated(this, document, index);
         }

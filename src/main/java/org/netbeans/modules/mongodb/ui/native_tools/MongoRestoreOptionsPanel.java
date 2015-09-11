@@ -24,12 +24,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import javax.swing.text.PlainDocument;
-import org.bson.Document;
+import org.bson.BsonDocument;
 import org.netbeans.modules.mongodb.native_tools.MongoNativeTool;
 import org.netbeans.modules.mongodb.native_tools.MongoRestoreOptions;
 import org.netbeans.modules.mongodb.options.MongoNativeToolsOptions;
 import org.netbeans.modules.mongodb.ui.util.IntegerDocumentFilter;
-import org.netbeans.modules.mongodb.ui.util.JsonEditor;
+import org.netbeans.modules.mongodb.ui.util.BsonDocumentEditor;
 import org.netbeans.modules.mongodb.util.Version;
 import org.openide.filesystems.FileChooserBuilder;
 import org.openide.util.NbBundle.Messages;
@@ -493,7 +493,7 @@ public final class MongoRestoreOptionsPanel extends AbstractOptionsAndArgsPanel 
     }//GEN-LAST:event_browseDBPathButtonActionPerformed
 
     private void editFilterButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_editFilterButtonActionPerformed
-        final Document document = JsonEditor.show(Bundle.filterEditorTitle(), Document.parse(filterField.getText()));
+        final BsonDocument document = BsonDocumentEditor.show(Bundle.filterEditorTitle(), BsonDocument.parse(filterField.getText()));
         if (document != null) {
             filterField.setText(document.toJson());
         }

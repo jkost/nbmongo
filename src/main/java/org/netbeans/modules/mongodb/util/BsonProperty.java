@@ -1,4 +1,4 @@
-/*
+/* 
  * Copyright (C) 2015 Yann D'Isanto
  *
  * This program is free software; you can redistribute it and/or
@@ -15,46 +15,24 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-package org.netbeans.modules.mongodb.ui.windows.collectionview.treetable;
+package org.netbeans.modules.mongodb.util;
 
-import java.util.List;
-import java.util.Map;
+import lombok.Value;
+import org.bson.BsonDocument;
+import org.bson.BsonValue;
 
 /**
  *
  * @author Yann D'Isanto
  */
-public interface JsonNode {
-    
-    Object getValue();
-    
-    List<Object> getArrayValue();
-    
-    Map<String, Object> getObjectValue();
-    
-    /**
-     * @return true if this node value is a json array
-     */
-    boolean isArrayValue();
+@Value
+public final class BsonProperty {
 
-    /**
-     * @return true if this node value is not null
-     */
-    boolean isNotNullValue();
+    String name;
 
-    /**
-     * @return true if this node value is null
-     */
-    boolean isNullValue();
+    BsonValue value;
 
-    /**
-     * @return true if this node value is a json object
-     */
-    boolean isObjectValue();
-    
-    /**
-     * @return true if this node value is a json simple value (boolean, string, numeric)
-     */
-    boolean isSimpleValue();
-    
+    public BsonDocument asDocument() {
+        return new BsonDocument(name, value);
+    }
 }

@@ -17,7 +17,7 @@
  */
 package org.netbeans.modules.mongodb.ui.windows.collectionview;
 
-import org.bson.Document;
+import org.bson.BsonDocument;
 
 /**
  * A listener to be notified on collection query result update events.
@@ -40,7 +40,7 @@ public interface CollectionQueryResultUpdateListener {
      * @param source the collection query result event source
      * @param document the added document
      */
-    void documentAdded(CollectionQueryResult source, Document document);
+    void documentAdded(CollectionQueryResult source, BsonDocument document);
 
     /**
      * Invoked when a document is updated in the collection query result.
@@ -49,7 +49,7 @@ public interface CollectionQueryResultUpdateListener {
      * @param document the updated document
      * @param index the document index in the result list
      */
-    void documentUpdated(CollectionQueryResult source, Document document, int index);
+    void documentUpdated(CollectionQueryResult source, BsonDocument document, int index);
 
     /**
      * Invoked on collection query result update end.

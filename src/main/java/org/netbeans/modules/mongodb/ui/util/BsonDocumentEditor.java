@@ -36,10 +36,10 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.EditorKit;
 import lombok.Getter;
-import org.bson.Document;
+import org.bson.BsonDocument;
 import org.bson.json.JsonParseException;
 import org.netbeans.api.editor.mimelookup.MimeLookup;
-import org.netbeans.modules.mongodb.util.Json;
+import org.netbeans.modules.mongodb.bson.Bsons;
 import org.openide.DialogDescriptor;
 import org.openide.DialogDisplayer;
 import org.openide.NotificationLineSupport;
@@ -57,7 +57,7 @@ import org.openide.util.NbBundle.Messages;
     "HINT_nextResult=hit ENTER to search next occurence",
     "HINT_noResultFound=no result found"
 })
-public class JsonEditor extends JPanel {
+public class BsonDocumentEditor extends JPanel {
 
     private static final long serialVersionUID = 1L;
 
@@ -76,7 +76,7 @@ public class JsonEditor extends JPanel {
     @Getter
     private NotificationLineSupport notificationLineSupport;
 
-    private JsonEditor() {
+    private BsonDocumentEditor() {
         super(new BorderLayout());
         EditorKit editorKit = MimeLookup.getLookup("text/x-json").lookup(EditorKit.class);
         if (editorKit != null) {
@@ -176,14 +176,13 @@ public class JsonEditor extends JPanel {
         return editor.getText().trim();
     }
 
-    public void setJson(String json) {
+    private void setJson(String json) {
         editor.setText(json);
         editor.setCaretPosition(0);
     }
 
-    public void setJson(Document document) {
-        editor.setText(Json.prettify(document));
-        editor.setCaretPosition(0);
+    public void setDocument(BsonDocument document) {
+        setJson(Bsons.shellAndPretty(document != null ? document : new BsonDocument()));
     }
 
     /**
@@ -194,9 +193,9 @@ public class JsonEditor extends JPanel {
      * @return a DBObject representing the input json or null if the dialog has
      * been cancelled.
      */
-    public static Document show(String title, Document document) {
-        JsonEditor editor = new JsonEditor();
-        String json = document != null ? Json.prettify(document) : "{}";
+    public static BsonDocument show(String title, BsonDocument document) {
+        BsonDocumentEditor editor = new BsonDocumentEditor();
+        String json = Bsons.shellAndPretty(document != null ? document : new BsonDocument());
         boolean doLoop = true;
         while (doLoop) {
             doLoop = false;
@@ -208,9 +207,9 @@ public class JsonEditor extends JPanel {
             dialog.getRootPane().getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).remove(ESCAPE_KEYSTROKE);
             dialog.setVisible(true);
             if (desc.getValue().equals(NotifyDescriptor.OK_OPTION)) {
+                json = editor.getJson();
                 try {
-                    json = editor.getJson();
-                    return Document.parse(json);
+                    return BsonDocument.parse(json);
                 } catch (JsonParseException ex) {
                     DialogNotification.error(Bundle.invalidJson());
                     doLoop = true;
@@ -226,10 +225,10 @@ public class JsonEditor extends JPanel {
      * @param title the dialog title
      * @param json the json to display
      */
-    public static void showReadOnly(String title, Document document) {
-        JsonEditor editor = new JsonEditor();
+    public static void showReadOnly(String title, BsonDocument document) {
+        BsonDocumentEditor editor = new BsonDocumentEditor();
         editor.editor.setEditable(false);
-        editor.setJson(Json.prettify(document));
+        editor.setDocument(document);
         final DialogDescriptor desc = new DialogDescriptor(editor, title, true, NotifyDescriptor.PLAIN_MESSAGE, NotifyDescriptor.OK_OPTION, null);
         editor.setNotificationLineSupport(desc.createNotificationLineSupport());
         final JDialog dialog = (JDialog) DialogDisplayer.getDefault().createDialog(desc);

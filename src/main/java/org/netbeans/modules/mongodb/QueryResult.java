@@ -22,7 +22,7 @@ import com.mongodb.client.MongoCursor;
 import java.util.Iterator;
 import java.util.LinkedList;
 import lombok.Getter;
-import org.bson.Document;
+import org.bson.BsonDocument;
 
 /**
  * Encapsulates the results of a query.
@@ -39,7 +39,7 @@ public interface QueryResult {
 
     boolean isCapped();
 
-    Document next();
+    BsonDocument next();
 
     public static final QueryResult EMPTY = new QueryResult() {
 
@@ -64,7 +64,7 @@ public interface QueryResult {
         }
 
         @Override
-        public Document next() {
+        public BsonDocument next() {
             return null;
         }
 
@@ -72,7 +72,7 @@ public interface QueryResult {
 
     public class MongoCursorResult implements QueryResult {
 
-        private final MongoCursor<Document> cursor;
+        private final MongoCursor<BsonDocument> cursor;
 
         @Getter
         private final QueryExecutor executor;
@@ -80,7 +80,7 @@ public interface QueryResult {
         @Getter
         private final long count;
 
-        public MongoCursorResult(MongoCursor<Document> cursor, QueryExecutor queryExecutor, long count) {
+        public MongoCursorResult(MongoCursor<BsonDocument> cursor, QueryExecutor queryExecutor, long count) {
             this.cursor = cursor;
             this.executor = queryExecutor;
             this.count = count;
@@ -97,7 +97,7 @@ public interface QueryResult {
         }
 
         @Override
-        public Document next() {
+        public BsonDocument next() {
             return cursor.next();
         }
 
@@ -118,14 +118,14 @@ public interface QueryResult {
         @Getter
         private boolean capped = false;
 
-        private final java.util.Collection<Document> data;
+        private final java.util.Collection<BsonDocument> data;
 
-        private final Iterator<Document> iterator;
+        private final Iterator<BsonDocument> iterator;
 
-        public MapReduceResult(MapReduceIterable<Document> out, QueryExecutor queryExecutor) {
+        public MapReduceResult(MapReduceIterable<BsonDocument> out, QueryExecutor queryExecutor) {
             this.data = new LinkedList<>();
             int num = 0;
-            for (Document document : out) {
+            for (BsonDocument document : out) {
                 if (++num <= MAX_SIZE) {
                     data.add(document);
                 } else {
@@ -148,7 +148,7 @@ public interface QueryResult {
         }
 
         @Override
-        public Document next() {
+        public BsonDocument next() {
             return iterator.next();
         }
 
@@ -161,9 +161,9 @@ public interface QueryResult {
 
         private final int count;
 
-        private final Iterator<? extends Document> iterator;
+        private final Iterator<? extends BsonDocument> iterator;
 
-        public CollectionResult(java.util.Collection<? extends Document> data, QueryExecutor queryExecutor) {
+        public CollectionResult(java.util.Collection<? extends BsonDocument> data, QueryExecutor queryExecutor) {
             count = data.size();
             iterator = data.iterator();
             this.executor = queryExecutor;
@@ -175,7 +175,7 @@ public interface QueryResult {
         }
 
         @Override
-        public Document next() {
+        public BsonDocument next() {
             return iterator.next();
         }
 

@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2015 Yann D'Isanto
  *
  * This program is free software; you can redistribute it and/or
@@ -17,30 +17,21 @@
  */
 package org.netbeans.modules.mongodb.ui.windows.collectionview.treetable;
 
+import java.util.Collection;
+import org.bson.BsonDocument;
 import org.jdesktop.swingx.treetable.DefaultMutableTreeTableNode;
 
 /**
  *
  * @author Yann D'Isanto
  */
-public abstract class CollectionViewTreeTableNode<T> extends DefaultMutableTreeTableNode implements JsonNode {
-    
-    public CollectionViewTreeTableNode(T userObject) {
-        super(userObject);
-    }
-    
-    public CollectionViewTreeTableNode(T userObject, boolean allowsChildren) {
-        super(userObject, allowsChildren);
-    }
+public class RootNode extends DefaultMutableTreeTableNode {
 
-    @Override
-    @SuppressWarnings("unchecked")
-    public T getUserObject() {
-        return (T) super.getUserObject();
+    public RootNode(Collection<BsonDocument> documents) {
+        for (BsonDocument document : documents) {
+            add(new BsonValueNode(document));
+        }
     }
     
-    @Override
-    public boolean isEditable(int column) {
-        return false;
-    }    
+    
 }

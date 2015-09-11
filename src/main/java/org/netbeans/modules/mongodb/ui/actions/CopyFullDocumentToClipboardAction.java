@@ -15,30 +15,28 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-package org.netbeans.modules.mongodb.ui.windows.collectionview.treetable;
+package org.netbeans.modules.mongodb.ui.actions;
 
-import java.util.Map;
-import org.bson.Document;
-import org.netbeans.modules.mongodb.util.JsonProperty;
+import java.awt.datatransfer.StringSelection;
+import org.bson.BsonDocument;
+import org.openide.util.NbBundle.Messages;
 
 /**
  *
  * @author Yann D'Isanto
  */
-public final class DocumentNode extends DBObjectNode {
+@Messages({
+    "ACTION_copyDocumentToClipboard=Copy full document"})
+public final class CopyFullDocumentToClipboardAction extends CopyObjectToClipboardAction<BsonDocument> {
     
-    public DocumentNode(Document document) {
-        super(document);
+    private static final long serialVersionUID = 1L;
+
+    public CopyFullDocumentToClipboardAction(BsonDocument document) {
+        super(Bundle.ACTION_copyDocumentToClipboard(), document);
     }
 
     @Override
-    @SuppressWarnings("unchecked")
-    public void setUserObject(Object object) {
-        super.setUserObject(object);
-        children.clear();
-        final Map<String, Object> map = getUserObject();
-        for (Map.Entry<String, Object> entry : map.entrySet()) {
-            add(new JsonPropertyNode(new JsonProperty(entry.getKey(), entry.getValue())));
-        }
+    public StringSelection convertToStringSelection(BsonDocument document) {
+        return new StringSelection(document.toJson());
     }
 }

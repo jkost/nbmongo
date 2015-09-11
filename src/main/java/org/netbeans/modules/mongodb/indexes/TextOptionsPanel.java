@@ -17,9 +17,10 @@
  */
 package org.netbeans.modules.mongodb.indexes;
 
+import org.bson.BsonDocument;
 import org.bson.Document;
 import org.netbeans.modules.mongodb.indexes.Index.TextOptions;
-import org.netbeans.modules.mongodb.ui.util.JsonEditor;
+import org.netbeans.modules.mongodb.ui.util.BsonDocumentEditor;
 import org.openide.util.NbBundle.Messages;
 
 /**
@@ -190,7 +191,7 @@ public class TextOptionsPanel extends javax.swing.JPanel {
 
     private void editWeightsButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_editWeightsButtonActionPerformed
         String json = weightsField.getText().trim();
-        Document document = JsonEditor.show(Bundle.weigthsEditorTitle(), json.isEmpty() ? null : Document.parse(json));
+        BsonDocument document = BsonDocumentEditor.show(Bundle.weigthsEditorTitle(), json.isEmpty() ? null : BsonDocument.parse(json));
         if(document != null) {
             weightsField.setText(document.toJson());
         }

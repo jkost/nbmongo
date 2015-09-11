@@ -19,7 +19,8 @@ package org.netbeans.modules.mongodb.util;
 
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
-import com.mongodb.util.JSON;
+import com.mongodb.client.model.InsertOneModel;
+import com.mongodb.client.model.WriteModel;
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -28,7 +29,9 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.util.ArrayList;
 import java.util.List;
-import org.bson.Document;
+import org.bson.BsonDocument;
+import org.bson.BsonType;
+import org.netbeans.modules.mongodb.bson.Bsons;
 import org.openide.util.Exceptions;
 
 /**
@@ -40,7 +43,7 @@ public final class Importer implements Runnable {
     private final MongoDatabase db;
 
     private final ImportProperties properties;
-    
+
     private final Runnable onDone;
 
     public Importer(MongoDatabase db, ImportProperties properties) {
@@ -53,7 +56,6 @@ public final class Importer implements Runnable {
         this.onDone = onDone;
     }
 
-    
     @Override
     public void run() {
         try (InputStream input = new FileInputStream(properties.getFile())) {
@@ -61,32 +63,37 @@ public final class Importer implements Runnable {
         } catch (IOException ex) {
             Exceptions.printStackTrace(ex);
         }
-        if(onDone != null) {
+        if (onDone != null) {
             onDone.run();
         }
     }
 
+    @SuppressWarnings("unchecked")
     private void importFrom(Reader reader) throws IOException {
-        final MongoCollection<Document> collection = db.getCollection(properties.getCollection());
+        final MongoCollection<BsonDocument> collection = db.getCollection(properties.getCollection(), BsonDocument.class);
         final BufferedReader br = new BufferedReader(reader);
         String line;
+        List<WriteModel<BsonDocument>> requests = new ArrayList<>();
         while ((line = br.readLine()) != null) {
-            if(Thread.interrupted()) {
+            if (Thread.interrupted()) {
                 return;
             }
-            collection.insertMany(parseLine(line));
+            line = line.trim();
+            if (line.isEmpty()) {
+                continue;
+            }
+            if (line.charAt(0) == '[') {
+                List<BsonDocument> array = (List<BsonDocument>) Bsons.fromJson(line, BsonType.ARRAY);
+                for (BsonDocument document : array) {
+                    requests.add(new InsertOneModel<>(document));
+                }
+            } else {
+                requests.add(new InsertOneModel<>(BsonDocument.parse(line)));
+            }
         }
-    }
-
-    @SuppressWarnings("unchecked")
-    private List<Document> parseLine(String line) {
-        final Object obj = JSON.parse(line);
-        if (obj instanceof List) {
-            return (List<Document>) obj;
+        if (requests.isEmpty() == false) {
+            collection.bulkWrite(requests);
         }
-        final List<Document> list = new ArrayList<>(1);
-        list.add((Document) obj);
-        return list;
     }
 
     public ImportProperties getProperties() {

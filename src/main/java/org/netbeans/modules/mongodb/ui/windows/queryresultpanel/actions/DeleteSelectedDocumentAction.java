@@ -19,10 +19,10 @@ package org.netbeans.modules.mongodb.ui.windows.queryresultpanel.actions;
 
 import com.mongodb.MongoException;
 import com.mongodb.client.MongoCollection;
-import com.mongodb.client.model.Filters;
+import static com.mongodb.client.model.Filters.eq;
 import java.awt.event.ActionEvent;
 import javax.swing.ImageIcon;
-import org.bson.Document;
+import org.bson.BsonDocument;
 import org.netbeans.modules.mongodb.resources.Images;
 import org.netbeans.modules.mongodb.ui.util.DialogNotification;
 import org.netbeans.modules.mongodb.ui.windows.QueryResultPanel;
@@ -53,9 +53,9 @@ public final class DeleteSelectedDocumentAction extends QueryResultPanelAction {
     public void actionPerformed(ActionEvent e) {
         if (DialogNotification.confirm(Bundle.confirmDocumentDeletionText())) {
             try {
-                MongoCollection<Document> collection = getResultPanel().getLookup().lookup(MongoCollection.class);
-                Document document = (Document) getResultPanel().getResultTableSelectedDocument();
-                collection.deleteOne(Filters.eq("_id", document.get("_id")));
+                MongoCollection<BsonDocument> collection = getResultPanel().getLookup().lookup(MongoCollection.class);
+                BsonDocument document = getResultPanel().getResultTableSelectedDocument();
+                collection.deleteOne(eq("_id", document.get("_id")));
                 getResultPanel().refreshResults();
             } catch (MongoException ex) {
                 DialogNotification.error(ex);

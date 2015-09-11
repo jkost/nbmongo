@@ -17,10 +17,9 @@
  */
 package org.netbeans.modules.mongodb.ui.actions;
 
-import com.mongodb.BasicDBObject;
-import com.mongodb.util.JSON;
 import java.awt.datatransfer.StringSelection;
-import java.util.Map;
+import org.bson.BsonValue;
+import org.netbeans.modules.mongodb.bson.Bsons;
 import org.openide.util.NbBundle.Messages;
 
 /**
@@ -28,23 +27,16 @@ import org.openide.util.NbBundle.Messages;
  * @author Yann D'Isanto
  */
 @Messages({"ACTION_copyValueToClipboard=Copy value"})
-public final class CopyValueToClipboardAction extends CopyObjectToClipboardAction<Object> {
+public final class CopyValueToClipboardAction extends CopyObjectToClipboardAction<BsonValue> {
     
     private static final long serialVersionUID = 1L;
 
-    public CopyValueToClipboardAction(Object value) {
+    public CopyValueToClipboardAction(BsonValue value) {
         super(Bundle.ACTION_copyValueToClipboard(), value);
     }
 
     @Override
-    public StringSelection convertToStringSelection(Object object) {
-        return new StringSelection(convertToString(object));
-    }
-
-    private String convertToString(Object value) {
-        if (value instanceof Map) {
-            return JSON.serialize(new BasicDBObject((Map) value));
-        }
-        return value.toString();
+    public StringSelection convertToStringSelection(BsonValue value) {
+        return new StringSelection(Bsons.shell(value));
     }
 }

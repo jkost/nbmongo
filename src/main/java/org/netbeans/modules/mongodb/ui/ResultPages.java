@@ -20,7 +20,7 @@ package org.netbeans.modules.mongodb.ui;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.Getter;
-import org.bson.Document;
+import org.bson.BsonDocument;
 
 /**
  *
@@ -105,7 +105,7 @@ public final class ResultPages implements ResultCache.Listener {
         firePageChanged();
     }
 
-    public List<Document> getPageContent() {
+    public List<BsonDocument> getPageContent() {
         return cache.get(pageFirstElementOffset, pageSize);
     }
 
@@ -146,14 +146,14 @@ public final class ResultPages implements ResultCache.Listener {
 
     void firePageChanged() {
         int pageIndex = getPageIndex();
-        List<Document> page = getPageContent();
+        List<BsonDocument> page = getPageContent();
         for (ResultPagesListener listener : listeners) {
             listener.pageChanged(this, pageIndex, page);
         }
     }
 
     @Override
-    public void objectUpdated(int index, Document oldValue, Document newValue) {
+    public void objectUpdated(int index, BsonDocument oldValue, BsonDocument newValue) {
         for (ResultPagesListener listener : listeners) {
             listener.pageObjectUpdated(index, oldValue, newValue);
         }
@@ -161,8 +161,8 @@ public final class ResultPages implements ResultCache.Listener {
     
     public static interface ResultPagesListener {
 
-        void pageChanged(ResultPages source, int pageIndex, List<Document> page);
+        void pageChanged(ResultPages source, int pageIndex, List<BsonDocument> page);
         
-        void pageObjectUpdated(int index, Document oldValue, Document newValue);
+        void pageObjectUpdated(int index, BsonDocument oldValue, BsonDocument newValue);
     }
 }

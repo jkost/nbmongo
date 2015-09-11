@@ -19,9 +19,10 @@ package org.netbeans.modules.mongodb.indexes;
 
 import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
+import org.bson.BsonDocument;
 import org.bson.Document;
 import org.netbeans.modules.mongodb.indexes.Index.GlobalOptions;
-import org.netbeans.modules.mongodb.ui.util.JsonEditor;
+import org.netbeans.modules.mongodb.ui.util.BsonDocumentEditor;
 import org.openide.util.NbBundle.Messages;
 
 /**
@@ -227,7 +228,7 @@ public class GlobalOptionsPanel extends javax.swing.JPanel {
 
     private void editStorageEngineButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_editStorageEngineButtonActionPerformed
         String json = storageEngineField.getText().trim();
-        Document document = JsonEditor.show(Bundle.storageEngineEditorTitle(), json.isEmpty() ? null : Document.parse(json));
+        BsonDocument document = BsonDocumentEditor.show(Bundle.storageEngineEditorTitle(), json.isEmpty() ? null : BsonDocument.parse(json));
         if(document != null) {
             storageEngineField.setText(document.toJson());
         }

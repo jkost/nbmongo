@@ -17,11 +17,9 @@
  */
 package org.netbeans.modules.mongodb.ui.actions;
 
-import com.mongodb.BasicDBObject;
-import com.mongodb.util.JSON;
 import java.awt.datatransfer.StringSelection;
-import java.util.Map;
-import org.netbeans.modules.mongodb.util.JsonProperty;
+import org.netbeans.modules.mongodb.bson.Bsons;
+import org.netbeans.modules.mongodb.util.BsonProperty;
 import org.openide.util.NbBundle.Messages;
 
 /**
@@ -29,38 +27,25 @@ import org.openide.util.NbBundle.Messages;
  * @author Yann D'Isanto
  */
 @Messages({"ACTION_copyKeyValuePairToClipboard=Copy key/value pair"})
-public final class CopyKeyValuePairToClipboardAction extends CopyObjectToClipboardAction<JsonProperty> {
+public final class CopyKeyValuePairToClipboardAction extends CopyObjectToClipboardAction<BsonProperty> {
 
     private static final long serialVersionUID = 1L;
 
-    public CopyKeyValuePairToClipboardAction(JsonProperty property) {
+    public CopyKeyValuePairToClipboardAction(BsonProperty property) {
         super(Bundle.ACTION_copyKeyValuePairToClipboard(), property);
     }
 
     @Override
-    public StringSelection convertToStringSelection(JsonProperty property) {
+    public StringSelection convertToStringSelection(BsonProperty property) {
         return new StringSelection(convertToString(property));
     }
 
-    private String convertToString(JsonProperty property) {
+    private String convertToString(BsonProperty property) {
         StringBuilder sb = new StringBuilder();
         return sb
             .append(property.getName())
             .append(':')
-            .append(formatPropertyValue(property.getValue()))
+            .append(Bsons.shell(property.getValue()))
             .toString();
-    }
-    
-    private String formatPropertyValue(Object value) {
-        if (value instanceof Map) {
-            return JSON.serialize(new BasicDBObject((Map) value));
-        }
-        StringBuilder sb = new StringBuilder();
-        sb.append(value);
-        if(value instanceof String) {
-            sb.insert(0, '"');
-            sb.append('"');
-        }
-        return sb.toString();
     }
 }

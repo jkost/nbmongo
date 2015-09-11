@@ -39,7 +39,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
-import org.bson.Document;
+import org.bson.BsonDocument;
 import org.netbeans.api.editor.DialogBinding;
 import org.netbeans.modules.mongodb.ui.QueryHistory;
 import org.netbeans.modules.mongodb.ui.windows.QueryResultPanel.QueryResultWorkerFactory;
@@ -96,7 +96,7 @@ public final class MapReduceTopComponent extends TopComponent implements QueryRe
     public QueryResultWorker createWorker() {
         String map = epMap.getText();
         String reduce = epReduce.getText();
-        MongoCollection<Document> collection = getLookup().lookup(MongoCollection.class);
+        MongoCollection<BsonDocument> collection = getLookup().lookup(MongoCollection.class);
         queryHistory.add(new MapReduceHistoryItem(map, reduce));
         return new MapReduceWorker(
             collection, 

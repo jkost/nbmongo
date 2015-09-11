@@ -19,40 +19,35 @@ package org.netbeans.modules.mongodb.ui.windows.collectionview.treetable;
 
 import java.awt.Color;
 import java.awt.Component;
-import org.bson.Document;
+import org.jdesktop.swingx.JXTreeTable;
 import org.jdesktop.swingx.decorator.AbstractHighlighter;
 import org.jdesktop.swingx.decorator.ComponentAdapter;
 import org.jdesktop.swingx.decorator.HighlightPredicate;
-import org.netbeans.modules.mongodb.options.JsonCellRenderingOptions;
-import org.netbeans.modules.mongodb.options.LabelCategory;
 
 /**
  * Highlighter for document node row.
- * 
+ *
  * @author Yann D'Isanto
  */
-public final class DocumentTreeTableHighlighter extends AbstractHighlighter {
+public final class DocumentRootTreeTableHighlighter extends AbstractHighlighter {
 
-    public DocumentTreeTableHighlighter() {
+    public DocumentRootTreeTableHighlighter() {
         super(new HighlightPredicate() {
 
             @Override
             public boolean isHighlighted(Component renderer, ComponentAdapter adapter) {
-                final Object value = adapter.getValue();
-                if (value instanceof Document) {
-                    final Document document = (Document) value;
-                    return document.get("_id") != null;
-                }
-                return false;
+                return adapter.getDepth() == 1;
             }
         });
     }
 
     @Override
     protected Component doHighlight(Component component, ComponentAdapter adapter) {
-        final Color background = JsonCellRenderingOptions.INSTANCE
-            .getLabelFontConf(LabelCategory.DOCUMENT)
-            .getBackground();
+        JXTreeTable table = (JXTreeTable) adapter.getComponent();
+        adapter.isSelected();
+        Color background = adapter.isSelected()
+                ? table.getSelectionBackground()
+                : RenderingOptions.documentsRoot().getBackground();
         component.setBackground(background);
         return component;
     }

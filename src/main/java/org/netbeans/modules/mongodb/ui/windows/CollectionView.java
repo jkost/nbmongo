@@ -25,7 +25,8 @@ import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 import javax.swing.Action;
 import lombok.Getter;
-import org.bson.Document;
+import org.bson.BsonDocument;
+import org.bson.conversions.Bson;
 import org.netbeans.modules.mongodb.ConnectionInfo;
 import org.netbeans.modules.mongodb.resources.Images;
 import org.netbeans.modules.mongodb.ui.components.QueryEditor;
@@ -82,7 +83,7 @@ public final class CollectionView extends TopComponent implements QueryResultWor
         this(collectionInfo, lookup, null);
     }
     
-    public CollectionView(CollectionInfo collectionInfo, Lookup lookup, Document criteria) {
+    public CollectionView(CollectionInfo collectionInfo, Lookup lookup, BsonDocument criteria) {
         super(lookup);
         this.lookup = lookup;
         isSystemCollection = SystemCollectionPredicate.get().eval(collectionInfo.getName());
@@ -130,18 +131,18 @@ public final class CollectionView extends TopComponent implements QueryResultWor
     @Override
     @SuppressWarnings("unchecked")
     public QueryResultWorker createWorker() {
-        Document criteria = queryEditor.getCriteria();
-        Document projection = queryEditor.getProjection();
-        Document sort = queryEditor.getSort();
-        MongoCollection<Document> collection = lookup.lookup(MongoCollection.class);
+        Bson criteria = queryEditor.getCriteria();
+        Bson projection = queryEditor.getProjection();
+        Bson sort = queryEditor.getSort();
+        MongoCollection<BsonDocument> collection = lookup.lookup(MongoCollection.class);
         return new QueryWorker(getName(), collection, criteria, projection, sort, 200);
     }
     
 
     public void updateQueryFieldsFromEditor() {
-        Document criteria = queryEditor.getCriteria();
-        Document projection = queryEditor.getProjection();
-        Document sort = queryEditor.getSort();
+        BsonDocument criteria = queryEditor.getCriteria();
+        BsonDocument projection = queryEditor.getProjection();
+        BsonDocument sort = queryEditor.getSort();
         criteriaField.setText(criteria != null ? criteria.toJson() : "");
         projectionField.setText(projection != null ? projection.toJson() : "");
         sortField.setText(sort != null ? sort.toJson() : "");

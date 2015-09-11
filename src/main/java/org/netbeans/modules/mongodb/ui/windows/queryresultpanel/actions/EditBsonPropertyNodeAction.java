@@ -23,14 +23,14 @@ import com.mongodb.client.model.Filters;
 import java.awt.event.ActionEvent;
 import lombok.Getter;
 import lombok.Setter;
-import org.bson.Document;
+import org.bson.BsonDocument;
 import org.jdesktop.swingx.treetable.TreeTableNode;
+import org.netbeans.modules.mongodb.ui.util.BsonPropertyEditor;
 import org.netbeans.modules.mongodb.ui.util.DialogNotification;
-import org.netbeans.modules.mongodb.ui.util.JsonPropertyEditor;
 import org.netbeans.modules.mongodb.ui.windows.QueryResultPanel;
-import org.netbeans.modules.mongodb.ui.windows.collectionview.treetable.DocumentNode;
-import org.netbeans.modules.mongodb.ui.windows.collectionview.treetable.JsonPropertyNode;
-import org.netbeans.modules.mongodb.util.JsonProperty;
+import org.netbeans.modules.mongodb.ui.windows.collectionview.treetable.BsonPropertyNode;
+import org.netbeans.modules.mongodb.ui.windows.collectionview.treetable.RootNode;
+import org.netbeans.modules.mongodb.util.BsonProperty;
 import org.openide.util.NbBundle.Messages;
 
 /**
@@ -38,46 +38,46 @@ import org.openide.util.NbBundle.Messages;
  * @author Yann D'Isanto
  */
 @Messages({
-    "editJsonPropertyTitle=Edit json property",
-    "ACTION_editJsonProperty=Edit json property",
-    "ACTION_editJsonProperty_tooltip=Edit Selected JSON Property"
+    "ACTION_editBsonProperty=Edit this property",
+    "ACTION_editBsonProperty_tooltip=Edit this Property"
 })
-public final class EditJsonPropertyNodeAction extends QueryResultPanelAction {
+public final class EditBsonPropertyNodeAction extends QueryResultPanelAction {
 
     private static final long serialVersionUID = 1L;
 
     @Getter
     @Setter
-    private JsonPropertyNode propertyNode;
+    private BsonPropertyNode propertyNode;
 
-    public EditJsonPropertyNodeAction(QueryResultPanel resultPanel, JsonPropertyNode propertyNode) {
+    public EditBsonPropertyNodeAction(QueryResultPanel resultPanel, BsonPropertyNode propertyNode) {
         super(resultPanel,
-            Bundle.ACTION_editJsonProperty(),
+            Bundle.ACTION_editBsonProperty(),
             null,
-            Bundle.ACTION_editJsonProperty_tooltip());
+            Bundle.ACTION_editBsonProperty_tooltip());
         this.propertyNode = propertyNode;
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public void actionPerformed(ActionEvent e) {
-        JsonProperty property = propertyNode.getUserObject();
-        JsonProperty newProperty = JsonPropertyEditor.show(property);
+        BsonProperty property = propertyNode.getBsonProperty();
+        BsonProperty newProperty = BsonPropertyEditor.show(property);
         if (newProperty == null) {
             return;
         }
-        getResultPanel().getTreeTableModel().setUserObject(propertyNode, newProperty);
+        propertyNode.setPropertyName(newProperty.getName());
+        getResultPanel().getTreeTableModel().setUserObject(propertyNode, newProperty.getValue());
         TreeTableNode parentNode = propertyNode.getParent();
-        Document document = (Document) parentNode.getUserObject();
+        BsonDocument document = (BsonDocument) parentNode.getUserObject();
         if (newProperty.getName().equals(property.getName()) == false) {
             document.remove(property.getName());
         }
         document.put(newProperty.getName(), newProperty.getValue());
-        while ((parentNode instanceof DocumentNode) == false) {
+        while ((parentNode.getParent() instanceof RootNode) == false) {
             parentNode = parentNode.getParent();
         }
         try {
-            final MongoCollection<Document> collection = getResultPanel().getLookup().lookup(MongoCollection.class);
+            final MongoCollection<BsonDocument> collection = getResultPanel().getLookup().lookup(MongoCollection.class);
             collection.replaceOne(Filters.eq("_id", document.get("_id")), document);
             
         } catch (MongoException ex) {

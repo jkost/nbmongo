@@ -17,7 +17,6 @@
  */
 package org.netbeans.modules.mongodb.ui.components;
 
-import org.netbeans.modules.mongodb.util.Json;
 import java.awt.Dialog;
 import java.awt.Frame;
 import javax.swing.JDialog;
@@ -25,9 +24,10 @@ import javax.swing.JEditorPane;
 import javax.swing.JOptionPane;
 import javax.swing.text.EditorKit;
 import lombok.Getter;
-import org.bson.Document;
+import org.bson.BsonDocument;
 import org.bson.json.JsonParseException;
 import org.netbeans.api.editor.mimelookup.MimeLookup;
+import org.netbeans.modules.mongodb.bson.Bsons;
 import org.netbeans.modules.mongodb.ui.util.DialogNotification;
 import org.openide.util.NbBundle;
 import org.openide.windows.WindowManager;
@@ -49,13 +49,13 @@ public final class QueryEditor extends javax.swing.JPanel {
     private int dialogResult;
 
     @Getter
-    private Document criteria;
+    private BsonDocument criteria;
 
     @Getter
-    private Document projection;
+    private BsonDocument projection;
 
     @Getter
-    private Document sort;
+    private BsonDocument sort;
 
     /**
      * Creates new form QueryPanel
@@ -64,43 +64,40 @@ public final class QueryEditor extends javax.swing.JPanel {
         initComponents();
     }
 
-    public Document parseCriteria() throws JsonParseException {
+    public BsonDocument parseCriteria() throws JsonParseException {
         return getEditorValue(criteriaEditor);
     }
 
-    public void setCriteria(Document criteria) {
+    public void setCriteria(BsonDocument criteria) {
         setEditorValue(criteriaEditor, criteria);
         this.criteria = criteria;
     }
 
-    public Document parseProjection() throws JsonParseException {
+    public BsonDocument parseProjection() throws JsonParseException {
         return getEditorValue(projectionEditor);
     }
 
-    public void setProjection(Document projection) {
+    public void setProjection(BsonDocument projection) {
         setEditorValue(projectionEditor, projection);
         this.projection = projection;
     }
 
-    public Document parseSort() throws JsonParseException {
+    public BsonDocument parseSort() throws JsonParseException {
         return getEditorValue(sortEditor);
     }
 
-    public void setSort(Document sort) {
+    public void setSort(BsonDocument sort) {
         setEditorValue(sortEditor, sort);
         this.sort = sort;
     }
 
-    private Document getEditorValue(JEditorPane editor) throws JsonParseException {
+    private BsonDocument getEditorValue(JEditorPane editor) throws JsonParseException {
         final String json = editor.getText().trim();
-        return Document.parse(json);
+        return BsonDocument.parse(json);
     }
 
-    private void setEditorValue(JEditorPane editor, Document value) {
-        final String text = value != null
-                ? Json.prettify(value)
-                : "{}";
-        editor.setText(text);
+    private void setEditorValue(JEditorPane editor, BsonDocument value) {
+        editor.setText(Bsons.shellAndPretty(value != null ? value : new BsonDocument()));
     }
 
     public boolean validateInput() {

@@ -51,26 +51,27 @@ import javax.swing.text.PlainDocument;
 import javax.swing.tree.TreePath;
 import lombok.Getter;
 import lombok.Setter;
-import org.bson.Document;
-import org.bson.types.ObjectId;
-import org.jdesktop.swingx.treetable.TreeTableNode;
+import org.bson.BsonDocument;
+import org.bson.BsonValue;
 import org.netbeans.modules.mongodb.CollectionInfo;
 import org.netbeans.modules.mongodb.options.JsonCellRenderingOptions;
 import org.netbeans.modules.mongodb.options.LabelCategory;
 import org.netbeans.modules.mongodb.resources.Images;
 import org.netbeans.modules.mongodb.ui.util.IntegerDocumentFilter;
-import org.netbeans.modules.mongodb.ui.actions.CopyDocumentToClipboardAction;
+import org.netbeans.modules.mongodb.ui.actions.CopyFullDocumentToClipboardAction;
 import org.netbeans.modules.mongodb.ui.actions.CopyKeyToClipboardAction;
 import org.netbeans.modules.mongodb.ui.actions.CopyKeyValuePairToClipboardAction;
 import org.netbeans.modules.mongodb.ui.actions.CopyValueToClipboardAction;
-import org.netbeans.modules.mongodb.ui.util.JsonEditor;
+import org.netbeans.modules.mongodb.ui.util.BsonPropertyEditor;
+import static org.netbeans.modules.mongodb.ui.util.BsonPropertyEditor.isQuickEditableBsonValue;
+import org.netbeans.modules.mongodb.ui.util.BsonDocumentEditor;
 import org.netbeans.modules.mongodb.ui.windows.queryresultpanel.actions.AddDocumentAction;
 import org.netbeans.modules.mongodb.ui.windows.queryresultpanel.actions.ChangeResultViewAction;
 import org.netbeans.modules.mongodb.ui.windows.queryresultpanel.actions.CollapseAllDocumentsAction;
 import org.netbeans.modules.mongodb.ui.windows.queryresultpanel.actions.DeleteSelectedDocumentAction;
 import org.netbeans.modules.mongodb.ui.windows.queryresultpanel.actions.EditDocumentAction;
-import org.netbeans.modules.mongodb.ui.windows.queryresultpanel.actions.EditJsonPropertyNodeAction;
-import org.netbeans.modules.mongodb.ui.windows.queryresultpanel.actions.EditJsonValueNodeAction;
+import org.netbeans.modules.mongodb.ui.windows.queryresultpanel.actions.EditBsonPropertyNodeAction;
+import org.netbeans.modules.mongodb.ui.windows.queryresultpanel.actions.EditBsonValueNodeAction;
 import org.netbeans.modules.mongodb.ui.windows.queryresultpanel.actions.EditSelectedDocumentAction;
 import org.netbeans.modules.mongodb.ui.windows.queryresultpanel.actions.ExpandAllDocumentsAction;
 import org.netbeans.modules.mongodb.ui.windows.queryresultpanel.actions.ExportQueryResultAction;
@@ -81,15 +82,13 @@ import org.netbeans.modules.mongodb.ui.windows.queryresultpanel.actions.NavRight
 import org.netbeans.modules.mongodb.ui.windows.queryresultpanel.actions.RefreshDocumentsAction;
 import org.netbeans.modules.mongodb.ui.windows.collectionview.flattable.DocumentsFlatTableModel;
 import org.netbeans.modules.mongodb.ui.windows.collectionview.flattable.JsonFlatTableCellRenderer;
-import org.netbeans.modules.mongodb.ui.windows.collectionview.treetable.CollectionViewTreeTableNode;
-import org.netbeans.modules.mongodb.ui.windows.collectionview.treetable.DocumentNode;
-import org.netbeans.modules.mongodb.ui.windows.collectionview.treetable.DocumentTreeTableHighlighter;
+import org.netbeans.modules.mongodb.ui.windows.collectionview.treetable.BsonNodeRenderer;
+import org.netbeans.modules.mongodb.ui.windows.collectionview.treetable.BsonPropertyNode;
+import org.netbeans.modules.mongodb.ui.windows.collectionview.treetable.BsonValueNode;
+import org.netbeans.modules.mongodb.ui.windows.collectionview.treetable.DocumentRootTreeTableHighlighter;
 import org.netbeans.modules.mongodb.ui.windows.collectionview.treetable.DocumentsTreeTableModel;
-import org.netbeans.modules.mongodb.ui.windows.collectionview.treetable.JsonPropertyNode;
-import org.netbeans.modules.mongodb.ui.windows.collectionview.treetable.JsonTreeTableCellRenderer;
-import org.netbeans.modules.mongodb.ui.windows.collectionview.treetable.JsonValueNode;
-import org.netbeans.modules.mongodb.ui.windows.queryresultpanel.actions.FindWithJsonPropertyNodeAction;
-import org.netbeans.modules.mongodb.util.JsonProperty;
+import org.netbeans.modules.mongodb.ui.windows.queryresultpanel.actions.FindWithBsonPropertyNodeAction;
+import org.netbeans.modules.mongodb.util.BsonProperty;
 import org.openide.awt.NotificationDisplayer;
 import org.openide.util.Exceptions;
 import org.openide.util.Lookup;
@@ -162,13 +161,13 @@ public final class QueryResultPanel extends javax.swing.JPanel implements Result
         ResultPages.ResultPagesListener pagesListener = new ResultPages.ResultPagesListener() {
 
             @Override
-            public void pageChanged(ResultPages pages, int pageIndex, List<Document> page) {
+            public void pageChanged(ResultPages pages, int pageIndex, List<BsonDocument> page) {
                 updatePagination();
                 updateDocumentButtonsState();
             }
 
             @Override
-            public void pageObjectUpdated(int index, Document oldValue, Document newValue) {
+            public void pageObjectUpdated(int index, BsonDocument oldValue, BsonDocument newValue) {
             }
             
         };
@@ -185,7 +184,7 @@ public final class QueryResultPanel extends javax.swing.JPanel implements Result
         };
 
         resultFlatTable.setModel(flatTableModel);
-        resultFlatTable.setDefaultRenderer(Document.class, new JsonFlatTableCellRenderer());
+        resultFlatTable.setDefaultRenderer(BsonDocument.class, new JsonFlatTableCellRenderer());
         resultFlatTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         resultFlatTable.getSelectionModel().addListSelectionListener(tableSelectionListener);
         resultFlatTable.getColumnModel().addColumnModelListener(new TableColumnModelListener() {
@@ -221,8 +220,8 @@ public final class QueryResultPanel extends javax.swing.JPanel implements Result
         });
 
         resultTreeTable.setTreeTableModel(treeTableModel);
-        resultTreeTable.setTreeCellRenderer(new JsonTreeTableCellRenderer());
-        resultTreeTable.addHighlighter(new DocumentTreeTableHighlighter());
+        resultTreeTable.setTreeCellRenderer(new BsonNodeRenderer());
+        resultTreeTable.addHighlighter(new DocumentRootTreeTableHighlighter());
         resultTreeTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         resultTreeTable.getSelectionModel().addListSelectionListener(tableSelectionListener);
 
@@ -235,31 +234,31 @@ public final class QueryResultPanel extends javax.swing.JPanel implements Result
             public void mouseClicked(MouseEvent e) {
                 if (e.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(e)) {
                     final TreePath path = resultTreeTable.getPathForLocation(e.getX(), e.getY());
-                    final TreeTableNode node = (TreeTableNode) path.getLastPathComponent();
+                    final BsonValueNode node = (BsonValueNode) path.getLastPathComponent();
 
                     if ((e.getModifiersEx() & MouseEvent.CTRL_DOWN_MASK) == MouseEvent.CTRL_DOWN_MASK) {
-                        final DocumentNode documentNode = (DocumentNode) path.getPathComponent(1);
+                        final BsonValueNode documentRootNode = (BsonValueNode) path.getPathComponent(1);
                         if (readOnly) {
-                            JsonEditor.showReadOnly(
+                            BsonDocumentEditor.showReadOnly(
                                 Bundle.displayDocumentTitle(),
-                                documentNode.getUserObject());
+                                documentRootNode.getValue().asDocument());
                         } else {
-                            editDocumentAction.setDocument(documentNode.getUserObject());
+                            editDocumentAction.setDocument(documentRootNode.getValue().asDocument());
                             editDocumentAction.actionPerformed(null);
                         }
                     } else {
                         if (node.isLeaf()) {
                             if (readOnly == false) {
                                 dislayDocumentEditionShortcutHintIfNecessary();
-                                if (node instanceof JsonPropertyNode) {
-                                    JsonPropertyNode propertyNode = (JsonPropertyNode) node;
-                                    if (!(propertyNode.getUserObject().getValue() instanceof ObjectId)) {
-                                        editJsonPropertyNodeAction.setPropertyNode(propertyNode);
-                                        editJsonPropertyNodeAction.actionPerformed(null);
+                                if (node instanceof BsonPropertyNode) {
+                                    BsonPropertyNode propertyNode = (BsonPropertyNode) node;
+                                    if (BsonPropertyEditor.isQuickEditableBsonValue(propertyNode.getValue())) {
+                                        editBsonPropertyNodeAction.setPropertyNode(propertyNode);
+                                        editBsonPropertyNodeAction.actionPerformed(null);
                                     }
-                                } else if (node instanceof JsonValueNode) {
-                                    editJsonValueNodeAction.setValueNode((JsonValueNode) node);
-                                    editJsonValueNodeAction.actionPerformed(null);
+                                } else if (BsonPropertyEditor.isQuickEditableBsonValue(node.getValue())) {
+                                    editBsonValueNodeAction.setValueNode(node);
+                                    editBsonValueNodeAction.actionPerformed(null);
                                 }
                             }
                         } else {
@@ -275,7 +274,7 @@ public final class QueryResultPanel extends javax.swing.JPanel implements Result
 
             @Override
             public void mouseReleased(MouseEvent e) {
-                if (e.isPopupTrigger()) {
+                if(e.isPopupTrigger() || SwingUtilities.isRightMouseButton(e)) {
                     final TreePath path = resultTreeTable.getPathForLocation(e.getX(), e.getY());
                     if (path != null) {
                         final int row = resultTreeTable.getRowForPath(path);
@@ -350,7 +349,7 @@ public final class QueryResultPanel extends javax.swing.JPanel implements Result
         return resultViews.get(resultView).getPages();
     }
 
-    public Document getResultTableSelectedDocument() {
+    public BsonDocument getResultTableSelectedDocument() {
         final JTable table = getResultTable();
         int row = table.getSelectedRow();
         if (row == -1) {
@@ -361,8 +360,8 @@ public final class QueryResultPanel extends javax.swing.JPanel implements Result
                 return ((DocumentsFlatTableModel) resultFlatTable.getModel()).getRowValue(row);
             case TREE_TABLE:
                 final TreePath selectionPath = resultTreeTable.getPathForRow(row);
-                final DocumentNode documentNode = (DocumentNode) selectionPath.getPathComponent(1);
-                return documentNode.getUserObject();
+                final BsonValueNode documentRootNode = (BsonValueNode) selectionPath.getPathComponent(1);
+                return documentRootNode.getValue().asDocument();
             default:
                 throw new AssertionError();
         }
@@ -610,13 +609,13 @@ public final class QueryResultPanel extends javax.swing.JPanel implements Result
     private final Action editSelectedDocumentAction = new EditSelectedDocumentAction(this);
 
     @Getter
-    private final EditJsonPropertyNodeAction editJsonPropertyNodeAction = new EditJsonPropertyNodeAction(this, null);
+    private final EditBsonPropertyNodeAction editBsonPropertyNodeAction = new EditBsonPropertyNodeAction(this, null);
 
     @Getter
-    private final EditJsonValueNodeAction editJsonValueNodeAction = new EditJsonValueNodeAction(this, null);
+    private final EditBsonValueNodeAction editBsonValueNodeAction = new EditBsonValueNodeAction(this, null);
 
     @Getter
-    private final FindWithJsonPropertyNodeAction findWithJsonPropertyNodeAction = new FindWithJsonPropertyNodeAction(this, null);
+    private final FindWithBsonPropertyNodeAction findWithBsonPropertyNodeAction = new FindWithBsonPropertyNodeAction(this, null);
 
     @Getter
     private final Action refreshDocumentsAction = new RefreshDocumentsAction(this);
@@ -694,40 +693,34 @@ public final class QueryResultPanel extends javax.swing.JPanel implements Result
     private javax.swing.JToggleButton treeTableViewButton;
     // End of variables declaration//GEN-END:variables
 
-    public boolean isQuickEditableJsonValue(Object value) {
-        if (readOnly) {
-            return false;
-        }
-        return !(value instanceof Map || value instanceof List || value instanceof ObjectId);
-    }
-
     private JPopupMenu createTreeTableContextMenu(TreePath treePath) {
         final JPopupMenu menu = new JPopupMenu();
         if (treePath != null) {
-            final CollectionViewTreeTableNode node = (CollectionViewTreeTableNode) treePath.getLastPathComponent();
-            final DocumentNode documentNode = (DocumentNode) treePath.getPathComponent(1);
-            menu.add(new JMenuItem(new CopyDocumentToClipboardAction(documentNode.getUserObject())));
-            if (node != documentNode) {
-                if (node instanceof JsonPropertyNode) {
-                    JsonPropertyNode propertyNode = (JsonPropertyNode) node;
-                    JsonProperty property = propertyNode.getUserObject();
+            BsonValueNode selectedNode = (BsonValueNode) treePath.getLastPathComponent();
+            final BsonValueNode documentRootNode = (BsonValueNode) treePath.getPathComponent(1);
+            menu.add(new JMenuItem(new CopyFullDocumentToClipboardAction(documentRootNode.getValue().asDocument())));
+            if (selectedNode != documentRootNode) {
+                if (selectedNode instanceof BsonPropertyNode) {
+                    BsonPropertyNode propertyNode = (BsonPropertyNode) selectedNode;
+                    BsonProperty property = propertyNode.getBsonProperty();
+                    
                     if(lookup.lookup(CollectionInfo.class) != null) {
-                        findWithJsonPropertyNodeAction.setPropertyNode(propertyNode);
-                        menu.add(new JMenuItem(findWithJsonPropertyNodeAction));
+                        findWithBsonPropertyNodeAction.setPropertyNode(propertyNode);
+                        menu.add(new JMenuItem(findWithBsonPropertyNodeAction));
                     }
                     menu.add(new JMenuItem(new CopyKeyValuePairToClipboardAction(property)));
                     menu.add(new JMenuItem(new CopyKeyToClipboardAction(property)));
                     menu.add(new JMenuItem(new CopyValueToClipboardAction(property.getValue())));
-                    if (isQuickEditableJsonValue(property.getValue())) {
-                        editJsonPropertyNodeAction.setPropertyNode(propertyNode);
-                        menu.add(new JMenuItem(editJsonPropertyNodeAction));
+                    if (isQuickEditableBsonValue(property.getValue())) {
+                        editBsonPropertyNodeAction.setPropertyNode(propertyNode);
+                        menu.add(new JMenuItem(editBsonPropertyNodeAction));
                     }
                 } else {
-                    Object value = node.getUserObject();
+                    BsonValue value = selectedNode.getValue();
                     menu.add(new JMenuItem(new CopyValueToClipboardAction(value)));
-                    if (isQuickEditableJsonValue(value)) {
-                        editJsonValueNodeAction.setValueNode((JsonValueNode) node);
-                        menu.add(new JMenuItem(editJsonValueNodeAction));
+                    if (isQuickEditableBsonValue(value)) {
+                        editBsonValueNodeAction.setValueNode((BsonValueNode) selectedNode);
+                        menu.add(new JMenuItem(editBsonValueNodeAction));
                     }
                 }
             }
@@ -745,10 +738,10 @@ public final class QueryResultPanel extends javax.swing.JPanel implements Result
 
     private JPopupMenu createFlatTableContextMenu(int row, int column) {
         final JPopupMenu menu = new JPopupMenu();
-        final Document document = getFlatTablePages().getPageContent().get(row);
-        menu.add(new JMenuItem(new CopyDocumentToClipboardAction(document)));
+        final BsonDocument document = getFlatTablePages().getPageContent().get(row);
+        menu.add(new JMenuItem(new CopyFullDocumentToClipboardAction(document)));
         final DocumentsFlatTableModel model = (DocumentsFlatTableModel) resultFlatTable.getModel();
-        final JsonProperty property = new JsonProperty(
+        final BsonProperty property = new BsonProperty(
             model.getColumnName(column),
             model.getValueAt(row, column));
         menu.add(new JMenuItem(new CopyKeyValuePairToClipboardAction(property)));

@@ -27,7 +27,8 @@ import java.util.Set;
 import javax.swing.SwingUtilities;
 import javax.swing.table.AbstractTableModel;
 import lombok.Getter;
-import org.bson.Document;
+import org.bson.BsonDocument;
+import org.bson.BsonValue;
 
 /**
  *
@@ -55,7 +56,7 @@ public final class DocumentsFlatTableModel extends AbstractTableModel implements
         // update columns if necessary
         boolean columnsChanged = false;
         if (pages != null) {
-            for (Document document : pages.getPageContent()) {
+            for (BsonDocument document : pages.getPageContent()) {
                 columnsChanged |= updatedColumns.addAll(document.keySet());
             }
         }
@@ -97,7 +98,7 @@ public final class DocumentsFlatTableModel extends AbstractTableModel implements
 
     @Override
     public Class<?> getColumnClass(int columnIndex) {
-        return Document.class;
+        return BsonDocument.class;
     }
 
     @Override
@@ -106,8 +107,8 @@ public final class DocumentsFlatTableModel extends AbstractTableModel implements
     }
 
     @Override
-    public Object getValueAt(int rowIndex, int columnIndex) {
-        final Document document = getRowValue(rowIndex);
+    public BsonValue getValueAt(int rowIndex, int columnIndex) {
+        final BsonDocument document = getRowValue(rowIndex);
         if (document == null) {
             return null;
         }
@@ -119,7 +120,7 @@ public final class DocumentsFlatTableModel extends AbstractTableModel implements
         return false;
     }
 
-    public Document getRowValue(int rowIndex) {
+    public BsonDocument getRowValue(int rowIndex) {
         if (rowIndex == -1) {
             return null;
         }
@@ -127,12 +128,12 @@ public final class DocumentsFlatTableModel extends AbstractTableModel implements
     }
 
     @Override
-    public void pageChanged(ResultPages source, int pageIndex, List<Document> page) {
+    public void pageChanged(ResultPages source, int pageIndex, List<BsonDocument> page) {
         buildFromPage();
     }
 
     @Override
-    public void pageObjectUpdated(int index, Document oldValue, Document newValue) {
+    public void pageObjectUpdated(int index, BsonDocument oldValue, BsonDocument newValue) {
         fireTableRowsUpdated(index, index);
     }
     

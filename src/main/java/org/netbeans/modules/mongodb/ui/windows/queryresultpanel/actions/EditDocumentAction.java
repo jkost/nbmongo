@@ -19,15 +19,16 @@ package org.netbeans.modules.mongodb.ui.windows.queryresultpanel.actions;
 
 import com.mongodb.MongoException;
 import com.mongodb.client.MongoCollection;
-import com.mongodb.client.model.Filters;
+import static com.mongodb.client.model.Filters.eq;
 import java.awt.event.ActionEvent;
 import javax.swing.ImageIcon;
 import lombok.Getter;
 import lombok.Setter;
-import org.bson.Document;
+import org.bson.BsonDocument;
+import org.bson.BsonValue;
 import org.netbeans.modules.mongodb.resources.Images;
 import org.netbeans.modules.mongodb.ui.util.DialogNotification;
-import org.netbeans.modules.mongodb.ui.util.JsonEditor;
+import org.netbeans.modules.mongodb.ui.util.BsonDocumentEditor;
 import org.netbeans.modules.mongodb.ui.windows.QueryResultPanel;
 import org.openide.util.NbBundle.Messages;
 
@@ -46,7 +47,7 @@ public class EditDocumentAction extends QueryResultPanelAction {
 
     @Getter
     @Setter
-    private Document document;
+    private BsonDocument document;
 
     public EditDocumentAction(QueryResultPanel resultPanel) {
         super(resultPanel,
@@ -61,13 +62,14 @@ public class EditDocumentAction extends QueryResultPanelAction {
         if (document == null) {
             return;
         }
-        final Document modifiedDocument = JsonEditor.show(
+        BsonValue id = document.get("_id");
+        final BsonDocument modifiedDocument = BsonDocumentEditor.show(
                 Bundle.editDocumentTitle(),
                 document);
         if (modifiedDocument != null) {
             try {
-                MongoCollection<Document> collection = getResultPanel().getLookup().lookup(MongoCollection.class);
-                collection.replaceOne(Filters.eq("_id", document.get("_id")), document);
+                MongoCollection<BsonDocument> collection = getResultPanel().getLookup().lookup(MongoCollection.class);
+                collection.replaceOne(eq("_id", id), modifiedDocument);
                 getResultPanel().getResultCache().editObject(document, modifiedDocument);
             } catch (MongoException ex) {
                 DialogNotification.error(ex);

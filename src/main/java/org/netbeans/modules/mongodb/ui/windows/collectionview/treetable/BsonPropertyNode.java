@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2015 Yann D'Isanto
  *
  * This program is free software; you can redistribute it and/or
@@ -15,34 +15,29 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-package org.netbeans.modules.mongodb.util;
+package org.netbeans.modules.mongodb.ui.windows.collectionview.treetable;
 
-import org.bson.Document;
+import lombok.Getter;
+import lombok.Setter;
+import org.bson.BsonValue;
+import org.netbeans.modules.mongodb.util.BsonProperty;
 
 /**
  *
  * @author Yann D'Isanto
  */
-public final class JsonProperty {
+public class BsonPropertyNode extends BsonValueNode {
 
-    private final String name;
-
-    private final Object value;
-
-    public JsonProperty(String name, Object value) {
-        this.name = name;
-        this.value = value;
+    @Getter
+    @Setter
+    private String propertyName;
+    
+    public BsonPropertyNode(String propertyName, BsonValue value) {
+        super(value);
+        this.propertyName = propertyName;
     }
-
-    public String getName() {
-        return name;
-    }
-
-    public Object getValue() {
-        return value;
-    }
-
-    public Document asDocument() {
-        return new Document(name, value);
+    
+    public BsonProperty getBsonProperty() {
+        return new BsonProperty(propertyName, getValue());
     }
 }

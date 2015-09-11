@@ -21,10 +21,10 @@ import com.mongodb.MongoException;
 import com.mongodb.client.MongoCollection;
 import java.awt.event.ActionEvent;
 import javax.swing.ImageIcon;
-import org.bson.Document;
+import org.bson.BsonDocument;
 import org.netbeans.modules.mongodb.resources.Images;
 import org.netbeans.modules.mongodb.ui.util.DialogNotification;
-import org.netbeans.modules.mongodb.ui.util.JsonEditor;
+import org.netbeans.modules.mongodb.ui.util.BsonDocumentEditor;
 import org.netbeans.modules.mongodb.ui.windows.QueryResultPanel;
 import org.openide.util.NbBundle.Messages;
 
@@ -51,12 +51,12 @@ public final class AddDocumentAction extends QueryResultPanelAction {
     @Override
     @SuppressWarnings("unchecked")
     public void actionPerformed(ActionEvent e) {
-        final Document document = JsonEditor.show(
+        final BsonDocument document = BsonDocumentEditor.show(
             Bundle.addDocumentTitle(), 
             null);
         if (document != null) {
             try {
-                MongoCollection<Document> dbCollection = getResultPanel().getLookup().lookup(MongoCollection.class);
+                MongoCollection<BsonDocument> dbCollection = getResultPanel().getLookup().lookup(MongoCollection.class);
                 dbCollection.insertOne(document);
                 getResultPanel().refreshResults();
             } catch (MongoException ex) {

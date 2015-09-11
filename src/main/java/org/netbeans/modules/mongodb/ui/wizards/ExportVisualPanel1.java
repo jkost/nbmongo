@@ -23,7 +23,7 @@ import java.awt.event.ActionListener;
 import javax.swing.JComboBox;
 import javax.swing.JPanel;
 import javax.swing.event.ChangeListener;
-import org.bson.Document;
+import org.bson.BsonDocument;
 import org.netbeans.modules.mongodb.ui.components.QueryEditor;
 import org.openide.util.ChangeSupport;
 import org.openide.util.NbBundle.Messages;
@@ -63,9 +63,9 @@ public final class ExportVisualPanel1 extends JPanel {
     }
 
     void updateQueryFieldsFromEditor() {
-        final Document criteria = queryEditor.getCriteria();
-        final Document projection = queryEditor.getProjection();
-        final Document sort = queryEditor.getSort();
+        final BsonDocument criteria = queryEditor.getCriteria();
+        final BsonDocument projection = queryEditor.getProjection();
+        final BsonDocument sort = queryEditor.getSort();
         criteriaField.setText(criteria != null ? criteria.toJson() : "");
         projectionField.setText(projection != null ? projection.toJson() : "");
         sortField.setText(sort != null ? sort.toJson() : "");
