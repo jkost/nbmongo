@@ -27,14 +27,23 @@ import com.mongodb.util.JSON;
  */
 public final class Json {
 
+    private static final String SYSTEM_LINE_SEPARATOR = System.getProperty("line.separator");
+    
     public static String prettify(DBObject dbObject) {
-        return prettify(JSON.serialize(dbObject));
+        return fixLineSeparator(prettify(JSON.serialize(dbObject)));
     }
     
     public static String prettify(String json) {
-        return JsonWriter.formatJson(json);
+        return fixLineSeparator(JsonWriter.formatJson(json));
     }
 
+    private static String fixLineSeparator(String string) {
+        if("\n".equals(SYSTEM_LINE_SEPARATOR)) {
+            return string;
+        }
+        return string.replace(SYSTEM_LINE_SEPARATOR, "\n");
+    }
+    
     private Json() {
     }
 }
