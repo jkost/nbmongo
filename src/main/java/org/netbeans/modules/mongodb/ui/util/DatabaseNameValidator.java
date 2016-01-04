@@ -17,6 +17,9 @@
  */
 package org.netbeans.modules.mongodb.ui.util;
 
+import com.mongodb.MongoClient;
+import static java.util.Collections.emptyList;
+import java.util.List;
 import org.netbeans.modules.mongodb.MongoConnection;
 import org.openide.util.Lookup;
 
@@ -53,12 +56,22 @@ public final class DatabaseNameValidator implements ValidatingInputLine.InputVal
                     Bundle.VALIDATION_forbidden_character(character));
             }
         }
-        MongoConnection connection = lookup.lookup(MongoConnection.class);
-        for (String dbName : connection.getClient().getDatabaseNames()) {
+        for (String dbName : databaseNames()) {
             if (dbName.equalsIgnoreCase(value)) {
                 throw new IllegalArgumentException(
                     Bundle.VALIDATION_exists("database", value));
             }
         }
+    }
+    
+    private List<String> databaseNames() {
+        MongoConnection connection = lookup.lookup(MongoConnection.class);
+        if(connection != null) {
+            MongoClient client = connection.getClient();
+            if(client != null) {
+                return client.getDatabaseNames();
+            }
+        }
+        return emptyList();
     }
 }
