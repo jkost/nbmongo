@@ -64,9 +64,9 @@ import org.bson.types.ObjectId;
 public final class Bsons {
 
     private static final JsonWriterSettings shell = new JsonWriterSettings(JsonMode.SHELL, false);
-    private static final JsonWriterSettings shellAndPretty = new JsonWriterSettings(JsonMode.SHELL, true);
+    private static final JsonWriterSettings shellAndPretty = new JsonWriterSettings(JsonMode.SHELL, "  ", "\n");
     private static final JsonWriterSettings strict = new JsonWriterSettings(JsonMode.STRICT, false);
-    private static final JsonWriterSettings strictAndPretty = new JsonWriterSettings(JsonMode.STRICT, true);
+    private static final JsonWriterSettings strictAndPretty = new JsonWriterSettings(JsonMode.STRICT, "  ", "\n");
 
     public static String shell(BsonValue value) {
         return toJson(value, shell);
