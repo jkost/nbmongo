@@ -54,7 +54,7 @@ public final class MongoClientURIPropertyEditor extends PropertyEditorSupport im
 
     @Override
     public void setAsText(String uri) throws IllegalArgumentException {
-        setValue(new MongoClientURI(uri));
+        setValue(new MongoClientURI(uri.trim()));
     }
 
     @Override

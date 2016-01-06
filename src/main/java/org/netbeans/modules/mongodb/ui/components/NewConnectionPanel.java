@@ -66,7 +66,7 @@ public class NewConnectionPanel extends ValidablePanel implements DocumentListen
     }
 
     public MongoClientURI getMongoURI() {
-        return new MongoClientURI(uriField.getText());
+        return new MongoClientURI(uriField.getText().trim());
     }
 
     @Override
@@ -90,7 +90,7 @@ public class NewConnectionPanel extends ValidablePanel implements DocumentListen
             return Bundle.ConnectionNameNotSet();
         }
         try {
-            lastValidURI = new MongoClientURI(uriField.getText());
+            lastValidURI = new MongoClientURI(uriField.getText().trim());
         } catch (IllegalArgumentException ex) {
             return ex.getLocalizedMessage();
         }

@@ -118,7 +118,7 @@ public final class MongoURIEditorPanel extends javax.swing.JPanel {
                     uriUserInput = true;
                 }
                 try {
-                    setMongoURI(new MongoClientURI(uriField.getText()));
+                    setMongoURI(new MongoClientURI(uriField.getText().trim()));
                 } catch (IllegalArgumentException ex) {
                     error(ex.getLocalizedMessage());
                 }
@@ -182,7 +182,7 @@ public final class MongoURIEditorPanel extends javax.swing.JPanel {
     }
 
     public MongoClientURI getMongoURI() {
-        return new MongoClientURI(uriField.getText());
+        return new MongoClientURI(uriField.getText().trim());
     }
 
     private String computeMongoURIString() {
@@ -190,7 +190,7 @@ public final class MongoURIEditorPanel extends javax.swing.JPanel {
             .append(encodeCredentials())
             .append(encodeHosts())
             .append(encodeDatabaseWithOptions());
-        return sb.toString();
+        return sb.toString().trim();
     }
 
     private String encodeCredentials() {

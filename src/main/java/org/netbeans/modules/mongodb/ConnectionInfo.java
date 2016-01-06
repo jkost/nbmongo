@@ -102,7 +102,7 @@ public final class ConnectionInfo implements Comparable<ConnectionInfo>, AutoClo
     }
 
     public MongoClientURI getMongoURI() {
-        return new MongoClientURI(node.get(PREFS_KEY_URI, DEFAULT_URI));
+        return new MongoClientURI(node.get(PREFS_KEY_URI, DEFAULT_URI).trim());
     }
     
     public void setMongoURI(MongoClientURI uri) {
