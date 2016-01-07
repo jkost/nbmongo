@@ -15,7 +15,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-package org.netbeans.modules.mongodb.ui.windows.queryresultpanel.actions;
+package org.netbeans.modules.mongodb.ui.components.result_panel.actions;
 
 import java.awt.event.ActionEvent;
 import java.util.HashMap;
@@ -25,8 +25,8 @@ import org.netbeans.modules.mongodb.CollectionInfo;
 import org.netbeans.modules.mongodb.resources.Images;
 import org.netbeans.modules.mongodb.ui.components.QueryEditor;
 import org.netbeans.modules.mongodb.ui.windows.CollectionView;
-import org.netbeans.modules.mongodb.ui.windows.QueryResultPanel;
-import org.netbeans.modules.mongodb.ui.windows.QueryResultPanel.QueryResultWorkerFactory;
+import org.netbeans.modules.mongodb.ui.components.CollectionResultPanel;
+//import org.netbeans.modules.mongodb.ui.windows.CollectionResultPanel.QueryResultWorkerFactory;
 import org.netbeans.modules.mongodb.ui.wizards.ExportWizardAction;
 import org.openide.util.Lookup;
 import org.openide.util.NbBundle.Messages;
@@ -45,7 +45,7 @@ public final class ExportQueryResultAction extends QueryResultPanelAction {
 
 //    private final QueryEditor queryEditor;
     
-    public ExportQueryResultAction(QueryResultPanel resultPanel) {
+    public ExportQueryResultAction(CollectionResultPanel resultPanel) {
         super(resultPanel,
             Bundle.ACTION_exportQueryResult(),
             new ImageIcon(Images.EXPORT_COLLECTION_ICON),
@@ -57,6 +57,7 @@ public final class ExportQueryResultAction extends QueryResultPanelAction {
 //            queryEditor = null;
 //            setEnabled(false);
 //        }
+            setEnabled(false);
     }
 
     @Override
@@ -69,5 +70,6 @@ public final class ExportQueryResultAction extends QueryResultPanelAction {
 //        properties.put("projection", queryEditor.getProjection());
 //        properties.put("sort", queryEditor.getSort());
 //        new ExportWizardAction(lookup, properties).actionPerformed(e);
+        
     }
 }

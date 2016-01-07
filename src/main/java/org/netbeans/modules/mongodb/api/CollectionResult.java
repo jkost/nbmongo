@@ -1,5 +1,5 @@
-/* 
- * Copyright (C) 2015 Yann D'Isanto
+/*
+ * Copyright (C) 2016 Yann D'Isanto
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -15,32 +15,33 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-package org.netbeans.modules.mongodb.ui.windows.collectionview.actions;
+package org.netbeans.modules.mongodb.api;
 
-import java.awt.event.ActionEvent;
-import org.netbeans.modules.mongodb.ui.windows.CollectionView;
-import org.openide.util.NbBundle.Messages;
+import static java.util.Collections.emptyList;
+import java.util.List;
+import org.bson.BsonDocument;
 
 /**
  *
  * @author Yann D'Isanto
  */
-@Messages({
-    "ACTION_editQuery=edit"
-})
-public final class EditQueryAction extends CollectionViewAction {
+public interface CollectionResult {
+    
+    long getTotalElementsCount();
+    
+    List<BsonDocument> get(long offset, int count);
+    
+    
+    CollectionResult EMPTY = new CollectionResult() {
 
-    private static final long serialVersionUID = 1L;
-
-    public EditQueryAction(CollectionView view) {
-        super(view,
-            Bundle.ACTION_editQuery());
-    }
-
-    @Override
-    public void actionPerformed(ActionEvent e) {
-        if (getView().getQueryEditor().showDialog()) {
-            getView().updateQueryFieldsFromEditor();
+        @Override
+        public long getTotalElementsCount() {
+            return 0;
         }
-    }
+
+        @Override
+        public List<BsonDocument> get(long offset, int count) {
+            return emptyList();
+        }
+    };
 }

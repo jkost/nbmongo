@@ -15,12 +15,8 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-package org.netbeans.modules.mongodb.ui.windows;
+package org.netbeans.modules.mongodb.ui.components;
 
-import org.netbeans.modules.mongodb.ui.QueryResultWorker;
-import org.netbeans.modules.mongodb.ui.ResultCache;
-import org.netbeans.modules.mongodb.ui.ResultDisplayer;
-import org.netbeans.modules.mongodb.ui.ResultPages;
 import java.awt.CardLayout;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
@@ -54,56 +50,53 @@ import lombok.Setter;
 import org.bson.BsonDocument;
 import org.bson.BsonValue;
 import org.netbeans.modules.mongodb.CollectionInfo;
+import org.netbeans.modules.mongodb.api.CollectionResult;
 import org.netbeans.modules.mongodb.api.CollectionResultPages;
 import org.netbeans.modules.mongodb.options.JsonCellRenderingOptions;
 import org.netbeans.modules.mongodb.options.LabelCategory;
 import org.netbeans.modules.mongodb.resources.Images;
 import org.netbeans.modules.mongodb.ui.util.IntegerDocumentFilter;
-import org.netbeans.modules.mongodb.ui.actions.CopyFullDocumentToClipboardAction;
-import org.netbeans.modules.mongodb.ui.actions.CopyKeyToClipboardAction;
-import org.netbeans.modules.mongodb.ui.actions.CopyKeyValuePairToClipboardAction;
-import org.netbeans.modules.mongodb.ui.actions.CopyValueToClipboardAction;
+import org.netbeans.modules.mongodb.ui.actions.*;
+import org.netbeans.modules.mongodb.ui.components.result_panel.views.flattable.DocumentsFlatTableModel;
+import org.netbeans.modules.mongodb.ui.components.result_panel.views.treetable.DocumentsTreeTableModel;
 import org.netbeans.modules.mongodb.ui.util.BsonPropertyEditor;
 import static org.netbeans.modules.mongodb.ui.util.BsonPropertyEditor.isQuickEditableBsonValue;
 import org.netbeans.modules.mongodb.ui.util.BsonDocumentEditor;
-import org.netbeans.modules.mongodb.ui.windows.queryresultpanel.actions.AddDocumentAction;
-import org.netbeans.modules.mongodb.ui.windows.queryresultpanel.actions.ChangeResultViewAction;
-import org.netbeans.modules.mongodb.ui.windows.queryresultpanel.actions.CollapseAllDocumentsAction;
-import org.netbeans.modules.mongodb.ui.windows.queryresultpanel.actions.DeleteSelectedDocumentAction;
-import org.netbeans.modules.mongodb.ui.windows.queryresultpanel.actions.EditDocumentAction;
-import org.netbeans.modules.mongodb.ui.windows.queryresultpanel.actions.EditBsonPropertyNodeAction;
-import org.netbeans.modules.mongodb.ui.windows.queryresultpanel.actions.EditBsonValueNodeAction;
-import org.netbeans.modules.mongodb.ui.windows.queryresultpanel.actions.EditSelectedDocumentAction;
-import org.netbeans.modules.mongodb.ui.windows.queryresultpanel.actions.ExpandAllDocumentsAction;
-import org.netbeans.modules.mongodb.ui.windows.queryresultpanel.actions.ExportQueryResultAction;
-import org.netbeans.modules.mongodb.ui.windows.queryresultpanel.actions.NavFirstAction;
-import org.netbeans.modules.mongodb.ui.windows.queryresultpanel.actions.NavLastAction;
-import org.netbeans.modules.mongodb.ui.windows.queryresultpanel.actions.NavLeftAction;
-import org.netbeans.modules.mongodb.ui.windows.queryresultpanel.actions.NavRightAction;
-import org.netbeans.modules.mongodb.ui.windows.queryresultpanel.actions.RefreshDocumentsAction;
-import org.netbeans.modules.mongodb.ui.windows.collectionview.flattable.DocumentsFlatTableModel;
+import org.netbeans.modules.mongodb.ui.components.result_panel.actions.*;
 import org.netbeans.modules.mongodb.ui.windows.collectionview.flattable.JsonFlatTableCellRenderer;
 import org.netbeans.modules.mongodb.ui.windows.collectionview.treetable.BsonNodeRenderer;
 import org.netbeans.modules.mongodb.ui.windows.collectionview.treetable.BsonPropertyNode;
 import org.netbeans.modules.mongodb.ui.windows.collectionview.treetable.BsonValueNode;
 import org.netbeans.modules.mongodb.ui.windows.collectionview.treetable.DocumentRootTreeTableHighlighter;
-import org.netbeans.modules.mongodb.ui.windows.collectionview.treetable.DocumentsTreeTableModel;
-import org.netbeans.modules.mongodb.ui.windows.queryresultpanel.actions.FindWithBsonPropertyNodeAction;
 import org.netbeans.modules.mongodb.util.BsonProperty;
 import org.openide.awt.NotificationDisplayer;
 import org.openide.util.Exceptions;
 import org.openide.util.Lookup;
 import org.openide.util.NbBundle.Messages;
 import org.openide.util.NbPreferences;
+import org.openide.util.RequestProcessor;
 
 /**
  *
  * @author Yann D'Isanto
  */
 @Messages({
-    "displayDocumentTitle=Display document"
+    "displayDocumentTitle=Display document",
+    "invalidJson=invalid json",
+    "# {0} - total documents count",
+    "totalDocuments=Total Documents: {0}      ",
+    "# {0} - current page",
+    "# {1} - total page count",
+    "pageCountLabel=Page {0} of {1}",
+    "# {0} - collection namespace",
+    "collectionViewTitle={0}",
+    "# {0} - connection name",
+    "# {1} - view title",
+    "collectionViewTooltip={0}: {1}",
+    "documentEditionShortcutHintTitle=Use CTRL + doubleclick to edit full document",
+    "documentEditionShortcutHintDetails=Click here or use shortcut so this message won't show again."
 })
-public final class QueryResultPanel extends javax.swing.JPanel implements ResultDisplayer {
+public final class CollectionResultPanel extends javax.swing.JPanel {
 
     private static final long serialVersionUID = 1L;
 
@@ -112,14 +105,11 @@ public final class QueryResultPanel extends javax.swing.JPanel implements Result
     @Getter
     private final Lookup lookup;
 
-    @Getter
-    private final QueryResultWorkerFactory queryResultWorkerFactory;
-
     private final Map<ResultView, JToggleButton> resultViewButtons = new EnumMap<>(ResultView.class);
 
     private ResultView resultView = DEFAULT_RESULT_VIEW;
 
-    private final Map<ResultView, ResultDisplayer.View> resultViews = new EnumMap<>(ResultView.class);
+    private final Map<ResultView, View> resultViews = new EnumMap<>(ResultView.class);
 
     @Getter
     private final DocumentsTreeTableModel treeTableModel;
@@ -130,20 +120,48 @@ public final class QueryResultPanel extends javax.swing.JPanel implements Result
     @Getter
     @Setter
     private boolean displayDocumentEditionShortcutHint = true;
-
-    @Getter
-    @Setter
-    private ResultCache resultCache = ResultCache.EMPTY;
+    
     
     @Getter
     private final boolean readOnly;
 
+    private CollectionResult currentResult;
+    
+    private final Runnable resultRefresh = new Runnable() {
+
+        @Override
+        public void run() {
+            getResultPages().refresh();
+        }
+    };
+    
+    private final Runnable resultUpdate = new Runnable() {
+
+        @Override
+        public void run() {
+            getResultPages().setQueryResult(currentResult);
+        }
+    };
+    private final CollectionResultPages.Listener pagesListener = new CollectionResultPages.Listener() {
+
+        @Override
+        public void pageChanged(CollectionResultPages pages, int pageIndex, List<BsonDocument> page) {
+            updatePagination();
+            updateDocumentButtonsState();
+        }
+
+        @Override
+        public void pageObjectUpdated(int index, BsonDocument oldValue, BsonDocument newValue) {
+        }
+
+    };
+    
     /**
      * Creates new form QueryResultPanel
      */
-    public QueryResultPanel(Lookup lookup, QueryResultWorkerFactory queryResultWorkerFactory, final boolean readOnly) {
+    public CollectionResultPanel(Lookup lookup, final boolean readOnly) {
         this.lookup = lookup;
-        this.queryResultWorkerFactory = queryResultWorkerFactory;
+//        this.queryResultWorkerFactory = queryResultWorkerFactory;
         this.readOnly = readOnly;
         initComponents();
 
@@ -154,25 +172,13 @@ public final class QueryResultPanel extends javax.swing.JPanel implements Result
         resultViewButtons.put(ResultView.FLAT_TABLE, flatTableViewButton);
         resultViewButtons.put(ResultView.TREE_TABLE, treeTableViewButton);
 
-        treeTableModel = new DocumentsTreeTableModel(new ResultPages(resultCache, 20));
-        flatTableModel = new DocumentsFlatTableModel(new ResultPages(resultCache, 20));
+        int pageSize = 20; // TODO: store/load from pref
+        currentResult = CollectionResult.EMPTY;
+            
+        treeTableModel = new DocumentsTreeTableModel(new CollectionResultPages(currentResult, pageSize));
+        flatTableModel = new DocumentsFlatTableModel(new CollectionResultPages(currentResult, pageSize));
         resultViews.put(ResultView.TREE_TABLE, treeTableModel);
         resultViews.put(ResultView.FLAT_TABLE, flatTableModel);
-
-        ResultPages.ResultPagesListener pagesListener = new ResultPages.ResultPagesListener() {
-
-            @Override
-            public void pageChanged(ResultPages pages, int pageIndex, List<BsonDocument> page) {
-                updatePagination();
-                updateDocumentButtonsState();
-            }
-
-            @Override
-            public void pageObjectUpdated(int index, BsonDocument oldValue, BsonDocument newValue) {
-            }
-            
-        };
-        getTreeTablePages().addResultPagesListener(pagesListener);
 
         final ListSelectionListener tableSelectionListener = new ListSelectionListener() {
 
@@ -310,21 +316,26 @@ public final class QueryResultPanel extends javax.swing.JPanel implements Result
             }
 
         });
-        updatePagination();
-        updateDocumentButtonsState();
+        getResultPages().addListener(pagesListener);
+//        updatePagination();
+//        updateDocumentButtonsState();
     }
 
+    
+    public void setResult(CollectionResult result) {
+        currentResult = result;
+//        updateResultDisplayWorker.execute();
+        RequestProcessor.getDefault().post(resultUpdate); 
+    }
+    
     public void refreshResults() {
-        QueryResultWorker worker = queryResultWorkerFactory.createWorker();
-        worker.execute();
-        worker.setResultDisplayer(this);
+//        refreshResultDisplayWorker.execute();
+        RequestProcessor.getDefault().post(resultRefresh); 
     }
-
-    @Override
-    public void updateData(ResultCache resultCache, boolean isReloadable) {
-        this.resultCache = resultCache;
-        getFlatTablePages().setCache(resultCache);
-        getTreeTablePages().setCache(resultCache);
+    
+    public void editDocument(BsonDocument document, BsonDocument modifiedDocument) {
+        getTreeTablePages().updateDocument(document, modifiedDocument);
+        getFlatTablePages().updateDocument(document, modifiedDocument);
     }
 
     private JTable getResultTable() {
@@ -338,15 +349,15 @@ public final class QueryResultPanel extends javax.swing.JPanel implements Result
         }
     }
 
-    public ResultPages getFlatTablePages() {
+    public CollectionResultPages getFlatTablePages() {
         return flatTableModel.getPages();
     }
 
-    public ResultPages getTreeTablePages() {
+    public CollectionResultPages getTreeTablePages() {
         return treeTableModel.getPages();
     }
 
-    public ResultPages getResultPages() {
+    public CollectionResultPages getResultPages() {
         return resultViews.get(resultView).getPages();
     }
 
@@ -369,7 +380,12 @@ public final class QueryResultPanel extends javax.swing.JPanel implements Result
     }
 
     public void changeResultView(ResultView resultView) {
+        getResultPages().removeListener(pagesListener);
         this.resultView = resultView;
+        getResultPages().addListener(pagesListener);
+        if(getResultPages().getQueryResult().equals(currentResult) == false) {
+            setResult(currentResult);
+        }
         updateResultPanel();
     }
 
@@ -392,7 +408,7 @@ public final class QueryResultPanel extends javax.swing.JPanel implements Result
 
             @Override
             public void run() {
-                ResultPages pages = getResultPages();
+                CollectionResultPages pages = getResultPages();
                 long documentCount = pages.getTotalElementsCount();
                 totalDocumentsLabel.setText(
                     Bundle.totalDocuments(documentCount));
@@ -421,7 +437,6 @@ public final class QueryResultPanel extends javax.swing.JPanel implements Result
     }
 
     private void changePageSize(int pageSize) {
-//        getResultPages().setPageSize(pageSize);
         getTreeTablePages().setPageSize(pageSize);
         getFlatTablePages().setPageSize(pageSize);
     }
@@ -470,7 +485,7 @@ public final class QueryResultPanel extends javax.swing.JPanel implements Result
         documentsToolBar.setFloatable(false);
         documentsToolBar.setRollover(true);
 
-        treeTableViewButton.setAction(getTreeTableViewAction());
+        treeTableViewButton.setAction(treeTableViewAction);
         resultViewButtonGroup.add(treeTableViewButton);
         treeTableViewButton.setFocusable(false);
         treeTableViewButton.setHideActionText(true);
@@ -478,7 +493,7 @@ public final class QueryResultPanel extends javax.swing.JPanel implements Result
         treeTableViewButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
         documentsToolBar.add(treeTableViewButton);
 
-        flatTableViewButton.setAction(getFlatTableViewAction());
+        flatTableViewButton.setAction(flatTableViewAction);
         resultViewButtonGroup.add(flatTableViewButton);
         flatTableViewButton.setFocusable(false);
         flatTableViewButton.setHideActionText(true);
@@ -487,14 +502,14 @@ public final class QueryResultPanel extends javax.swing.JPanel implements Result
         documentsToolBar.add(flatTableViewButton);
         documentsToolBar.add(jSeparator4);
 
-        expandTreeButton.setAction(getExpandTreeAction());
+        expandTreeButton.setAction(expandTreeAction);
         expandTreeButton.setFocusable(false);
         expandTreeButton.setHideActionText(true);
         expandTreeButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         expandTreeButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
         documentsToolBar.add(expandTreeButton);
 
-        collapseTreeButton.setAction(getCollapseTreeAction());
+        collapseTreeButton.setAction(collapseTreeAction);
         collapseTreeButton.setFocusable(false);
         collapseTreeButton.setHideActionText(true);
         collapseTreeButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
@@ -502,28 +517,30 @@ public final class QueryResultPanel extends javax.swing.JPanel implements Result
         documentsToolBar.add(collapseTreeButton);
         documentsToolBar.add(jSeparator5);
 
-        addButton.setAction(getAddDocumentAction());
+        addButton.setAction(addDocumentAction);
         addButton.setFocusable(false);
         addButton.setHideActionText(true);
         addButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         addButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
         documentsToolBar.add(addButton);
 
-        deleteButton.setAction(getDeleteSelectedDocumentAction());
+        deleteButton.setAction(deleteSelectedDocumentAction);
+        deleteButton.setEnabled(false);
         deleteButton.setFocusable(false);
         deleteButton.setHideActionText(true);
         deleteButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         deleteButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
         documentsToolBar.add(deleteButton);
 
-        editButton.setAction(getEditSelectedDocumentAction());
+        editButton.setAction(editSelectedDocumentAction);
+        editButton.setEnabled(false);
         editButton.setFocusable(false);
         editButton.setHideActionText(true);
         editButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         editButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
         documentsToolBar.add(editButton);
 
-        exportButton.setAction(getExportQueryResultAction());
+        exportButton.setAction(exportQueryResultAction);
         exportButton.setFocusable(false);
         exportButton.setHideActionText(true);
         exportButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
@@ -531,29 +548,33 @@ public final class QueryResultPanel extends javax.swing.JPanel implements Result
         documentsToolBar.add(exportButton);
         documentsToolBar.add(jSeparator1);
 
-        refreshDocumentsButton.setAction(getRefreshDocumentsAction());
+        refreshDocumentsButton.setAction(refreshDocumentsAction);
         refreshDocumentsButton.setFocusable(false);
         refreshDocumentsButton.setHideActionText(true);
         refreshDocumentsButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         refreshDocumentsButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
         documentsToolBar.add(refreshDocumentsButton);
 
-        navFirstButton.setAction(getNavFirstAction());
+        navFirstButton.setAction(navFirstAction);
+        navFirstButton.setEnabled(false);
         navFirstButton.setHideActionText(true);
         documentsToolBar.add(navFirstButton);
 
-        navLeftButton.setAction(getNavLeftAction());
+        navLeftButton.setAction(navLeftAction);
+        navLeftButton.setEnabled(false);
         navLeftButton.setHideActionText(true);
         documentsToolBar.add(navLeftButton);
 
-        navRightButton.setAction(getNavRightAction());
+        navRightButton.setAction(navRightAction);
+        navRightButton.setEnabled(false);
         navRightButton.setFocusable(false);
         navRightButton.setHideActionText(true);
         navRightButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         navRightButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
         documentsToolBar.add(navRightButton);
 
-        navLastButton.setAction(getNavLastAction());
+        navLastButton.setAction(navLastAction);
+        navLastButton.setEnabled(false);
         navLastButton.setFocusable(false);
         navLastButton.setHideActionText(true);
         navLastButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
@@ -561,7 +582,7 @@ public final class QueryResultPanel extends javax.swing.JPanel implements Result
         documentsToolBar.add(navLastButton);
         documentsToolBar.add(jSeparator2);
 
-        org.openide.awt.Mnemonics.setLocalizedText(pageSizeLabel, org.openide.util.NbBundle.getMessage(QueryResultPanel.class, "QueryResultPanel.pageSizeLabel.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(pageSizeLabel, org.openide.util.NbBundle.getMessage(CollectionResultPanel.class, "CollectionResultPanel.pageSizeLabel.text")); // NOI18N
         documentsToolBar.add(pageSizeLabel);
 
         pageSizeField.setMaximumSize(new java.awt.Dimension(40, 2147483647));
@@ -597,55 +618,38 @@ public final class QueryResultPanel extends javax.swing.JPanel implements Result
         changePageSize(pageSize);
     }//GEN-LAST:event_pageSizeFieldActionPerformed
 
-    @Getter
     private final Action addDocumentAction = new AddDocumentAction(this);
 
-    @Getter
     private final Action deleteSelectedDocumentAction = new DeleteSelectedDocumentAction(this);
 
-    @Getter
     private final EditDocumentAction editDocumentAction = new EditDocumentAction(this);
 
-    @Getter
     private final Action editSelectedDocumentAction = new EditSelectedDocumentAction(this);
 
-    @Getter
     private final EditBsonPropertyNodeAction editBsonPropertyNodeAction = new EditBsonPropertyNodeAction(this, null);
 
-    @Getter
     private final EditBsonValueNodeAction editBsonValueNodeAction = new EditBsonValueNodeAction(this, null);
-
-    @Getter
+    
     private final FindWithBsonPropertyNodeAction findWithBsonPropertyNodeAction = new FindWithBsonPropertyNodeAction(this, null);
 
-    @Getter
     private final Action refreshDocumentsAction = new RefreshDocumentsAction(this);
 
-    @Getter
     private final Action navFirstAction = new NavFirstAction(this);
 
-    @Getter
     private final Action navLeftAction = new NavLeftAction(this);
 
-    @Getter
     private final Action navRightAction = new NavRightAction(this);
 
-    @Getter
     private final Action navLastAction = new NavLastAction(this);
 
-    @Getter
     private final Action exportQueryResultAction = new ExportQueryResultAction(this);
 
-    @Getter
     private final Action treeTableViewAction = ChangeResultViewAction.create(this, ResultView.TREE_TABLE);
 
-    @Getter
     private final Action flatTableViewAction = ChangeResultViewAction.create(this, ResultView.FLAT_TABLE);
 
-    @Getter
     private final Action collapseTreeAction = new CollapseAllDocumentsAction(this);
 
-    @Getter
     private final Action expandTreeAction = new ExpandAllDocumentsAction(this);
 
     public enum ResultView {
@@ -654,11 +658,11 @@ public final class QueryResultPanel extends javax.swing.JPanel implements Result
 
     }
 
-    public static interface QueryResultWorkerFactory {
-
-        QueryResultWorker createWorker();
-
-    }
+//    public static interface QueryResultWorkerFactory {
+//
+//        QueryResultWorker createWorker();
+//
+//    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton addButton;
@@ -739,7 +743,7 @@ public final class QueryResultPanel extends javax.swing.JPanel implements Result
 
     private JPopupMenu createFlatTableContextMenu(int row, int column) {
         final JPopupMenu menu = new JPopupMenu();
-        final BsonDocument document = getFlatTablePages().getPageContent().get(row);
+        final BsonDocument document = getFlatTablePages().getCurrentPageItems().get(row);
         menu.add(new JMenuItem(new CopyFullDocumentToClipboardAction(document)));
         final DocumentsFlatTableModel model = (DocumentsFlatTableModel) resultFlatTable.getModel();
         final BsonProperty property = new BsonProperty(
@@ -774,10 +778,10 @@ public final class QueryResultPanel extends javax.swing.JPanel implements Result
     }
 
     public Preferences prefs() {
-        return NbPreferences.forModule(QueryResultPanel.class).node(QueryResultPanel.class.getName());
+        return NbPreferences.forModule(CollectionResultPanel.class).node(CollectionResultPanel.class.getName());
     }
 
-    void loadPreferences() {
+    public void loadPreferences() {
         final Preferences prefs = prefs();
         final String version = prefs.get("version", "1.0");
         displayDocumentEditionShortcutHint = prefs.getBoolean("display-document-edition-shortcut-hint", true);
@@ -791,7 +795,7 @@ public final class QueryResultPanel extends javax.swing.JPanel implements Result
         pageSizeField.setText(String.valueOf(pageSize));
     }
 
-    void writePreferences() {
+    public void writePreferences() {
         final Preferences prefs = prefs();
         prefs.put("version", "1.0");
         prefs.putInt("result-view-table-page-size", getTreeTablePages().getPageSize());

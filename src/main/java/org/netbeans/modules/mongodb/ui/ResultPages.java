@@ -80,7 +80,6 @@ public final class ResultPages implements ResultCache.Listener {
 
     public void moveLast() {
         setPageIndex(getPageCount()); // page index start with 1
-        firePageChanged();
     }
 
     /**
