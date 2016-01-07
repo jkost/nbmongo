@@ -15,35 +15,26 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-package org.netbeans.modules.mongodb.ui.windows.collectionview.actions;
+package org.netbeans.modules.mongodb.ui.components.result_panel.actions;
 
 import java.awt.event.ActionEvent;
-import org.netbeans.modules.mongodb.ui.components.QueryEditor;
-import org.netbeans.modules.mongodb.ui.windows.CollectionView;
-import org.openide.util.NbBundle.Messages;
+import org.netbeans.modules.mongodb.ui.components.CollectionResultPanel;
 
 /**
  *
  * @author Yann D'Isanto
  */
-@Messages({
-    "ACTION_clearQuery=clear"
-})
-public final class ClearQueryAction extends CollectionViewAction {
+public final class EditSelectedDocumentAction extends EditDocumentAction {
     
     private static final long serialVersionUID = 1L;
 
-    public ClearQueryAction(CollectionView view) {
-        super(view,
-            Bundle.ACTION_clearQuery());
+    public EditSelectedDocumentAction(CollectionResultPanel resultPanel) {
+        super(resultPanel);
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        final QueryEditor queryEditor = getView().getQueryEditor();
-        queryEditor.setCriteria(null);
-        queryEditor.setProjection(null);
-        queryEditor.setSort(null);
-        getView().updateQueryFieldsFromEditor();
+        setDocument(getResultPanel().getResultTableSelectedDocument());
+        super.actionPerformed(e);
     }
 }

@@ -15,38 +15,37 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-package org.netbeans.modules.mongodb.ui.windows.collectionview.actions;
+package org.netbeans.modules.mongodb.ui.components.result_panel.actions;
 
 import javax.swing.AbstractAction;
 import static javax.swing.Action.SHORT_DESCRIPTION;
 import javax.swing.Icon;
-import org.netbeans.modules.mongodb.ui.windows.CollectionView;
+import lombok.Getter;
+import org.netbeans.modules.mongodb.ui.components.CollectionResultPanel;
 
 /**
  *
  * @author Yann D'Isanto
  */
-public abstract class CollectionViewAction extends AbstractAction {
-
+public abstract class QueryResultPanelAction extends AbstractAction {
+    
     private static final long serialVersionUID = 1L;
 
-    private final CollectionView view;
+    @Getter
+    private final CollectionResultPanel resultPanel;
 
-    public CollectionViewAction(CollectionView view, String name) {
-        this(view, name, null, null);
+    public QueryResultPanelAction(CollectionResultPanel resultPanel, String name) {
+        this(resultPanel, name, null, null);
     }
     
-    public CollectionViewAction(CollectionView view, String name, Icon icon) {
-        this(view, name, icon, null);
+    public QueryResultPanelAction(CollectionResultPanel resultPanel, String name, Icon icon) {
+        this(resultPanel, name, icon, null);
     }
 
-    public CollectionViewAction(CollectionView view, String name, Icon icon, String shortDescription) {
+    public QueryResultPanelAction(CollectionResultPanel resultPanel, String name, Icon icon, String shortDescription) {
         super(name, icon);
         putValue(SHORT_DESCRIPTION, shortDescription);
-        this.view = view;
+        this.resultPanel = resultPanel;
     }
 
-    public final CollectionView getView() {
-        return view;
-    }
 }
