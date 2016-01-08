@@ -55,7 +55,7 @@ public final class MongoCursorResult implements CollectionResult {
     public List<BsonDocument> get(long offset, int count) {
         int fromIndex = (int) offset;
         int toIndex = fromIndex + count;
-        return documents.subList(fromIndex, toIndex);
+        return documents.subList(fromIndex, Math.min(toIndex, documents.size()));
     }
 
     public void setCursor(MongoCursor<BsonDocument> cursor) {
