@@ -63,7 +63,7 @@ import org.netbeans.modules.mongodb.ui.util.BsonPropertyEditor;
 import static org.netbeans.modules.mongodb.ui.util.BsonPropertyEditor.isQuickEditableBsonValue;
 import org.netbeans.modules.mongodb.ui.util.BsonDocumentEditor;
 import org.netbeans.modules.mongodb.ui.components.result_panel.actions.*;
-import org.netbeans.modules.mongodb.ui.windows.collectionview.flattable.JsonFlatTableCellRenderer;
+import org.netbeans.modules.mongodb.ui.windows.collectionview.flattable.BsonFlatTableCellRenderer;
 import org.netbeans.modules.mongodb.ui.windows.collectionview.treetable.BsonNodeRenderer;
 import org.netbeans.modules.mongodb.ui.windows.collectionview.treetable.BsonPropertyNode;
 import org.netbeans.modules.mongodb.ui.windows.collectionview.treetable.BsonValueNode;
@@ -191,7 +191,7 @@ public final class CollectionResultPanel extends javax.swing.JPanel {
         };
 
         resultFlatTable.setModel(flatTableModel);
-        resultFlatTable.setDefaultRenderer(BsonDocument.class, new JsonFlatTableCellRenderer());
+        resultFlatTable.setDefaultRenderer(BsonDocument.class, new BsonFlatTableCellRenderer());
         resultFlatTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         resultFlatTable.getSelectionModel().addListSelectionListener(tableSelectionListener);
         resultFlatTable.getColumnModel().addColumnModelListener(new TableColumnModelListener() {
@@ -317,19 +317,15 @@ public final class CollectionResultPanel extends javax.swing.JPanel {
 
         });
         getResultPages().addListener(pagesListener);
-//        updatePagination();
-//        updateDocumentButtonsState();
     }
 
     
     public void setResult(CollectionResult result) {
         currentResult = result;
-//        updateResultDisplayWorker.execute();
         RequestProcessor.getDefault().post(resultUpdate); 
     }
     
     public void refreshResults() {
-//        refreshResultDisplayWorker.execute();
         RequestProcessor.getDefault().post(resultRefresh); 
     }
     
@@ -657,12 +653,6 @@ public final class CollectionResultPanel extends javax.swing.JPanel {
         FLAT_TABLE, TREE_TABLE
 
     }
-
-//    public static interface QueryResultWorkerFactory {
-//
-//        QueryResultWorker createWorker();
-//
-//    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton addButton;

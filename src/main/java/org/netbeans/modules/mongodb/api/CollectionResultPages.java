@@ -69,8 +69,6 @@ public final class CollectionResultPages {
     }
     
     public int getPageCount() {
-//        final double pageCount = (double) queryResult.getTotalElementsCount() / (double) pageSize;
-//        return (int) Math.ceil(pageCount);
         return pagesCount;
     }
 
