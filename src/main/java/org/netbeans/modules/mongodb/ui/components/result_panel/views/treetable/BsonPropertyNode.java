@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2015 Yann D'Isanto
  *
  * This program is free software; you can redistribute it and/or
@@ -15,13 +15,29 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-package org.netbeans.modules.mongodb.ui.windows;
+package org.netbeans.modules.mongodb.ui.components.result_panel.views.treetable;
+
+import lombok.Getter;
+import lombok.Setter;
+import org.bson.BsonValue;
+import org.netbeans.modules.mongodb.util.BsonProperty;
 
 /**
  *
  * @author Yann D'Isanto
  */
-public interface QueryResultPanelContainer {
+public class BsonPropertyNode extends BsonValueNode {
+
+    @Getter
+    @Setter
+    private String propertyName;
     
-    QueryResultPanel getResultPanel();
+    public BsonPropertyNode(String propertyName, BsonValue value) {
+        super(value);
+        this.propertyName = propertyName;
+    }
+    
+    public BsonProperty getBsonProperty() {
+        return new BsonProperty(propertyName, getValue());
+    }
 }

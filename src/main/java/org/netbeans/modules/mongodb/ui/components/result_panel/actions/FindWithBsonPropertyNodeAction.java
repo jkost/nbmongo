@@ -23,7 +23,7 @@ import lombok.Setter;
 import org.netbeans.modules.mongodb.CollectionInfo;
 import org.netbeans.modules.mongodb.ui.windows.CollectionView;
 import org.netbeans.modules.mongodb.ui.components.CollectionResultPanel;
-import org.netbeans.modules.mongodb.ui.windows.collectionview.treetable.BsonPropertyNode;
+import org.netbeans.modules.mongodb.ui.components.result_panel.views.treetable.BsonPropertyNode;
 import org.openide.util.Lookup;
 import org.openide.util.NbBundle.Messages;
 

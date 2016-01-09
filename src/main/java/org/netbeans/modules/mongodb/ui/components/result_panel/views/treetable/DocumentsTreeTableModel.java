@@ -17,7 +17,6 @@
  */
 package org.netbeans.modules.mongodb.ui.components.result_panel.views.treetable;
 
-import org.netbeans.modules.mongodb.ui.windows.collectionview.treetable.*;
 import java.util.List;
 import javax.swing.SwingUtilities;
 import javax.swing.tree.TreePath;
