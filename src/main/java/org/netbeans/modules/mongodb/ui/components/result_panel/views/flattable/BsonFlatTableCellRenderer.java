@@ -15,14 +15,14 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-package org.netbeans.modules.mongodb.ui.windows.collectionview.flattable;
+package org.netbeans.modules.mongodb.ui.components.result_panel.views.flattable;
 
 import java.awt.Component;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableCellRenderer;
 import org.bson.BsonValue;
 import org.netbeans.modules.mongodb.bson.Bsons;
-import org.netbeans.modules.mongodb.ui.windows.collectionview.treetable.RenderingOptions;
+import org.netbeans.modules.mongodb.ui.components.result_panel.views.treetable.RenderingOptions;
 
 /**
  *

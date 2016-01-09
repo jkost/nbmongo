@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2015 Yann D'Isanto
  *
  * This program is free software; you can redistribute it and/or
@@ -15,26 +15,23 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-package org.netbeans.modules.mongodb.ui.windows.queryresultpanel.actions;
+package org.netbeans.modules.mongodb.ui.components.result_panel.views.treetable;
 
-import java.awt.event.ActionEvent;
-import org.netbeans.modules.mongodb.ui.windows.QueryResultPanel;
+import java.util.Collection;
+import org.bson.BsonDocument;
+import org.jdesktop.swingx.treetable.DefaultMutableTreeTableNode;
 
 /**
  *
  * @author Yann D'Isanto
  */
-public final class EditSelectedDocumentAction extends EditDocumentAction {
+public class RootNode extends DefaultMutableTreeTableNode {
+
+    public RootNode(Collection<BsonDocument> documents) {
+        for (BsonDocument document : documents) {
+            add(new BsonValueNode(document));
+        }
+    }
     
-    private static final long serialVersionUID = 1L;
-
-    public EditSelectedDocumentAction(QueryResultPanel resultPanel) {
-        super(resultPanel);
-    }
-
-    @Override
-    public void actionPerformed(ActionEvent e) {
-        setDocument(getResultPanel().getResultTableSelectedDocument());
-        super.actionPerformed(e);
-    }
+    
 }

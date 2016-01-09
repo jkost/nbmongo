@@ -30,8 +30,8 @@ import org.jdesktop.swingx.treetable.TreeTableNode;
 import org.netbeans.modules.mongodb.ui.util.BsonPropertyEditor;
 import org.netbeans.modules.mongodb.ui.util.DialogNotification;
 import org.netbeans.modules.mongodb.ui.components.CollectionResultPanel;
-import org.netbeans.modules.mongodb.ui.windows.collectionview.treetable.BsonValueNode;
-import org.netbeans.modules.mongodb.ui.windows.collectionview.treetable.RootNode;
+import org.netbeans.modules.mongodb.ui.components.result_panel.views.treetable.BsonValueNode;
+import org.netbeans.modules.mongodb.ui.components.result_panel.views.treetable.RootNode;
 import org.openide.util.NbBundle.Messages;
 
 /**
