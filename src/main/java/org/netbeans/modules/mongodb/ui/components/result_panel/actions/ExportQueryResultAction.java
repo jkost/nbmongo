@@ -37,29 +37,31 @@ import org.openide.util.RequestProcessor;
     "ACTION_exportQueryResult=Export Query Result",
     "ACTION_exportQueryResult_tooltip=Export Query Result"
 })
-public final class ExportQueryResultAction extends QueryResultPanelAction implements Runnable {
-    
+public final class ExportQueryResultAction extends QueryResultPanelAction {
+
     private static final long serialVersionUID = 1L;
 
     public ExportQueryResultAction(CollectionResultPanel resultPanel) {
         super(resultPanel,
-            Bundle.ACTION_exportQueryResult(),
-            new ImageIcon(Images.EXPORT_COLLECTION_ICON),
-            Bundle.ACTION_exportQueryResult_tooltip());
+                Bundle.ACTION_exportQueryResult(),
+                new ImageIcon(Images.EXPORT_COLLECTION_ICON),
+                Bundle.ACTION_exportQueryResult_tooltip());
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        RequestProcessor.getDefault().execute(this);
+        REQUEST_PROCESSOR.execute(new Runnable() {
+
+            @Override
+            public void run() {
+                Lookup lookup = getResultPanel().getLookup();
+                CollectionInfo collectionInfo = lookup.lookup(CollectionInfo.class);
+                Map<String, Object> properties = new HashMap<>();
+                properties.put(ExportWizardAction.PROP_COLLECTION, collectionInfo.getName());
+                properties.put(ExportWizardAction.PROP_DOCUMENTS, getResultPanel().getCurrentResult());
+                new ExportWizardAction(lookup, properties).actionPerformed(null);
+            }
+        });
     }
 
-    @Override
-    public void run() {
-        final Lookup lookup = getResultPanel().getLookup();
-        final CollectionInfo collectionInfo = lookup.lookup(CollectionInfo.class);
-        final Map<String, Object> properties = new HashMap<>();
-        properties.put(ExportWizardAction.PROP_COLLECTION, collectionInfo.getName());
-        properties.put(ExportWizardAction.PROP_DOCUMENTS, getResultPanel().getCurrentResult());
-        new ExportWizardAction(lookup, properties).actionPerformed(null);
-    }
 }

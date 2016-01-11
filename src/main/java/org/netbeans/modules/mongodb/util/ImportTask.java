@@ -28,17 +28,11 @@ import org.openide.util.RequestProcessor;
     "# {0} - collection name",
     "TASK_import_label=import in \"{0}\" collection"
 })
-public final class ImportTask extends AbstractTask<Importer> {
+public final class ImportTask extends Tasks.SimpleTask<Importer> {
 
-    private static final RequestProcessor REQUEST_PROCESSOR = new RequestProcessor("import tasks", 1, true);
+    private static final RequestProcessor REQUEST_PROCESSOR = new RequestProcessor(ImportTask.class.getName(), 1, true);
 
     public ImportTask(Importer importer) {
-        super(REQUEST_PROCESSOR, importer);
+        super(REQUEST_PROCESSOR, importer, Bundle.TASK_import_label(importer.getProperties().getCollection()), true);
     }
-
-    @Override
-    public String getLabel() {
-        return Bundle.TASK_import_label(getRunnable().getProperties().getCollection());
-    }
-
 }

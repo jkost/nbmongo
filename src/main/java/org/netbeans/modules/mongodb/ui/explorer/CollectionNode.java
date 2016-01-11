@@ -40,6 +40,7 @@ import java.util.List;
 import java.util.Map;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
+import lombok.AllArgsConstructor;
 import org.bson.BsonDocument;
 import org.bson.BsonString;
 import org.bson.Document;
@@ -55,6 +56,7 @@ import org.netbeans.modules.mongodb.ui.windows.CollectionView;
 import org.netbeans.modules.mongodb.ui.wizards.ExportWizardAction;
 import org.netbeans.modules.mongodb.ui.wizards.ImportWizardAction;
 import org.netbeans.modules.mongodb.util.SystemCollectionPredicate;
+import org.netbeans.modules.mongodb.util.Tasks;
 import org.openide.actions.OpenAction;
 import org.openide.cookies.OpenCookie;
 import org.openide.nodes.AbstractNode;
@@ -86,7 +88,11 @@ import org.openide.windows.TopComponent;
     "# {0} - collection name",
     "renameCollectionText=Rename ''{0}'' to:",
     "# {0} - collection name",
-    "clearCollectionConfirmText=Remove all documents of ''{0}'' collection?"})
+    "clearCollectionConfirmText=Remove all documents of ''{0}'' collection?",
+    "# {0} - collection name",
+    "TASK_clearCollection=removing all documents from ''{0}'' collection",
+    "# {0} - index name",
+    "TASK_createIndex=creating index ''{0}''"})
 final class CollectionNode extends AbstractNode {
 
     private final IndexNodesFactory childFactory;
@@ -317,11 +323,17 @@ final class CollectionNode extends AbstractNode {
         public void actionPerformed(ActionEvent e) {
             final CollectionInfo ci = getLookup().lookup(CollectionInfo.class);
             if (DialogNotification.confirm(Bundle.clearCollectionConfirmText(ci.getName()))) {
-                try {
-                    getLookup().lookup(MongoCollection.class).deleteMany(new BasicDBObject());
-                } catch (MongoException ex) {
-                    DialogNotification.error(ex);
-                }
+                Tasks.create(Bundle.TASK_clearCollection(ci.getName()), new Runnable() {
+
+                    @Override
+                    public void run() {
+                        try {
+                            getLookup().lookup(MongoCollection.class).deleteMany(new BasicDBObject());
+                        } catch (MongoException ex) {
+                            DialogNotification.error(ex);
+                        }
+                    }
+                }).execute();
             }
         }
     }
@@ -333,29 +345,38 @@ final class CollectionNode extends AbstractNode {
         }
 
         @Override
-        @SuppressWarnings("unchecked")
         public void actionPerformed(ActionEvent e) {
-            boolean retryOnFailure;
             Index index = null;
-            do {
-                retryOnFailure = false;
-                index = CreateIndexPanel.showDialog(index);
-                if (index != null) {
-                    MongoCollection<BsonDocument> collection = getLookup().lookup(MongoCollection.class);
-                    Document keys = new Document();
-                    for (Index.Key key : index.getKeys()) {
-                        keys.append(key.getField(), key.getType().getValue());
-                    }
-                    try {
-                        collection.createIndex(keys, index.getOptions());
-                        refreshChildren();
-                    } catch (MongoException ex) {
-                        retryOnFailure = true;
-                        DialogNotification.error(ex);
-                    }
-                }
-            } while (retryOnFailure);
+            index = CreateIndexPanel.showDialog(index);
+            if (index != null) {
+                Tasks.create(
+                        Bundle.TASK_createIndex(index.getName()), 
+                        new IndexCreation(index)
+                ).execute();
+            }
         }
     }
+
+    @AllArgsConstructor
+    private class IndexCreation implements Runnable {
+
+        Index index;
+
+        @Override
+        @SuppressWarnings("unchecked")
+        public void run() {
+            Document keys = new Document();
+            for (Index.Key key : index.getKeys()) {
+                keys.append(key.getField(), key.getType().getValue());
+            }
+            MongoCollection<BsonDocument> collection = getLookup().lookup(MongoCollection.class);
+            try {
+                collection.createIndex(keys, index.getOptions());
+                refreshChildren();
+            } catch (MongoException ex) {
+                DialogNotification.error(ex);
+            }
+        }
+    };
 
 }

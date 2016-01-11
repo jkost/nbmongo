@@ -29,7 +29,6 @@ import java.util.List;
 import java.util.Map;
 import javax.swing.AbstractAction;
 import javax.swing.JComponent;
-import javax.swing.SwingUtilities;
 import org.bson.BsonDocument;
 import org.netbeans.modules.mongodb.api.CollectionResult;
 import org.netbeans.modules.mongodb.util.ExportProperties;
@@ -98,30 +97,26 @@ public final class ExportWizardAction extends AbstractAction {
         wiz.setTitleFormat(new MessageFormat("{0}"));
         wiz.setTitle(Bundle.ACTION_Export());
 
+        String collection = (String) wiz.getProperty(PROP_COLLECTION);
         Object documentsProperty = wiz.getProperty(PROP_DOCUMENTS);
         if (documentsProperty instanceof CollectionResult) {
             documentsProperty = ((CollectionResult) documentsProperty).iterable();
         }
-        final Iterable<BsonDocument> documents = documentsProperty instanceof CollectionResult 
+        final Iterable<BsonDocument> documents = documentsProperty instanceof CollectionResult
                 ? ((CollectionResult) documentsProperty).iterable()
                 : (Iterable<BsonDocument>) documentsProperty;
-        SwingUtilities.invokeLater(new Runnable() {
-
-            @Override
-            public void run() {
-                if (DialogDisplayer.getDefault().notify(wiz) == WizardDescriptor.FINISH_OPTION) {
-                    ExportProperties properties = ExportProperties.builder()
-                            .documents(documents)
-                            .jsonArray((Boolean) wiz.getProperty(PROP_JSON_ARRAY))
-                            .file((File) wiz.getProperty(PROP_FILE))
-                            .encoding((Charset) wiz.getProperty(PROP_ENCODING))
-                            .build();
-                    new ExportTask(
-                            new Exporter(properties))
-                            .run();
-                }
-            }
-        });
+        if (DialogDisplayer.getDefault().notify(wiz) == WizardDescriptor.FINISH_OPTION) {
+            ExportProperties properties = ExportProperties.builder()
+                    .collection(collection)
+                    .documents(documents)
+                    .jsonArray((Boolean) wiz.getProperty(PROP_JSON_ARRAY))
+                    .file((File) wiz.getProperty(PROP_FILE))
+                    .encoding((Charset) wiz.getProperty(PROP_ENCODING))
+                    .build();
+            new ExportTask(
+                    new Exporter(properties))
+                    .execute();
+        }
 
     }
 

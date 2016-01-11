@@ -30,7 +30,6 @@ import java.util.Map;
 import javax.swing.AbstractAction;
 import javax.swing.JComponent;
 import org.netbeans.modules.mongodb.util.ImportProperties;
-import org.netbeans.modules.mongodb.util.ImportPropertiesBuilder;
 import org.netbeans.modules.mongodb.util.ImportTask;
 import org.netbeans.modules.mongodb.util.Importer;
 import org.openide.DialogDisplayer;
@@ -97,7 +96,7 @@ public final class ImportWizardAction extends AbstractAction {
         wiz.setTitleFormat(new MessageFormat("{0}"));
         wiz.setTitle(Bundle.ACTION_Import());
         if (DialogDisplayer.getDefault().notify(wiz) == WizardDescriptor.FINISH_OPTION) {
-            final ImportProperties properties = new ImportPropertiesBuilder()
+            final ImportProperties properties = ImportProperties.builder()
                 .collection((String) wiz.getProperty(PROP_COLLECTION))
                 .drop((Boolean) wiz.getProperty(PROP_DROP))
                 .file((File) wiz.getProperty(PROP_FILE))
@@ -105,7 +104,7 @@ public final class ImportWizardAction extends AbstractAction {
                 .build();
             new ImportTask(
                 new Importer(lookup.lookup(MongoDatabase.class), properties, onDone))
-                .run();
+                .execute();
         }
     }
 

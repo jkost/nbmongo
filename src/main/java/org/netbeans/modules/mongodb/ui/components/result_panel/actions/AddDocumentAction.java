@@ -26,7 +26,10 @@ import org.netbeans.modules.mongodb.resources.Images;
 import org.netbeans.modules.mongodb.ui.util.DialogNotification;
 import org.netbeans.modules.mongodb.ui.util.BsonDocumentEditor;
 import org.netbeans.modules.mongodb.ui.components.CollectionResultPanel;
+import org.netbeans.modules.mongodb.util.Tasks;
 import org.openide.util.NbBundle.Messages;
+import org.openide.util.Task;
+import org.openide.util.TaskListener;
 
 /**
  *
@@ -35,7 +38,8 @@ import org.openide.util.NbBundle.Messages;
 @Messages({
     "addDocumentTitle=Add new document",
     "ACTION_addDocument=Add Document",
-    "ACTION_addDocument_tooltip=Add Document"
+    "ACTION_addDocument_tooltip=Add Document",
+    "TASK_addDocument=adding document"
 })
 public final class AddDocumentAction extends QueryResultPanelAction {
 
@@ -43,25 +47,36 @@ public final class AddDocumentAction extends QueryResultPanelAction {
 
     public AddDocumentAction(CollectionResultPanel resultPanel) {
         super(resultPanel,
-            Bundle.ACTION_addDocument(),
-            new ImageIcon(Images.ADD_DOCUMENT_ICON),
-            Bundle.ACTION_addDocument_tooltip());
+                Bundle.ACTION_addDocument(),
+                new ImageIcon(Images.ADD_DOCUMENT_ICON),
+                Bundle.ACTION_addDocument_tooltip());
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public void actionPerformed(ActionEvent e) {
         final BsonDocument document = BsonDocumentEditor.show(
-            Bundle.addDocumentTitle(),
-            null);
+                Bundle.addDocumentTitle(),
+                null);
         if (document != null) {
-            try {
-                MongoCollection<BsonDocument> dbCollection = getResultPanel().getLookup().lookup(MongoCollection.class);
-                dbCollection.insertOne(document);
-                getResultPanel().refreshResults();
-            } catch (MongoException ex) {
-                DialogNotification.error(ex);
-            }
+            Tasks.create(Bundle.TASK_addDocument(), new Runnable() {
+
+                @Override
+                public void run() {
+                    try {
+                        getResultPanel().getLookup().lookup(MongoCollection.class).insertOne(document);
+                    } catch (MongoException ex) {
+                        DialogNotification.error(ex);
+                    }
+                }
+            }).execute().addTaskListener(new TaskListener() {
+
+                @Override
+                public void taskFinished(Task task) {
+                    getResultPanel().refreshResults();
+                }
+            });
+
         }
     }
 }

@@ -17,6 +17,7 @@
  */
 package org.netbeans.modules.mongodb.ui.explorer;
 
+import javax.swing.SwingUtilities;
 import org.openide.nodes.ChildFactory;
 
 /**
@@ -26,6 +27,16 @@ import org.openide.nodes.ChildFactory;
 abstract class RefreshableChildFactory<T> extends ChildFactory.Detachable<T> {
     
     public final void refresh() {
-        refresh(false);
+        if(SwingUtilities.isEventDispatchThread()) {
+            refresh(false);
+        } else {
+            SwingUtilities.invokeLater(new Runnable() {
+
+                @Override
+                public void run() {
+                    refresh(false);
+                }
+            });
+        }
     }
 }

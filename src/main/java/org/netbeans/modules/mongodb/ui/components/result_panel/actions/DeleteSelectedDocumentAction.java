@@ -26,7 +26,10 @@ import org.bson.BsonDocument;
 import org.netbeans.modules.mongodb.resources.Images;
 import org.netbeans.modules.mongodb.ui.util.DialogNotification;
 import org.netbeans.modules.mongodb.ui.components.CollectionResultPanel;
+import org.netbeans.modules.mongodb.util.Tasks;
 import org.openide.util.NbBundle.Messages;
+import org.openide.util.Task;
+import org.openide.util.TaskListener;
 
 /**
  *
@@ -35,7 +38,8 @@ import org.openide.util.NbBundle.Messages;
 @Messages({
     "confirmDocumentDeletionText=Delete document?",
     "ACTION_deleteSelectedDocument=Delete document",
-    "ACTION_deleteSelectedDocument_tooltip=Delete Selected Document"
+    "ACTION_deleteSelectedDocument_tooltip=Delete Selected Document",
+    "TASK_deleteDocument=deleting document"
 })
 public final class DeleteSelectedDocumentAction extends QueryResultPanelAction {
 
@@ -43,23 +47,33 @@ public final class DeleteSelectedDocumentAction extends QueryResultPanelAction {
 
     public DeleteSelectedDocumentAction(CollectionResultPanel resultPanel) {
         super(resultPanel,
-            Bundle.ACTION_deleteSelectedDocument(),
-            new ImageIcon(Images.DELETE_DOCUMENT_ICON),
-            Bundle.ACTION_deleteSelectedDocument_tooltip());
+                Bundle.ACTION_deleteSelectedDocument(),
+                new ImageIcon(Images.DELETE_DOCUMENT_ICON),
+                Bundle.ACTION_deleteSelectedDocument_tooltip());
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public void actionPerformed(ActionEvent e) {
         if (DialogNotification.confirm(Bundle.confirmDocumentDeletionText())) {
-            try {
-                MongoCollection<BsonDocument> collection = getResultPanel().getLookup().lookup(MongoCollection.class);
-                BsonDocument document = getResultPanel().getResultTableSelectedDocument();
-                collection.deleteOne(eq("_id", document.get("_id")));
-                getResultPanel().refreshResults();
-            } catch (MongoException ex) {
-                DialogNotification.error(ex);
-            }
+            Tasks.create(Bundle.TASK_deleteDocument(), new Runnable() {
+
+                @Override
+                public void run() {
+                    try {
+                        BsonDocument document = getResultPanel().getResultTableSelectedDocument();
+                        getResultPanel().getLookup().lookup(MongoCollection.class).deleteOne(eq("_id", document.get("_id")));
+                    } catch (MongoException ex) {
+                        DialogNotification.error(ex);
+                    }
+                }
+            }).execute().addTaskListener(new TaskListener() {
+
+                @Override
+                public void taskFinished(Task task) {
+                    getResultPanel().refreshResults();
+                }
+            });
         }
     }
 }

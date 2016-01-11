@@ -32,6 +32,8 @@ import org.bson.BsonDocument;
 @Builder
 public final class ExportProperties {
 
+    private final String collection;
+    
     private final Iterable<BsonDocument> documents;
     
     private final boolean jsonArray;
@@ -40,7 +42,8 @@ public final class ExportProperties {
     
     private final Charset encoding;
 
-    public ExportProperties(Iterable<BsonDocument> documents, boolean jsonArray, File file, Charset encoding) {
+    public ExportProperties(String collection, Iterable<BsonDocument> documents, boolean jsonArray, File file, Charset encoding) {
+        this.collection = collection;
         this.documents = documents;
         this.jsonArray = jsonArray;
         this.file = Objects.requireNonNull(file);

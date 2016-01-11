@@ -22,6 +22,7 @@ import static javax.swing.Action.SHORT_DESCRIPTION;
 import javax.swing.Icon;
 import lombok.Getter;
 import org.netbeans.modules.mongodb.ui.components.CollectionResultPanel;
+import org.openide.util.RequestProcessor;
 
 /**
  *
@@ -30,6 +31,8 @@ import org.netbeans.modules.mongodb.ui.components.CollectionResultPanel;
 public abstract class QueryResultPanelAction extends AbstractAction {
     
     private static final long serialVersionUID = 1L;
+
+    protected static final RequestProcessor REQUEST_PROCESSOR = new RequestProcessor(QueryResultPanelAction.class);
 
     @Getter
     private final CollectionResultPanel resultPanel;
