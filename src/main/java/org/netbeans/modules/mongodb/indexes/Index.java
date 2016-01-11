@@ -171,7 +171,7 @@ public class Index {
                 case -1:
                     return DESCENDING;
                 default:
-                    throw new IllegalArgumentException("invlid index sort value: " + sortValue);
+                    throw new IllegalArgumentException("invalid index sort value: " + sortValue);
             }
         }
 

@@ -15,35 +15,26 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-package org.netbeans.modules.mongodb.util;
+package org.netbeans.modules.mongodb.ui.components.result_panel.actions;
 
-import java.io.File;
-import java.nio.charset.Charset;
-import java.util.Objects;
-import lombok.Builder;
-import lombok.Getter;
-import org.bson.BsonDocument;
+import java.awt.event.ActionEvent;
+import org.netbeans.modules.mongodb.ui.components.CollectionResultPanel;
 
 /**
  *
  * @author Yann D'Isanto
  */
-@Getter
-@Builder
-public final class ExportProperties {
+public final class EditSelectedDocumentAction extends EditDocumentAction {
+    
+    private static final long serialVersionUID = 1L;
 
-    private final Iterable<BsonDocument> documents;
-    
-    private final boolean jsonArray;
-    
-    private final File file;
-    
-    private final Charset encoding;
+    public EditSelectedDocumentAction(CollectionResultPanel resultPanel) {
+        super(resultPanel);
+    }
 
-    public ExportProperties(Iterable<BsonDocument> documents, boolean jsonArray, File file, Charset encoding) {
-        this.documents = documents;
-        this.jsonArray = jsonArray;
-        this.file = Objects.requireNonNull(file);
-        this.encoding = Objects.requireNonNull(encoding);
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        setDocument(getResultPanel().getResultTableSelectedDocument());
+        super.actionPerformed(e);
     }
 }

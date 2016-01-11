@@ -19,35 +19,14 @@ package org.netbeans.modules.mongodb.bson;
 
 import java.io.StringWriter;
 import java.io.Writer;
-import java.util.EnumMap;
-import java.util.Map;
 import org.bson.BsonBinary;
 import org.bson.BsonDbPointer;
 import org.bson.BsonRegularExpression;
 import org.bson.BsonTimestamp;
 import org.bson.BsonType;
 import org.bson.BsonValue;
-import org.bson.codecs.BsonArrayCodec;
-import org.bson.codecs.BsonBinaryCodec;
-import org.bson.codecs.BsonBooleanCodec;
-import org.bson.codecs.BsonDBPointerCodec;
-import org.bson.codecs.BsonDateTimeCodec;
 import org.bson.codecs.BsonDocumentCodec;
-import org.bson.codecs.BsonDoubleCodec;
-import org.bson.codecs.BsonInt32Codec;
-import org.bson.codecs.BsonInt64Codec;
-import org.bson.codecs.BsonJavaScriptCodec;
-import org.bson.codecs.BsonJavaScriptWithScopeCodec;
-import org.bson.codecs.BsonMaxKeyCodec;
-import org.bson.codecs.BsonMinKeyCodec;
-import org.bson.codecs.BsonNullCodec;
-import org.bson.codecs.BsonObjectIdCodec;
-import org.bson.codecs.BsonRegularExpressionCodec;
-import org.bson.codecs.BsonStringCodec;
-import org.bson.codecs.BsonSymbolCodec;
-import org.bson.codecs.BsonTimestampCodec;
-import org.bson.codecs.BsonUndefinedCodec;
-import org.bson.codecs.BsonValueCodec;
+import static org.bson.codecs.BsonValueCodecProvider.getClassForBsonType;
 import org.bson.codecs.Codec;
 import org.bson.codecs.DecoderContext;
 import org.bson.codecs.EncoderContext;
@@ -85,11 +64,18 @@ public final class Bsons {
     }
 
     public static String toJson(BsonValue value, final JsonWriterSettings settings) {
+        if(value == null) {
+            return null;
+        }
         if(value.isDocument()) {
             return value.asDocument().toJson(settings);
         }
         StringWriter writer = new StringWriter();
-        getCodec(value).encode(new BsonValueJsonWriter(writer, settings), value, EncoderContext.builder().build());
+        getCodec(value).encode(
+                new BsonValueJsonWriter(writer, settings), 
+                value, 
+                EncoderContext.builder().build()
+        );
         return writer.toString();
     }
 
@@ -100,48 +86,20 @@ public final class Bsons {
 
     @SuppressWarnings("unchecked")
     private static Codec<BsonValue> getCodec(BsonValue value) {
-        Codec<BsonValue> codec = getCodec(value.getBsonType());
-        return codec != null ? codec : defaultCodec;
+        return (Codec<BsonValue>) documentCodec.getCodecRegistry().get(value.getClass());
     }
 
     @SuppressWarnings("unchecked")
-    public static <T extends BsonValue> Codec<T> getCodec(BsonType type) {
-        return (Codec<T>) codecs.get(type);
+    public static Codec<? extends BsonValue> getCodec(BsonType type) {
+        return documentCodec.getCodecRegistry().get(getClassForBsonType(type));
     }
     
-    private static final Codec<BsonValue> defaultCodec = new BsonValueCodec();
-    private static final Map<BsonType, Codec<? extends BsonValue>> codecs;
-
-    static {
-        BsonDocumentCodec documentCodec = new BsonDocumentCodec();
-        codecs = new EnumMap<>(BsonType.class);
-        codecs.put(BsonType.ARRAY, new BsonArrayCodec(documentCodec.getCodecRegistry()));
-        codecs.put(BsonType.BINARY, new BsonBinaryCodec());
-        codecs.put(BsonType.BOOLEAN, new BsonBooleanCodec());
-        codecs.put(BsonType.DATE_TIME, new BsonDateTimeCodec());
-        codecs.put(BsonType.DB_POINTER, new BsonDBPointerCodec());
-        codecs.put(BsonType.DOCUMENT, documentCodec);
-        codecs.put(BsonType.DOUBLE, new BsonDoubleCodec());
-        codecs.put(BsonType.INT32, new BsonInt32Codec());
-        codecs.put(BsonType.INT64, new BsonInt64Codec());
-        codecs.put(BsonType.JAVASCRIPT, new BsonJavaScriptCodec());
-        codecs.put(BsonType.JAVASCRIPT_WITH_SCOPE, new BsonJavaScriptWithScopeCodec(documentCodec));
-        codecs.put(BsonType.MAX_KEY, new BsonMaxKeyCodec());
-        codecs.put(BsonType.MIN_KEY, new BsonMinKeyCodec());
-        codecs.put(BsonType.NULL, new BsonNullCodec());
-        codecs.put(BsonType.OBJECT_ID, new BsonObjectIdCodec());
-        codecs.put(BsonType.REGULAR_EXPRESSION, new BsonRegularExpressionCodec());
-        codecs.put(BsonType.STRING, new BsonStringCodec());
-        codecs.put(BsonType.SYMBOL, new BsonSymbolCodec());
-        codecs.put(BsonType.TIMESTAMP, new BsonTimestampCodec());
-        codecs.put(BsonType.UNDEFINED, new BsonUndefinedCodec());
-
-    }
+    private static final BsonDocumentCodec documentCodec = new BsonDocumentCodec();
 
     private Bsons() {
     }
 
-    static class BsonValueJsonWriter extends JsonWriter {
+    static private class BsonValueJsonWriter extends JsonWriter {
 
         public BsonValueJsonWriter(Writer writer, JsonWriterSettings settings) {
             super(writer, settings);
@@ -210,6 +168,12 @@ public final class Bsons {
         @Override
         public void writeMinKey() {
             doWriteMinKey();
+        }
+
+        @Override
+        public void writeName(String name) {
+            setState(State.NAME);
+            super.writeName(name);
         }
 
         @Override

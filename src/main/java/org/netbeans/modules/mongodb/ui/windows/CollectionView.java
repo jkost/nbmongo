@@ -18,19 +18,17 @@
 package org.netbeans.modules.mongodb.ui.windows;
 
 import com.mongodb.client.MongoCollection;
-import org.netbeans.modules.mongodb.ui.QueryResultWorker;
-import org.netbeans.modules.mongodb.ui.QueryWorker;
 import org.netbeans.modules.mongodb.CollectionInfo;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 import javax.swing.Action;
 import lombok.Getter;
 import org.bson.BsonDocument;
-import org.bson.conversions.Bson;
 import org.netbeans.modules.mongodb.ConnectionInfo;
+import org.netbeans.modules.mongodb.api.FindResult;
 import org.netbeans.modules.mongodb.resources.Images;
+import org.netbeans.modules.mongodb.ui.components.CollectionResultPanel;
 import org.netbeans.modules.mongodb.ui.components.QueryEditor;
-import org.netbeans.modules.mongodb.ui.windows.QueryResultPanel.QueryResultWorkerFactory;
 import org.netbeans.modules.mongodb.ui.windows.collectionview.actions.ClearQueryAction;
 import org.netbeans.modules.mongodb.ui.windows.collectionview.actions.EditQueryAction;
 import org.netbeans.modules.mongodb.util.SystemCollectionPredicate;
@@ -61,7 +59,7 @@ import org.openide.windows.TopComponent;
     "documentEditionShortcutHintTitle=Use CTRL + doubleclick to edit full document",
     "documentEditionShortcutHintDetails=Click here or use shortcut so this message won't show again."
 })
-public final class CollectionView extends TopComponent implements QueryResultWorkerFactory, QueryResultPanelContainer {
+public final class CollectionView extends TopComponent /*implements QueryResultWorkerFactory, QueryResultPanelContainer*/ {
 
     private static final long serialVersionUID = 1L;
 
@@ -95,12 +93,16 @@ public final class CollectionView extends TopComponent implements QueryResultWor
         loadPreferences();
         if(criteria != null) {
             queryEditor.setCriteria(criteria);
-            updateQueryFieldsFromEditor();
-        } else {
-            getResultPanel().refreshResults();
+            criteriaField.setText(criteria.toJson());
         }
+        getResultPanel().setResult(new FindResult(getCollection(), criteria, null, null));
     }
 
+    @SuppressWarnings("unchecked")
+    public MongoCollection<BsonDocument> getCollection() {
+        return getLookup().lookup(MongoCollection.class);
+    }
+    
     public void setLookup(Lookup lookup) {
         this.lookup = lookup;
     }
@@ -123,21 +125,9 @@ public final class CollectionView extends TopComponent implements QueryResultWor
         writePreferences();
     }
 
-    @Override
-    public QueryResultPanel getResultPanel() {
-        return (QueryResultPanel) resultPanel;
+    public CollectionResultPanel getResultPanel() {
+        return (CollectionResultPanel) resultPanel;
     }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    public QueryResultWorker createWorker() {
-        Bson criteria = queryEditor.getCriteria();
-        Bson projection = queryEditor.getProjection();
-        Bson sort = queryEditor.getSort();
-        MongoCollection<BsonDocument> collection = lookup.lookup(MongoCollection.class);
-        return new QueryWorker(getName(), collection, criteria, projection, sort, 200);
-    }
-    
 
     public void updateQueryFieldsFromEditor() {
         BsonDocument criteria = queryEditor.getCriteria();
@@ -146,7 +136,7 @@ public final class CollectionView extends TopComponent implements QueryResultWor
         criteriaField.setText(criteria != null ? criteria.toJson() : "");
         projectionField.setText(projection != null ? projection.toJson() : "");
         sortField.setText(sort != null ? sort.toJson() : "");
-        getResultPanel().refreshResults();
+        getResultPanel().setResult(new FindResult(getCollection(), criteria, projection, sort));
     }
 
     public Preferences prefs() {
@@ -187,7 +177,7 @@ public final class CollectionView extends TopComponent implements QueryResultWor
         sortField = new javax.swing.JTextField();
         editQueryButton = new javax.swing.JButton();
         clearQueryButton = new javax.swing.JButton();
-        resultPanel = new QueryResultPanel(lookup, this, isSystemCollection);
+        resultPanel = new CollectionResultPanel(lookup, isSystemCollection);
 
         queryPanel.setBorder(javax.swing.BorderFactory.createTitledBorder(org.openide.util.NbBundle.getMessage(CollectionView.class, "CollectionView.queryPanel.border.title"))); // NOI18N
 

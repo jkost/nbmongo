@@ -17,9 +17,6 @@
  */
 package org.netbeans.modules.mongodb.util;
 
-import com.mongodb.client.FindIterable;
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoDatabase;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -27,7 +24,7 @@ import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
-import org.bson.Document;
+import org.bson.BsonDocument;
 import org.openide.util.Exceptions;
 
 /**
@@ -36,12 +33,9 @@ import org.openide.util.Exceptions;
  */
 public final class Exporter implements Runnable {
 
-    private final MongoDatabase db;
-
     private final ExportProperties properties;
 
-    public Exporter(MongoDatabase db, ExportProperties properties) {
-        this.db = db;
+    public Exporter(ExportProperties properties) {
         this.properties = properties;
     }
 
@@ -58,7 +52,7 @@ public final class Exporter implements Runnable {
         final File exportFile = exportPath.toFile();
         Path backupPath = null;
         if (exportFile.exists()) {
-            backupPath = new File(exportFile.getName() + ".export-backup").toPath();
+            backupPath = Files.createTempFile(null, exportFile.getName());
             Files.move(exportPath, backupPath, StandardCopyOption.REPLACE_EXISTING);
         }
         try (Writer writer = new PrintWriter(exportFile, properties.getEncoding().name())) {
@@ -77,14 +71,11 @@ public final class Exporter implements Runnable {
 
     private void export(Writer writer) {
         final PrintWriter output = new PrintWriter(writer);
-        final MongoCollection<Document> collection = db.getCollection(properties.getCollection());
-        Document filter = properties.getCriteria();
-        FindIterable<Document> query = filter != null ? collection.find(filter) : collection.find();
         if (properties.isJsonArray()) {
             output.print("[");
         }
         boolean first = true;
-        for (Document document : query.sort(properties.getSort())) {
+        for (BsonDocument document : properties.getDocuments()) {
             if (Thread.interrupted()) {
                 return;
             }

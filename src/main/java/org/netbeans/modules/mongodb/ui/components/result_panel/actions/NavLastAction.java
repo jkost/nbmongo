@@ -15,11 +15,12 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-package org.netbeans.modules.mongodb.ui.windows.collectionview.actions;
+package org.netbeans.modules.mongodb.ui.components.result_panel.actions;
 
 import java.awt.event.ActionEvent;
-import org.netbeans.modules.mongodb.ui.components.QueryEditor;
-import org.netbeans.modules.mongodb.ui.windows.CollectionView;
+import javax.swing.ImageIcon;
+import org.netbeans.modules.mongodb.resources.Images;
+import org.netbeans.modules.mongodb.ui.components.CollectionResultPanel;
 import org.openide.util.NbBundle.Messages;
 
 /**
@@ -27,23 +28,23 @@ import org.openide.util.NbBundle.Messages;
  * @author Yann D'Isanto
  */
 @Messages({
-    "ACTION_clearQuery=clear"
+    "ACTION_navLast=Last Page",
+    "ACTION_navLast_tooltip=Last Page"
 })
-public final class ClearQueryAction extends CollectionViewAction {
-    
+public final class NavLastAction extends QueryResultPanelAction {
+
     private static final long serialVersionUID = 1L;
 
-    public ClearQueryAction(CollectionView view) {
-        super(view,
-            Bundle.ACTION_clearQuery());
+    public NavLastAction(CollectionResultPanel resultPanel) {
+        super(resultPanel,
+            Bundle.ACTION_navLast(),
+            new ImageIcon(Images.NAV_LAST_ICON),
+            Bundle.ACTION_navLast_tooltip());
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        final QueryEditor queryEditor = getView().getQueryEditor();
-        queryEditor.setCriteria(null);
-        queryEditor.setProjection(null);
-        queryEditor.setSort(null);
-        getView().updateQueryFieldsFromEditor();
+        getResultPanel().getResultPages().moveLast();
+        getResultPanel().updatePagination();
     }
 }

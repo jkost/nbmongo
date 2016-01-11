@@ -52,7 +52,6 @@ import org.netbeans.modules.mongodb.ui.actions.OpenMapReduceWindowAction;
 import org.netbeans.modules.mongodb.ui.util.CollectionNameValidator;
 import org.netbeans.modules.mongodb.ui.util.DialogNotification;
 import org.netbeans.modules.mongodb.ui.windows.CollectionView;
-import org.netbeans.modules.mongodb.ui.windows.QueryResultPanelContainer;
 import org.netbeans.modules.mongodb.ui.wizards.ExportWizardAction;
 import org.netbeans.modules.mongodb.ui.wizards.ImportWizardAction;
 import org.netbeans.modules.mongodb.util.SystemCollectionPredicate;
@@ -140,7 +139,6 @@ final class CollectionNode extends AbstractNode {
     protected Sheet createSheet() {
         Sheet sheet = Sheet.createDefault();
         Sheet.Set set = Sheet.createPropertiesSet();
-        MongoCollection<BsonDocument> col = getLookup().lookup(MongoCollection.class);
         MongoDatabase db = getLookup().lookup(MongoDatabase.class);
         BsonDocument commandDocument = new BsonDocument("collStats", new BsonString(collection.getName()));
         try {
@@ -321,10 +319,6 @@ final class CollectionNode extends AbstractNode {
             if (DialogNotification.confirm(Bundle.clearCollectionConfirmText(ci.getName()))) {
                 try {
                     getLookup().lookup(MongoCollection.class).deleteMany(new BasicDBObject());
-                    for (TopComponent topComponent : TopComponentUtils.findAll(ci, CollectionView.class, MapReduceTopComponent.class)) {
-                        ((QueryResultPanelContainer) topComponent).getResultPanel().refreshResults();
-
-                    }
                 } catch (MongoException ex) {
                     DialogNotification.error(ex);
                 }

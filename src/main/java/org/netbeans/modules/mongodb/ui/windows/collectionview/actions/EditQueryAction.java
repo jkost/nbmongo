@@ -30,6 +30,8 @@ import org.openide.util.NbBundle.Messages;
 })
 public final class EditQueryAction extends CollectionViewAction {
 
+    private static final long serialVersionUID = 1L;
+
     public EditQueryAction(CollectionView view) {
         super(view,
             Bundle.ACTION_editQuery());

@@ -172,7 +172,7 @@
     </Container>
     <Container class="javax.swing.JPanel" name="resultPanel">
       <AuxValues>
-        <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="new QueryResultPanel(lookup, this, isSystemCollection)"/>
+        <AuxValue name="JavaCodeGenerator_CreateCodeCustom" type="java.lang.String" value="new CollectionResultPanel(lookup, isSystemCollection)"/>
       </AuxValues>
 
       <Layout class="org.netbeans.modules.form.compat2.layouts.DesignFlowLayout"/>

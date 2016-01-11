@@ -1,5 +1,5 @@
-/* 
- * Copyright (C) 2015 Yann D'Isanto
+/*
+ * Copyright (C) 2016 Yann D'Isanto
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -15,35 +15,42 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-package org.netbeans.modules.mongodb.util;
+package org.netbeans.modules.mongodb.api;
 
-import java.io.File;
-import java.nio.charset.Charset;
-import java.util.Objects;
-import lombok.Builder;
-import lombok.Getter;
+import java.util.Collections;
+import static java.util.Collections.emptyList;
+import java.util.List;
 import org.bson.BsonDocument;
 
 /**
  *
  * @author Yann D'Isanto
  */
-@Getter
-@Builder
-public final class ExportProperties {
+public interface CollectionResult {
+    
+    long getTotalElementsCount();
+    
+    List<BsonDocument> get(long offset, int count);
+    
+    Iterable<BsonDocument> iterable();
+    
+    
+    CollectionResult EMPTY = new CollectionResult() {
 
-    private final Iterable<BsonDocument> documents;
-    
-    private final boolean jsonArray;
-    
-    private final File file;
-    
-    private final Charset encoding;
+        @Override
+        public long getTotalElementsCount() {
+            return 0;
+        }
 
-    public ExportProperties(Iterable<BsonDocument> documents, boolean jsonArray, File file, Charset encoding) {
-        this.documents = documents;
-        this.jsonArray = jsonArray;
-        this.file = Objects.requireNonNull(file);
-        this.encoding = Objects.requireNonNull(encoding);
-    }
+        @Override
+        public List<BsonDocument> get(long offset, int count) {
+            return emptyList();
+        }
+
+        @Override
+        public Iterable<BsonDocument> iterable() {
+            return Collections.emptyList();
+        }
+        
+    };
 }
