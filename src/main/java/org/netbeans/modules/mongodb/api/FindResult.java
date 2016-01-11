@@ -33,6 +33,7 @@ import org.bson.conversions.Bson;
 @AllArgsConstructor
 public final class FindResult implements CollectionResult {
 
+    @Getter
     private final MongoCollection<BsonDocument> collection;
     
     @Getter
@@ -62,4 +63,13 @@ public final class FindResult implements CollectionResult {
                 .limit(count)
                 .into(new ArrayList<BsonDocument>());
     }
+
+    @Override
+    public Iterable<BsonDocument> iterable() {
+        return collection
+                .find(filter != null ? filter : new BsonDocument())
+                .projection(projection)
+                .sort(sort);
+    }
+    
 }

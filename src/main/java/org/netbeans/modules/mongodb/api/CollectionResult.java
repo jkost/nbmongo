@@ -17,6 +17,7 @@
  */
 package org.netbeans.modules.mongodb.api;
 
+import java.util.Collections;
 import static java.util.Collections.emptyList;
 import java.util.List;
 import org.bson.BsonDocument;
@@ -31,6 +32,8 @@ public interface CollectionResult {
     
     List<BsonDocument> get(long offset, int count);
     
+    Iterable<BsonDocument> iterable();
+    
     
     CollectionResult EMPTY = new CollectionResult() {
 
@@ -43,5 +46,11 @@ public interface CollectionResult {
         public List<BsonDocument> get(long offset, int count) {
             return emptyList();
         }
+
+        @Override
+        public Iterable<BsonDocument> iterable() {
+            return Collections.emptyList();
+        }
+        
     };
 }

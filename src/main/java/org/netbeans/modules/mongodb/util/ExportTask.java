@@ -25,6 +25,7 @@ import org.openide.util.RequestProcessor;
  * @author Yann D'Isanto
  */
 @Messages({
+    "LBL_exporting=exporting",
     "# {0} - collection name",
     "TASK_export_label=\"{0}\" collection export"
 })
@@ -38,7 +39,7 @@ public final class ExportTask extends AbstractTask<Exporter> {
 
     @Override
     public String getLabel() {
-        return Bundle.TASK_export_label(getRunnable().getProperties().getCollection());
+        return Bundle.LBL_exporting();
     }
 
 }

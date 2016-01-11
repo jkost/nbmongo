@@ -139,7 +139,6 @@ final class CollectionNode extends AbstractNode {
     protected Sheet createSheet() {
         Sheet sheet = Sheet.createDefault();
         Sheet.Set set = Sheet.createPropertiesSet();
-        MongoCollection<BsonDocument> col = getLookup().lookup(MongoCollection.class);
         MongoDatabase db = getLookup().lookup(MongoDatabase.class);
         BsonDocument commandDocument = new BsonDocument("collStats", new BsonString(collection.getName()));
         try {

@@ -29,9 +29,10 @@ import java.util.List;
 import java.util.Map;
 import javax.swing.AbstractAction;
 import javax.swing.JComponent;
-import org.bson.Document;
+import javax.swing.SwingUtilities;
+import org.bson.BsonDocument;
+import org.netbeans.modules.mongodb.api.CollectionResult;
 import org.netbeans.modules.mongodb.util.ExportProperties;
-import org.netbeans.modules.mongodb.util.ExportPropertiesBuilder;
 import org.netbeans.modules.mongodb.util.ExportTask;
 import org.netbeans.modules.mongodb.util.Exporter;
 import org.openide.DialogDisplayer;
@@ -42,13 +43,9 @@ import org.openide.util.NbBundle.Messages;
 @Messages({"ACTION_Export=Export"})
 public final class ExportWizardAction extends AbstractAction {
 
+    public static final String PROP_DOCUMENTS = "documents";
+
     public static final String PROP_COLLECTION = "collection";
-
-    public static final String PROP_CRITERIA = "criteria";
-
-    public static final String PROP_PROJECTION = "projection";
-
-    public static final String PROP_SORT = "sort";
 
     public static final String PROP_FILE = "file";
 
@@ -71,9 +68,12 @@ public final class ExportWizardAction extends AbstractAction {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public void actionPerformed(ActionEvent e) {
         List<WizardDescriptor.Panel<WizardDescriptor>> panels = new ArrayList<>();
-        panels.add(new ExportWizardPanel1(lookup.lookup(MongoDatabase.class)));
+        if (defaultProperties.containsKey(PROP_DOCUMENTS) == false) {
+            panels.add(new ExportWizardPanel1(lookup.lookup(MongoDatabase.class)));
+        }
         panels.add(new ExportWizardPanel2());
         String[] steps = new String[panels.size()];
         for (int i = 0; i < panels.size(); i++) {
@@ -97,20 +97,32 @@ public final class ExportWizardAction extends AbstractAction {
         // {0} will be replaced by WizardDesriptor.Panel.getComponent().getName()
         wiz.setTitleFormat(new MessageFormat("{0}"));
         wiz.setTitle(Bundle.ACTION_Export());
-        if (DialogDisplayer.getDefault().notify(wiz) == WizardDescriptor.FINISH_OPTION) {
-            final ExportProperties properties = new ExportPropertiesBuilder()
-                .collection((String) wiz.getProperty(PROP_COLLECTION))
-                .criteria((Document) wiz.getProperty(PROP_CRITERIA))
-                .projection((Document) wiz.getProperty(PROP_PROJECTION))
-                .sort((Document) wiz.getProperty(PROP_SORT))
-                .jsonArray((Boolean) wiz.getProperty(PROP_JSON_ARRAY))
-                .file((File) wiz.getProperty(PROP_FILE))
-                .encoding((Charset) wiz.getProperty(PROP_ENCODING))
-                .build();
-            new ExportTask(
-                new Exporter(lookup.lookup(MongoDatabase.class), properties))
-                .run();
+
+        Object documentsProperty = wiz.getProperty(PROP_DOCUMENTS);
+        if (documentsProperty instanceof CollectionResult) {
+            documentsProperty = ((CollectionResult) documentsProperty).iterable();
         }
+        final Iterable<BsonDocument> documents = documentsProperty instanceof CollectionResult 
+                ? ((CollectionResult) documentsProperty).iterable()
+                : (Iterable<BsonDocument>) documentsProperty;
+        SwingUtilities.invokeLater(new Runnable() {
+
+            @Override
+            public void run() {
+                if (DialogDisplayer.getDefault().notify(wiz) == WizardDescriptor.FINISH_OPTION) {
+                    ExportProperties properties = ExportProperties.builder()
+                            .documents(documents)
+                            .jsonArray((Boolean) wiz.getProperty(PROP_JSON_ARRAY))
+                            .file((File) wiz.getProperty(PROP_FILE))
+                            .encoding((Charset) wiz.getProperty(PROP_ENCODING))
+                            .build();
+                    new ExportTask(
+                            new Exporter(properties))
+                            .run();
+                }
+            }
+        });
+
     }
 
 }

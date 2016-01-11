@@ -20,7 +20,6 @@ package org.netbeans.modules.mongodb.api;
 import java.util.ArrayList;
 import static java.util.Collections.emptyList;
 import java.util.List;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.bson.BsonDocument;
 
@@ -36,7 +35,7 @@ public final class CollectionResultPages {
     @Getter
     private int pageSize;
     
-    private final boolean editable = false;
+    private final boolean readOnly;
     
     @Getter
     private List<BsonDocument> currentPageItems = emptyList();
@@ -49,13 +48,14 @@ public final class CollectionResultPages {
     private int pagesCount = 0;
 
     public CollectionResultPages(int pageSize) {
-        this(CollectionResult.EMPTY, pageSize);
+        this(CollectionResult.EMPTY, pageSize, true);
     }
 
     
-    public CollectionResultPages(CollectionResult queryResult, int pageSize) {
+    public CollectionResultPages(CollectionResult queryResult, int pageSize, boolean readOnly) {
         this.queryResult = queryResult;
         this.pageSize = pageSize;
+        this.readOnly = readOnly;
     }
 
     public void setQueryResult(CollectionResult queryResult) {
@@ -144,7 +144,7 @@ public final class CollectionResultPages {
     }
     
     public void updateDocument(int index, BsonDocument newValue) {
-        if(editable == false) {
+        if(readOnly) {
             throw new UnsupportedOperationException("not editable");
         }
         BsonDocument oldValue = currentPageItems.set(index, newValue);

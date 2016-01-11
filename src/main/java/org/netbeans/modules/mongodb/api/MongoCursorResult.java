@@ -44,7 +44,13 @@ public final class MongoCursorResult implements CollectionResult {
         this.maxSize = maxSize;
         setCursor(cursor);
     }
-    
+
+    public void setCursor(MongoCursor<BsonDocument> cursor) {
+        documents = new ArrayList<>();
+        while(cursor.hasNext() && documents.size() < maxSize) {
+            documents.add(cursor.next());
+        }
+    }
     
     @Override
     public long getTotalElementsCount() {
@@ -58,10 +64,9 @@ public final class MongoCursorResult implements CollectionResult {
         return documents.subList(fromIndex, Math.min(toIndex, documents.size()));
     }
 
-    public void setCursor(MongoCursor<BsonDocument> cursor) {
-        documents = new ArrayList<>();
-        while(cursor.hasNext() && documents.size() < maxSize) {
-            documents.add(cursor.next());
-        }
+    @Override
+    public Iterable<BsonDocument> iterable() {
+        return documents;
     }
+    
 }

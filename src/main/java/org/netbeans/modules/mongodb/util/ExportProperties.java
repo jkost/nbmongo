@@ -20,64 +20,30 @@ package org.netbeans.modules.mongodb.util;
 import java.io.File;
 import java.nio.charset.Charset;
 import java.util.Objects;
-import org.bson.Document;
+import lombok.Builder;
+import lombok.Getter;
+import org.bson.BsonDocument;
 
 /**
  *
  * @author Yann D'Isanto
  */
+@Getter
+@Builder
 public final class ExportProperties {
 
-    private final String collection;
-
-    private final Document criteria;
-
-    private final Document projection;
-
-    private final Document sort;
-
+    private final Iterable<BsonDocument> documents;
+    
     private final boolean jsonArray;
     
     private final File file;
     
     private final Charset encoding;
 
-    public ExportProperties(String collection, Document criteria, Document projection, Document sort, boolean jsonArray, File file, Charset encoding) {
-        this.collection = Objects.requireNonNull(collection);
-        this.criteria = criteria;
-        this.projection = projection;
-        this.sort = sort;
+    public ExportProperties(Iterable<BsonDocument> documents, boolean jsonArray, File file, Charset encoding) {
+        this.documents = documents;
         this.jsonArray = jsonArray;
         this.file = Objects.requireNonNull(file);
         this.encoding = Objects.requireNonNull(encoding);
     }
-
-    public String getCollection() {
-        return collection;
-    }
-
-    public Document getCriteria() {
-        return criteria;
-    }
-
-    public Document getProjection() {
-        return projection;
-    }
-
-    public Document getSort() {
-        return sort;
-    }
-
-    public boolean isJsonArray() {
-        return jsonArray;
-    }
-
-    public File getFile() {
-        return file;
-    }
-
-    public Charset getEncoding() {
-        return encoding;
-    }
-    
 }

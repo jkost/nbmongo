@@ -22,6 +22,7 @@ import javax.swing.JComboBox;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import org.bson.BsonDocument;
+import org.netbeans.modules.mongodb.api.FindResult;
 import org.netbeans.modules.mongodb.ui.components.QueryEditor;
 import org.openide.WizardDescriptor;
 import org.openide.WizardValidationException;
@@ -75,28 +76,33 @@ public class ExportWizardPanel1 implements WizardDescriptor.ValidatingPanel<Wiza
     public void readSettings(WizardDescriptor wiz) {
         final ExportVisualPanel1 panel = getComponent();
         final QueryEditor query = panel.getQueryEditor();
-        String collection = (String) wiz.getProperty(ExportWizardAction.PROP_COLLECTION);
-        if (collection != null) {
-            panel.getCollectionComboBox().setSelectedItem(collection);
+        FindResult documents = (FindResult) wiz.getProperty(ExportWizardAction.PROP_DOCUMENTS);
+        if(documents != null) {
+            panel.getCollectionComboBox().setSelectedItem(documents.getCollection().getNamespace().getCollectionName());
+            query.setCriteria((BsonDocument) documents.getFilter());
+            query.setProjection((BsonDocument) documents.getProjection());
+            query.setSort((BsonDocument) documents.getSort());
+        } else {
+            String collection = (String) wiz.getProperty(ExportWizardAction.PROP_COLLECTION);
+            if (collection != null) {
+                panel.getCollectionComboBox().setSelectedItem(collection);
+            }
         }
-        query.setCriteria((BsonDocument) wiz.getProperty(ExportWizardAction.PROP_CRITERIA));
-        query.setProjection((BsonDocument) wiz.getProperty(ExportWizardAction.PROP_PROJECTION));
-        query.setSort((BsonDocument) wiz.getProperty(ExportWizardAction.PROP_SORT));
         panel.updateQueryFieldsFromEditor();
     }
 
     @Override
     public void storeSettings(WizardDescriptor wiz) {
-        final ExportVisualPanel1 panel = getComponent();
-        final QueryEditor query = panel.getQueryEditor();
-        wiz.putProperty(ExportWizardAction.PROP_COLLECTION, 
-            panel.getCollectionComboBox().getSelectedItem());
-        wiz.putProperty(ExportWizardAction.PROP_CRITERIA, 
-            panel.getQueryEditor().getCriteria());
-        wiz.putProperty(ExportWizardAction.PROP_PROJECTION, 
-            panel.getQueryEditor().getProjection());
-        wiz.putProperty(ExportWizardAction.PROP_SORT, 
-            panel.getQueryEditor().getSort());
+        ExportVisualPanel1 panel = getComponent();
+        QueryEditor query = panel.getQueryEditor();
+        String colName = (String) panel.getCollectionComboBox().getSelectedItem();
+        wiz.putProperty(ExportWizardAction.PROP_DOCUMENTS,
+                new FindResult(
+                        db.getCollection(colName, BsonDocument.class),
+                        query.getCriteria(),
+                        query.getProjection(),
+                        query.getSort()
+                ));
     }
 
     @Override

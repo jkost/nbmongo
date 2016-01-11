@@ -22,6 +22,7 @@ import java.nio.charset.Charset;
 import javax.swing.JFileChooser;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import org.netbeans.modules.mongodb.api.FindResult;
 import org.netbeans.modules.mongodb.ui.util.DialogNotification;
 import org.openide.WizardDescriptor;
 import org.openide.WizardValidationException;
@@ -84,8 +85,9 @@ public class ExportWizardPanel2 implements WizardDescriptor.ValidatingPanel<Wiza
         final JFileChooser fileChooser = panel.getFileChooser();
         File file = (File) wiz.getProperty(ExportWizardAction.PROP_FILE);
         if (file == null) {
-            final String collection = (String) wiz.getProperty(ExportWizardAction.PROP_COLLECTION);
-            if (collection != null) {
+            Object documents = wiz.getProperty(ExportWizardAction.PROP_DOCUMENTS);
+            if(documents instanceof FindResult) {
+                String collection = ((FindResult) documents).getCollection().getNamespace().getCollectionName();
                 file = new File(fileChooser.getCurrentDirectory(), collection + ".json");
             }
         }

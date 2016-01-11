@@ -125,6 +125,7 @@ public final class CollectionResultPanel extends javax.swing.JPanel {
     @Getter
     private final boolean readOnly;
 
+    @Getter
     private CollectionResult currentResult;
     
     private final Runnable resultRefresh = new Runnable() {
@@ -161,7 +162,6 @@ public final class CollectionResultPanel extends javax.swing.JPanel {
      */
     public CollectionResultPanel(Lookup lookup, final boolean readOnly) {
         this.lookup = lookup;
-//        this.queryResultWorkerFactory = queryResultWorkerFactory;
         this.readOnly = readOnly;
         initComponents();
 
@@ -175,8 +175,8 @@ public final class CollectionResultPanel extends javax.swing.JPanel {
         int pageSize = 20; // TODO: store/load from pref
         currentResult = CollectionResult.EMPTY;
             
-        treeTableModel = new DocumentsTreeTableModel(new CollectionResultPages(currentResult, pageSize));
-        flatTableModel = new DocumentsFlatTableModel(new CollectionResultPages(currentResult, pageSize));
+        treeTableModel = new DocumentsTreeTableModel(new CollectionResultPages(currentResult, pageSize, readOnly));
+        flatTableModel = new DocumentsFlatTableModel(new CollectionResultPages(currentResult, pageSize, readOnly));
         resultViews.put(ResultView.TREE_TABLE, treeTableModel);
         resultViews.put(ResultView.FLAT_TABLE, flatTableModel);
 
@@ -330,8 +330,7 @@ public final class CollectionResultPanel extends javax.swing.JPanel {
     }
     
     public void editDocument(BsonDocument document, BsonDocument modifiedDocument) {
-        getTreeTablePages().updateDocument(document, modifiedDocument);
-        getFlatTablePages().updateDocument(document, modifiedDocument);
+        getResultPages().updateDocument(document, modifiedDocument);
     }
 
     private JTable getResultTable() {
