@@ -109,7 +109,6 @@ public class MongoConnection {
 
         @Override
         public void close() {
-//            RequestProcessor.getDefault().post(this);
             run();
         }
 
