@@ -39,6 +39,8 @@ import org.bson.BsonType;
 import org.bson.BsonValue;
 import org.jdesktop.swingx.treetable.TreeTableNode;
 import org.netbeans.modules.mongodb.bson.Bsons;
+import org.netbeans.modules.mongodb.options.RenderingOptions.PrefsRenderingOptions;
+import org.netbeans.modules.mongodb.options.RenderingOptions.RenderingOptionsItem;
 
 /**
  *
@@ -51,7 +53,7 @@ public class BsonNodeRenderer extends JPanel implements TreeCellRenderer {
     final JLabel keyLabel = new JLabel();
 
     final JLabel valueLabel = new JLabel();
-    
+
     final JLabel simpleLabel = new JLabel();
 
     final Border selectionBorder = BorderFactory.createLineBorder(Color.BLACK);
@@ -107,11 +109,12 @@ public class BsonNodeRenderer extends JPanel implements TreeCellRenderer {
         }
         setBackground(selected ? getBackgroundSelectionColor() : getBackgroundNonSelectionColor());
         setBorder(selected ? selectionBorder : nonSelectionBorder);
-        
+
         indexLabel.setText("");
         keyLabel.setText("");
         valueLabel.setText("");
-        RenderingOptions indexRendering = RenderingOptions.comments();
+        PrefsRenderingOptions renderingOptions = PrefsRenderingOptions.INSTANCE;
+        RenderingOptionsItem indexRendering = renderingOptions.comment();
         indexLabel.setFont(indexRendering.getFont());
         if (selected) {
             indexLabel.setForeground(getTextSelectionColor());
@@ -120,7 +123,8 @@ public class BsonNodeRenderer extends JPanel implements TreeCellRenderer {
             indexLabel.setForeground(indexRendering.getForeground());
             indexLabel.setBackground(indexRendering.getBackground());
         }
-        TreeTableNode parent = ((TreeTableNode) node).getParent();
+        BsonValueNode bsonNode = (BsonValueNode) node;
+        TreeTableNode parent = (TreeTableNode) bsonNode.getParent();
         boolean noIndex = true;
         if (parent instanceof BsonValueNode && ((BsonValueNode) parent).getValue().isArray()) {
             int index = parent.getIndex((TreeNode) node);
@@ -130,23 +134,28 @@ public class BsonNodeRenderer extends JPanel implements TreeCellRenderer {
             }
         }
 
-        BsonValueNode bsonNode = (BsonValueNode) node;
         boolean noKey = true;
+        boolean idNode = false;
         if (node instanceof BsonPropertyNode) {
             BsonPropertyNode propertyNode = (BsonPropertyNode) node;
             String propertyName = propertyNode.getPropertyName();
             keyLabel.setText(buildJsonKey(propertyName));
             noKey = false;
+            idNode = "_id".equals(propertyName)
+                    && parent.getParent() instanceof RootNode;
         }
 
         BsonValue value = bsonNode.getValue();
-        RenderingOptions keyRendering = RenderingOptions.keys();
-        RenderingOptions valueRendering = RenderingOptions.get(value.getBsonType());
-        if (value.isDocument() && bsonNode.getParent() instanceof RootNode) {
+        RenderingOptionsItem keyRendering = renderingOptions.key();
+        RenderingOptionsItem valueRendering = renderingOptions.get(value.getBsonType());
+        if (value.isDocument() && parent instanceof RootNode) {
             BsonValue id = value.asDocument().get("_id");
             valueLabel.setText(stringifyValue(id));
-            valueRendering = RenderingOptions.documentsRoot();
+            valueRendering = renderingOptions.documentRoot();
         } else {
+            if (idNode) {
+                valueRendering = renderingOptions.documentId();
+            }
             valueLabel.setText(stringifyValue(value));
         }
 
@@ -163,7 +172,7 @@ public class BsonNodeRenderer extends JPanel implements TreeCellRenderer {
             valueLabel.setForeground(valueRendering.getForeground());
             valueLabel.setBackground(valueRendering.getBackground());
         }
-        if(noIndex && noKey) {
+        if (noIndex && noKey) {
             simpleLabel.setText(valueLabel.getText());
             simpleLabel.setFont(valueLabel.getFont());
             simpleLabel.setBackground(valueLabel.getBackground());

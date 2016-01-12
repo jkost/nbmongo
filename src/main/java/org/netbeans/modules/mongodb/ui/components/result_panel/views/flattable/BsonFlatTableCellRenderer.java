@@ -22,7 +22,8 @@ import javax.swing.JTable;
 import javax.swing.table.DefaultTableCellRenderer;
 import org.bson.BsonValue;
 import org.netbeans.modules.mongodb.bson.Bsons;
-import org.netbeans.modules.mongodb.ui.components.result_panel.views.treetable.RenderingOptions;
+import org.netbeans.modules.mongodb.options.RenderingOptions.PrefsRenderingOptions;
+import org.netbeans.modules.mongodb.options.RenderingOptions.RenderingOptionsItem;
 
 /**
  *
@@ -36,7 +37,7 @@ public final class BsonFlatTableCellRenderer extends DefaultTableCellRenderer {
         Component component = super.getTableCellRendererComponent(table, Bsons.shell(bsonValue), isSelected, hasFocus, row, column);
         setToolTipText(getText());
         if (value != null && isSelected == false) {
-            RenderingOptions rendering = RenderingOptions.get(bsonValue.getBsonType());
+            RenderingOptionsItem rendering = PrefsRenderingOptions.INSTANCE.get(bsonValue.getBsonType());
             component.setFont(rendering.getFont());
             component.setForeground(rendering.getForeground());
             component.setBackground(rendering.getBackground());
