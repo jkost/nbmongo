@@ -23,7 +23,7 @@
     
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <netbeans.target.version>RELEASE80</netbeans.target.version>
+        <netbeans.target.version>RELEASE81</netbeans.target.version>
         <netbeans.run.params.ide/>
         <netbeans.run.params>${netbeans.run.params.ide}</netbeans.run.params>
     </properties>
@@ -55,6 +55,11 @@
         <dependency>
             <groupId>org.netbeans.api</groupId>
             <artifactId>org-netbeans-api-progress</artifactId>
+            <version>${netbeans.target.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.netbeans.api</groupId>
+            <artifactId>org-netbeans-api-progress-nb</artifactId>
             <version>${netbeans.target.version}</version>
         </dependency>
         <dependency>
@@ -117,6 +122,11 @@
         </dependency>
         <dependency>
             <groupId>org.netbeans.api</groupId>
+            <artifactId>org-openide-filesystems-nb</artifactId>
+            <version>${netbeans.target.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.netbeans.api</groupId>
             <artifactId>org-openide-io</artifactId>
             <version>${netbeans.target.version}</version>
         </dependency>
@@ -141,6 +151,12 @@
         <dependency>
             <groupId>org.netbeans.api</groupId>
             <artifactId>org-openide-util</artifactId>
+            <type>jar</type>
+            <version>${netbeans.target.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.netbeans.api</groupId>
+            <artifactId>org-openide-util-ui</artifactId>
             <type>jar</type>
             <version>${netbeans.target.version}</version>
         </dependency>
