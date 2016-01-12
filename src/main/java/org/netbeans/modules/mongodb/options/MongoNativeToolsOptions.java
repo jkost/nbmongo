@@ -25,6 +25,7 @@ import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 import org.netbeans.modules.mongodb.util.Version;
 import org.openide.util.Exceptions;
@@ -55,10 +56,11 @@ public enum MongoNativeToolsOptions {
     }
 
     public void load() {
-        toolsFolder = getPreferences().get(TOOLS_FOLDER, null);
+        Preferences prefs = getPreferences();
+        toolsFolder = prefs.get(TOOLS_FOLDER, null);
         if(toolsFolder == null) {
             // try to use mongo shell executable path (a plugin older version option)
-            String mongoExecPath = getPreferences().get("mongo-exec-path", null);
+            String mongoExecPath = prefs.get("mongo-exec-path", null);
             if(mongoExecPath != null) {
                 Path toolsFolderPath = Paths.get(mongoExecPath).getParent();
                 if(Files.isDirectory(toolsFolderPath)) {
@@ -66,19 +68,20 @@ public enum MongoNativeToolsOptions {
                 }
             }
         }
-        final String versionAsString = getPreferences().get(TOOLS_VERSION, null);
+        final String versionAsString = prefs.get(TOOLS_VERSION, null);
         if (versionAsString != null) {
             toolsVersion = new Version(versionAsString);
         }
     }
 
     public void store() {
+        Preferences prefs = getPreferences();
         if (toolsFolder == null) {
-            getPreferences().remove(TOOLS_FOLDER);
-            getPreferences().remove(TOOLS_VERSION);
+            prefs.remove(TOOLS_FOLDER);
+            prefs.remove(TOOLS_VERSION);
         } else {
-            getPreferences().put(TOOLS_FOLDER, toolsFolder);
-            getPreferences().put(TOOLS_VERSION, toolsVersion.toString());
+            prefs.put(TOOLS_FOLDER, toolsFolder);
+            prefs.put(TOOLS_VERSION, toolsVersion.toString());
         }
     }
 

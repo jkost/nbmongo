@@ -52,8 +52,6 @@ import org.bson.BsonValue;
 import org.netbeans.modules.mongodb.CollectionInfo;
 import org.netbeans.modules.mongodb.api.CollectionResult;
 import org.netbeans.modules.mongodb.api.CollectionResultPages;
-import org.netbeans.modules.mongodb.options.JsonCellRenderingOptions;
-import org.netbeans.modules.mongodb.options.LabelCategory;
 import org.netbeans.modules.mongodb.resources.Images;
 import org.netbeans.modules.mongodb.ui.util.IntegerDocumentFilter;
 import org.netbeans.modules.mongodb.ui.actions.*;
@@ -68,6 +66,7 @@ import org.netbeans.modules.mongodb.ui.components.result_panel.views.treetable.B
 import org.netbeans.modules.mongodb.ui.components.result_panel.views.treetable.BsonPropertyNode;
 import org.netbeans.modules.mongodb.ui.components.result_panel.views.treetable.BsonValueNode;
 import org.netbeans.modules.mongodb.ui.components.result_panel.views.treetable.DocumentRootTreeTableHighlighter;
+import org.netbeans.modules.mongodb.options.RenderingOptions.PrefsRenderingOptions;
 import org.netbeans.modules.mongodb.util.BsonProperty;
 import org.openide.awt.NotificationDisplayer;
 import org.openide.util.Exceptions;
@@ -201,9 +200,8 @@ public final class CollectionResultPanel extends javax.swing.JPanel {
                 final TableColumnModel model = (TableColumnModel) e.getSource();
                 final TableColumn column = model.getColumn(e.getToIndex());
                 if ("_id".equals(column.getHeaderValue())) {
-                    final Font font = JsonCellRenderingOptions.INSTANCE
-                        .getLabelFontConf(LabelCategory.DOCUMENT).getFont();
-                    final int preferredWidth = getFontMetrics(font)
+                    Font font = PrefsRenderingOptions.INSTANCE.documentRoot().getFont();
+                    int preferredWidth = getFontMetrics(font)
                         .stringWidth("000000000000000000000000");
                     column.setPreferredWidth(preferredWidth);
                 }

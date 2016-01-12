@@ -23,6 +23,7 @@ import org.jdesktop.swingx.JXTreeTable;
 import org.jdesktop.swingx.decorator.AbstractHighlighter;
 import org.jdesktop.swingx.decorator.ComponentAdapter;
 import org.jdesktop.swingx.decorator.HighlightPredicate;
+import org.netbeans.modules.mongodb.options.RenderingOptions.PrefsRenderingOptions;
 
 /**
  * Highlighter for document node row.
@@ -47,7 +48,7 @@ public final class DocumentRootTreeTableHighlighter extends AbstractHighlighter 
         adapter.isSelected();
         Color background = adapter.isSelected()
                 ? table.getSelectionBackground()
-                : RenderingOptions.documentsRoot().getBackground();
+                : PrefsRenderingOptions.INSTANCE.documentRoot().getBackground();
         component.setBackground(background);
         return component;
     }

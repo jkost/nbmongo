@@ -17,7 +17,6 @@
  */
 package org.netbeans.modules.mongodb.ui.options;
 
-import org.netbeans.modules.mongodb.options.JsonCellRenderingOptions;
 import java.awt.Font;
 import java.beans.PropertyEditor;
 import java.beans.PropertyEditorManager;
@@ -28,20 +27,41 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import org.bson.BsonType;
 import org.netbeans.modules.mongodb.options.MongoNativeToolsOptions;
-import org.netbeans.modules.mongodb.options.LabelCategory;
-import org.netbeans.modules.mongodb.options.LabelFontConf;
+import org.netbeans.modules.mongodb.options.RenderingOptions;
+import org.netbeans.modules.mongodb.options.RenderingOptions.PrefsRenderingOptions;
+import org.netbeans.modules.mongodb.options.RenderingOptions.RenderingOptionsItem;
+import org.netbeans.modules.mongodb.options.RenderingOptions.RenderingOptionsItem.RenderingOptionsItemBuilder;
 import org.openide.DialogDescriptor;
 import org.openide.DialogDisplayer;
 import org.openide.awt.ColorComboBox;
 import org.openide.filesystems.FileChooserBuilder;
+import org.openide.util.NbBundle;
+import org.openide.util.NbBundle.Messages;
 
 /**
  * @author Yann D'Isanto
  */
+@Messages({
+    "RenderingOptionItemKey_DEFAULT_RENDERING=Default",
+    "RenderingOptionItemKey_COMMENT=Comment",
+    "RenderingOptionItemKey_KEY=Key",
+    "RenderingOptionItemKey_DOCUMENT_ROOT=Document root",
+    "RenderingOptionItemKey_DOCUMENT_ID=Document _id",
+    "RenderingOptionItemKey_OBJECT_ID=ObjectId",
+    "RenderingOptionItemKey_STRING=String",
+    "RenderingOptionItemKey_INT32=Integer",
+    "RenderingOptionItemKey_INT64=64 bits integer",
+    "RenderingOptionItemKey_DOUBLE=Double",
+    "RenderingOptionItemKey_BOOLEAN=Boolean",
+    "RenderingOptionItemKey_ARRAY=Array",
+    "RenderingOptionItemKey_NULL=Null",
+    "RenderingOptionItemKey_UNDEFINED=Undefined"
+})
 final class MongoOptionsPanel extends javax.swing.JPanel {
-
-    private final JsonCellRenderingOptions jsonRenderingOptions = JsonCellRenderingOptions.INSTANCE;
 
     private final MongoNativeToolsOptions mongoToolsOptions = MongoNativeToolsOptions.INSTANCE;
 
@@ -49,7 +69,8 @@ final class MongoOptionsPanel extends javax.swing.JPanel {
 
     private final PropertyEditor fontEditor = PropertyEditorManager.findEditor(Font.class);
 
-    private final Map<LabelCategory, LabelFontConf.Builder> labelConfBuilders = new HashMap<>();
+    private final PrefsRenderingOptions prefsRenderingOptions = PrefsRenderingOptions.INSTANCE;
+    private final Map<RenderingOptionItemKey, RenderingOptionsItemBuilder> renderingOptionsBuilders = new HashMap<>();
 
     private boolean internalUpdate = false;
 
@@ -57,17 +78,11 @@ final class MongoOptionsPanel extends javax.swing.JPanel {
         this.controller = controller;
         initComponents();
         internalUpdate = true;
-        categoriesList.setListData(LabelCategory.values());
+        categoriesList.setListData(RenderingOptionItemKey.values());
         categoriesList.setSelectedIndex(0);
-
-        for (LabelCategory labelCategory : LabelCategory.values()) {
-            final LabelFontConf conf = jsonRenderingOptions.getLabelFontConf(labelCategory);
-            labelConfBuilders.put(labelCategory, new LabelFontConf.Builder(conf));
-        }
-
-        updateSelectedLabelFontConfUI();
+        loadRenderingOptions(prefsRenderingOptions);
         internalUpdate = false;
-        
+
         categoriesList.addListSelectionListener(new ListSelectionListener() {
 
             @Override
@@ -95,21 +110,21 @@ final class MongoOptionsPanel extends javax.swing.JPanel {
     }
 
     private void updateSelectedLabelFontConfUI() {
-        loadLabelFontConfInUI(getSelectedLabelFontConfBuilder());
-    }
-    
-    private LabelFontConf.Builder getSelectedLabelFontConfBuilder() {
-        final LabelCategory category = categoriesList.getSelectedValue();
-        return labelConfBuilders.get(category);
+        loadRenderingOptionsInUI(getSelectedRenderingOptionsBuilder().build());
     }
 
-    private void loadLabelFontConfInUI(LabelFontConf.Builder labelFontConfBuilder) {
-        final Font font = labelFontConfBuilder.getFont();
+    private RenderingOptionsItemBuilder getSelectedRenderingOptionsBuilder() {
+        final RenderingOptionItemKey category = categoriesList.getSelectedValue();
+        return renderingOptionsBuilders.get(category);
+    }
+
+    private void loadRenderingOptionsInUI(RenderingOptionsItem renderingOptions) {
+        final Font font = renderingOptions.getFont();
         fontEditor.setValue(font);
         fontField.setFont(font);
         fontField.setText(fontEditor.getAsText());
-        ((ColorComboBox) foregroundComboBox).setSelectedColor(labelFontConfBuilder.getForeground());
-        ((ColorComboBox) backgroundComboBox).setSelectedColor(labelFontConfBuilder.getBackground());
+        ((ColorComboBox) foregroundComboBox).setSelectedColor(renderingOptions.getForeground());
+        ((ColorComboBox) backgroundComboBox).setSelectedColor(renderingOptions.getBackground());
     }
 
     private void fireChangeEvent() {
@@ -136,7 +151,7 @@ final class MongoOptionsPanel extends javax.swing.JPanel {
         fontField = new javax.swing.JTextField();
         browseFontButton = new javax.swing.JButton();
         categoriesScrollPane = new javax.swing.JScrollPane();
-        categoriesList = new javax.swing.JList<LabelCategory>();
+        categoriesList = new javax.swing.JList<RenderingOptionItemKey>();
         categoriesLabel = new javax.swing.JLabel();
         restoreDefaultRenderingLabel = new javax.swing.JLabel();
         restoreDefaultRenderingButton = new javax.swing.JButton();
@@ -336,8 +351,8 @@ final class MongoOptionsPanel extends javax.swing.JPanel {
     private void browseFontButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_browseFontButtonActionPerformed
         fontEditor.setValue(fontField.getFont());
         final DialogDescriptor dd = new DialogDescriptor(
-            fontEditor.getCustomEditor(),
-            "Select Font" // NOI18N
+                fontEditor.getCustomEditor(),
+                "Select Font" // NOI18N
         );
 
         DialogDisplayer.getDefault().createDialog(dd).setVisible(true);
@@ -346,18 +361,18 @@ final class MongoOptionsPanel extends javax.swing.JPanel {
             fontField.setFont(font);
             fontField.setText(fontEditor.getAsText());
             fireChangeEvent();
-            getSelectedLabelFontConfBuilder().font(font);
+            getSelectedRenderingOptionsBuilder().font(font);
         }
 
     }//GEN-LAST:event_browseFontButtonActionPerformed
 
     private void foregroundComboBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_foregroundComboBoxActionPerformed
-        getSelectedLabelFontConfBuilder().foreground(((ColorComboBox) foregroundComboBox).getSelectedColor());
+        getSelectedRenderingOptionsBuilder().foreground(((ColorComboBox) foregroundComboBox).getSelectedColor());
         fireChangeEvent();
     }//GEN-LAST:event_foregroundComboBoxActionPerformed
 
     private void backgroundComboBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_backgroundComboBoxActionPerformed
-        getSelectedLabelFontConfBuilder().background(((ColorComboBox) backgroundComboBox).getSelectedColor());
+        getSelectedRenderingOptionsBuilder().background(((ColorComboBox) backgroundComboBox).getSelectedColor());
         fireChangeEvent();
     }//GEN-LAST:event_backgroundComboBoxActionPerformed
 
@@ -367,34 +382,28 @@ final class MongoOptionsPanel extends javax.swing.JPanel {
         fcb.setDirectoriesOnly(true);
         fcb.setSelectionApprover(new MongoToolsFolderSelectionApprover());
         final String mongoToolsFolderPath = mongoToolsFolderPathField.getText().trim();
-        if(mongoToolsFolderPath.isEmpty() == false) {
+        if (mongoToolsFolderPath.isEmpty() == false) {
             fcb.setDefaultWorkingDirectory(new File(mongoToolsFolderPath));
-        } else if(mongoHomePath != null) {
+        } else if (mongoHomePath != null) {
             final File mongoHome = new File(mongoHomePath);
-            if(mongoHome.isDirectory()) {
+            if (mongoHome.isDirectory()) {
                 fcb.setDefaultWorkingDirectory(mongoHome);
             }
         }
         final File file = fcb.showOpenDialog();
-        if(file != null) {
+        if (file != null) {
             mongoToolsFolderPathField.setText(file.getAbsolutePath());
         }
     }//GEN-LAST:event_browseMongoToolsFolderPathButtonActionPerformed
 
     private void restoreDefaultRenderingButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_restoreDefaultRenderingButtonActionPerformed
-        for (Map.Entry<LabelCategory, LabelFontConf> entry : JsonCellRenderingOptions.Default.LABEL_CONFS.entrySet()) {
-            labelConfBuilders.put(entry.getKey(), new LabelFontConf.Builder(entry.getValue()));
-        }
-        updateSelectedLabelFontConfUI();
+        loadRenderingOptions(RenderingOptions.DEFAULT);
     }//GEN-LAST:event_restoreDefaultRenderingButtonActionPerformed
 
     void load() {
         internalUpdate = true;
-        for (LabelCategory labelCategory : LabelCategory.values()) {
-            final LabelFontConf conf = jsonRenderingOptions.getLabelFontConf(labelCategory);
-            labelConfBuilders.put(labelCategory, new LabelFontConf.Builder(conf));
-        }
-        loadLabelFontConfInUI(getSelectedLabelFontConfBuilder());
+        loadRenderingOptions(prefsRenderingOptions);
+
         final String mongoToolsFolderPath = mongoToolsOptions.getToolsFolder();
         if (mongoToolsFolderPath != null) {
             mongoToolsFolderPathField.setText(mongoToolsFolderPath);
@@ -402,11 +411,40 @@ final class MongoOptionsPanel extends javax.swing.JPanel {
         internalUpdate = false;
     }
 
-    void store() {
-        for (LabelCategory labelCategory : LabelCategory.values()) {
-            jsonRenderingOptions.setLabelFontConf(labelCategory, labelConfBuilders.get(labelCategory).build());
+    private void loadRenderingOptions(RenderingOptions renderingOptions) {
+        renderingOptionsBuilders.put(RenderingOptionItemKey.DEFAULT_RENDERING, renderingOptions.fallback().asBuilder());
+        renderingOptionsBuilders.put(RenderingOptionItemKey.COMMENT, renderingOptions.comment().asBuilder());
+        renderingOptionsBuilders.put(RenderingOptionItemKey.KEY, renderingOptions.key().asBuilder());
+        renderingOptionsBuilders.put(RenderingOptionItemKey.DOCUMENT_ROOT, renderingOptions.documentRoot().asBuilder());
+        renderingOptionsBuilders.put(RenderingOptionItemKey.DOCUMENT_ID, renderingOptions.documentId().asBuilder());
+        for (RenderingOptionItemKey key : RenderingOptionItemKey.values()) {
+            if(key.isBsonType()) {
+                renderingOptionsBuilders.put(key, renderingOptions.get(BsonType.valueOf(key.name())).asBuilder());
+            }
         }
-        jsonRenderingOptions.store();
+        updateSelectedLabelFontConfUI();
+    }
+    
+    void store() {
+        RenderingOptionsItem options = renderingOptionsBuilders.get(RenderingOptionItemKey.DEFAULT_RENDERING).build();
+        prefsRenderingOptions.setKey(options);
+        options = renderingOptionsBuilders.get(RenderingOptionItemKey.COMMENT).build();
+        prefsRenderingOptions.setComment(options);
+        options = renderingOptionsBuilders.get(RenderingOptionItemKey.KEY).build();
+        prefsRenderingOptions.setKey(options);
+        options = renderingOptionsBuilders.get(RenderingOptionItemKey.DOCUMENT_ROOT).build();
+        prefsRenderingOptions.setDocumentRoot(options);
+        options = renderingOptionsBuilders.get(RenderingOptionItemKey.DOCUMENT_ID).build();
+        prefsRenderingOptions.setDocumentId(options);
+        for (RenderingOptionItemKey key : RenderingOptionItemKey.values()) {
+            if(key.isBsonType()) {
+                options = renderingOptionsBuilders.get(key).build();
+                prefsRenderingOptions.set(BsonType.valueOf(key.name()), options);
+            }
+        }
+        
+        prefsRenderingOptions.store();
+
         final String mongoToolsFolderPath = mongoToolsFolderPathField.getText().trim();
         mongoToolsOptions.setToolsFolder(mongoToolsFolderPath.isEmpty() ? null : mongoToolsFolderPath);
         mongoToolsOptions.store();
@@ -426,7 +464,7 @@ final class MongoOptionsPanel extends javax.swing.JPanel {
     private javax.swing.JButton browseFontButton;
     private javax.swing.JButton browseMongoToolsFolderPathButton;
     private javax.swing.JLabel categoriesLabel;
-    private javax.swing.JList<LabelCategory> categoriesList;
+    private javax.swing.JList<RenderingOptionItemKey> categoriesList;
     private javax.swing.JScrollPane categoriesScrollPane;
     private javax.swing.JTextField fontField;
     private javax.swing.JLabel fontLabel;
@@ -440,4 +478,37 @@ final class MongoOptionsPanel extends javax.swing.JPanel {
     private javax.swing.JLabel restoreDefaultRenderingLabel;
     private javax.swing.JPanel shellOptionsPanel;
     // End of variables declaration//GEN-END:variables
+
+    @AllArgsConstructor
+    private static enum RenderingOptionItemKey {
+
+        DEFAULT_RENDERING(false),
+        COMMENT(false),
+        KEY(false),
+        DOCUMENT_ROOT(false),
+        DOCUMENT_ID(false),
+        OBJECT_ID(true),
+        STRING(true),
+        INT32(true),
+        INT64(true),
+        DOUBLE(true),
+        BOOLEAN(true),
+        ARRAY(true),
+        NULL(true),
+        UNDEFINED(true);
+
+        @Getter
+        private final boolean bsonType;
+        
+        @Override
+        public String toString() {
+            return NbBundle.getMessage(Bundle.class,
+                    new StringBuilder()
+                    .append(getClass().getSimpleName())
+                    .append('_')
+                    .append(name())
+                    .toString());
+        }
+
+    }
 }

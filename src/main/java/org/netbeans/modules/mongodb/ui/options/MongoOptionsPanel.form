@@ -224,7 +224,7 @@
           <SubComponents>
             <Component class="javax.swing.JList" name="categoriesList">
               <AuxValues>
-                <AuxValue name="JavaCodeGenerator_TypeParameters" type="java.lang.String" value="&lt;LabelCategory&gt;"/>
+                <AuxValue name="JavaCodeGenerator_TypeParameters" type="java.lang.String" value="&lt;RenderingOptionItemKey&gt;"/>
               </AuxValues>
             </Component>
           </SubComponents>
