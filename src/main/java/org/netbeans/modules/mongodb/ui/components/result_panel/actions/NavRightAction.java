@@ -40,6 +40,7 @@ public final class NavRightAction extends QueryResultPanelAction {
             Bundle.ACTION_navRight(),
             new ImageIcon(Images.NAV_RIGHT_ICON),
             Bundle.ACTION_navRight_tooltip());
+        enabled = false;
     }
 
     @Override

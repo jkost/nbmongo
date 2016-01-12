@@ -41,6 +41,7 @@ public final class NavFirstAction extends QueryResultPanelAction {
                 Bundle.ACTION_navFirst(),
                 new ImageIcon(Images.NAV_FIRST_ICON),
                 Bundle.ACTION_navFirst_tooltip());
+        enabled = false;
     }
 
     @Override

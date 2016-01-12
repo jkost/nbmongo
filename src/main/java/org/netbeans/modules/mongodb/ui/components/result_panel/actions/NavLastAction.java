@@ -40,6 +40,7 @@ public final class NavLastAction extends QueryResultPanelAction {
             Bundle.ACTION_navLast(),
             new ImageIcon(Images.NAV_LAST_ICON),
             Bundle.ACTION_navLast_tooltip());
+        enabled = false;
     }
 
     @Override
