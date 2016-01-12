@@ -17,6 +17,7 @@
  */
 package org.netbeans.modules.mongodb.ui.components.result_panel.actions;
 
+import java.awt.Cursor;
 import java.awt.event.ActionEvent;
 import javax.swing.ImageIcon;
 import org.netbeans.modules.mongodb.resources.Images;
@@ -49,6 +50,7 @@ public final class NavLeftAction extends QueryResultPanelAction {
 
             @Override
             public void run() {
+                getResultPanel().setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
                 getResultPanel().getResultPages().moveBackward();
                 getResultPanel().updatePagination();
             }

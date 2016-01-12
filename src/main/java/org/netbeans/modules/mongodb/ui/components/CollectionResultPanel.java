@@ -18,6 +18,7 @@
 package org.netbeans.modules.mongodb.ui.components;
 
 import java.awt.CardLayout;
+import java.awt.Cursor;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -135,6 +136,7 @@ public final class CollectionResultPanel extends javax.swing.JPanel {
 
         @Override
         public void run() {
+            setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
             getResultPages().refresh();
         }
     };
@@ -143,6 +145,7 @@ public final class CollectionResultPanel extends javax.swing.JPanel {
 
         @Override
         public void run() {
+            setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
             getResultPages().setQueryResult(currentResult);
         }
     };
@@ -416,6 +419,7 @@ public final class CollectionResultPanel extends javax.swing.JPanel {
                 navLeftAction.setEnabled(pages.canMoveBackward());
                 navRightAction.setEnabled(pages.canMoveForward());
                 navLastAction.setEnabled(pages.canMoveForward());
+                setCursor(null);
             }
         });
     }
