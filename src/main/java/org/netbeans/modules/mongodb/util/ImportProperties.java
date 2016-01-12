@@ -20,11 +20,15 @@ package org.netbeans.modules.mongodb.util;
 import java.io.File;
 import java.nio.charset.Charset;
 import java.util.Objects;
+import lombok.Builder;
+import lombok.Getter;
 
 /**
  *
  * @author Yann D'Isanto
  */
+@Getter
+@Builder
 public final class ImportProperties {
     
     private final String collection;
@@ -41,21 +45,4 @@ public final class ImportProperties {
         this.file = Objects.requireNonNull(file);
         this.encoding = Objects.requireNonNull(encoding);
     }
-
-    public String getCollection() {
-        return collection;
-    }
-
-    public boolean isDrop() {
-        return drop;
-    }
-
-    public File getFile() {
-        return file;
-    }
-
-    public Charset getEncoding() {
-        return encoding;
-    }
-
 }

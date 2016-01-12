@@ -48,10 +48,13 @@ import org.netbeans.modules.mongodb.ui.util.TopComponentUtils;
 import org.netbeans.modules.mongodb.ui.windows.CollectionView;
 import org.netbeans.modules.mongodb.ui.wizards.ExportWizardAction;
 import org.netbeans.modules.mongodb.ui.wizards.ImportWizardAction;
+import org.netbeans.modules.mongodb.util.Tasks;
 import org.openide.nodes.AbstractNode;
 import org.openide.nodes.Children;
 import org.openide.nodes.Sheet;
 import org.openide.util.NbBundle.Messages;
+import org.openide.util.Task;
+import org.openide.util.TaskListener;
 import org.openide.util.lookup.AbstractLookup;
 import org.openide.util.lookup.InstanceContent;
 import org.openide.util.lookup.Lookups;
@@ -72,7 +75,12 @@ import org.openide.windows.TopComponent;
     "# {0} - collection name",
     "collectionAlreadyExists=Collection ''{0}'' already exists",
     "# {0} - database name",
-    "dropDatabaseConfirmText=Permanently drop ''{0}'' database?"})
+    "dropDatabaseConfirmText=Permanently drop ''{0}'' database?",
+    "# {0} - collection name",
+    "TASK_addCollection=creating '{0}' collection",
+    "# {0} - database name",
+    "TASK_dropDatabase=dropping '{0}' database"
+})
 final class DBNode extends AbstractNode {
 
     private final CollectionNodesFactory childFactory;
@@ -182,18 +190,30 @@ final class DBNode extends AbstractNode {
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            String collectionName = DialogNotification.validatingInput(
+            String input = DialogNotification.validatingInput(
                     Bundle.addCollectionText(),
                     Bundle.ACTION_AddCollection(),
                     new CollectionNameValidator(getLookup()));
-            if (collectionName != null) {
-                MongoDatabase db = getLookup().lookup(MongoDatabase.class);
-                try {
-                    db.createCollection(collectionName.trim(), new CreateCollectionOptions().capped(false));
-                    childFactory.refresh();
-                } catch (MongoException ex) {
-                    DialogNotification.error(ex);
-                }
+            if (input != null) {
+                final String collectionName = input.trim();
+                Tasks.create(Bundle.TASK_addCollection(collectionName), new Runnable() {
+
+                    @Override
+                    public void run() {
+                        try {
+                            MongoDatabase db = getLookup().lookup(MongoDatabase.class);
+                            db.createCollection(collectionName, new CreateCollectionOptions().capped(false));
+                        } catch (MongoException ex) {
+                            DialogNotification.error(ex);
+                        }
+                    }
+                }).execute().addTaskListener(new TaskListener() {
+
+                    @Override
+                    public void taskFinished(Task task) {
+                        childFactory.refresh();
+                    }
+                });
 
             }
         }
@@ -207,19 +227,29 @@ final class DBNode extends AbstractNode {
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            MongoDatabase db = getLookup().lookup(MongoDatabase.class);
-
+            final MongoDatabase db = getLookup().lookup(MongoDatabase.class);
             if (DialogNotification.confirm(Bundle.dropDatabaseConfirmText(db.getName()))) {
-                try {
-                    db.drop();
-                    ((ConnectionNode) getParentNode()).refreshChildren();
-                    final DbInfo dbInfo = getLookup().lookup(DbInfo.class);
-                    for (TopComponent topComponent : TopComponentUtils.findAll(dbInfo, CollectionView.class, MapReduceTopComponent.class)) {
-                        topComponent.close();
+                Tasks.create(Bundle.TASK_dropDatabase(db.getName()), new Runnable() {
+
+                    @Override
+                    public void run() {
+                        try {
+                            db.drop();
+                        } catch (MongoException ex) {
+                            DialogNotification.error(ex);
+                        }
                     }
-                } catch (MongoException ex) {
-                    DialogNotification.error(ex);
-                }
+                }).execute().addTaskListener(new TaskListener() {
+
+                    @Override
+                    public void taskFinished(Task task) {
+                        ((ConnectionNode) getParentNode()).refreshChildren();
+                        DbInfo dbInfo = getLookup().lookup(DbInfo.class);
+                        for (TopComponent topComponent : TopComponentUtils.findAll(dbInfo, CollectionView.class, MapReduceTopComponent.class)) {
+                            topComponent.close();
+                        }
+                    }
+                });
             }
         }
     }

@@ -30,7 +30,10 @@ import org.netbeans.modules.mongodb.resources.Images;
 import org.netbeans.modules.mongodb.ui.util.DialogNotification;
 import org.netbeans.modules.mongodb.ui.util.BsonDocumentEditor;
 import org.netbeans.modules.mongodb.ui.components.CollectionResultPanel;
+import org.netbeans.modules.mongodb.util.Tasks;
 import org.openide.util.NbBundle.Messages;
+import org.openide.util.Task;
+import org.openide.util.TaskListener;
 
 /**
  *
@@ -39,7 +42,8 @@ import org.openide.util.NbBundle.Messages;
 @Messages({
     "editDocumentTitle=Edit document",
     "ACTION_editDocument=Edit document",
-    "ACTION_editDocument_tooltip=Edit Document"
+    "ACTION_editDocument_tooltip=Edit Document",
+    "TASK_updateDocument=updating document"
 })
 public class EditDocumentAction extends QueryResultPanelAction {
 
@@ -62,22 +66,32 @@ public class EditDocumentAction extends QueryResultPanelAction {
         if (document == null) {
             return;
         }
-        BsonValue id = document.get("_id");
+        final BsonValue id = document.get("_id");
         if(id == null) {
-            // error ?
+            // display error ?
             return;
         }
         final BsonDocument modifiedDocument = BsonDocumentEditor.show(
             Bundle.editDocumentTitle(),
             document);
         if (modifiedDocument != null) {
-            try {
-                MongoCollection<BsonDocument> collection = getResultPanel().getLookup().lookup(MongoCollection.class);
-                collection.replaceOne(eq("_id", id), modifiedDocument);
-                getResultPanel().editDocument(document, modifiedDocument);
-            } catch (MongoException ex) {
-                DialogNotification.error(ex);
-            }
+            Tasks.create(Bundle.TASK_updateDocument(), new Runnable() {
+
+                @Override
+                public void run() {
+                    try {
+                        getResultPanel().getLookup().lookup(MongoCollection.class).replaceOne(eq("_id", id), modifiedDocument);
+                    } catch (MongoException ex) {
+                        DialogNotification.error(ex);
+                    }
+                }
+            }).execute().addTaskListener(new TaskListener() {
+
+                @Override
+                public void taskFinished(Task task) {
+                    getResultPanel().editDocument(document, modifiedDocument);
+                }
+            });
         }
     }
 }

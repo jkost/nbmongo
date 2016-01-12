@@ -22,6 +22,7 @@ import javax.swing.ImageIcon;
 import org.netbeans.modules.mongodb.resources.Images;
 import org.netbeans.modules.mongodb.ui.components.CollectionResultPanel;
 import org.openide.util.NbBundle.Messages;
+import org.openide.util.RequestProcessor;
 
 /**
  *
@@ -37,14 +38,20 @@ public final class NavFirstAction extends QueryResultPanelAction {
 
     public NavFirstAction(CollectionResultPanel resultPanel) {
         super(resultPanel,
-            Bundle.ACTION_navFirst(),
-            new ImageIcon(Images.NAV_FIRST_ICON),
-            Bundle.ACTION_navFirst_tooltip());
+                Bundle.ACTION_navFirst(),
+                new ImageIcon(Images.NAV_FIRST_ICON),
+                Bundle.ACTION_navFirst_tooltip());
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        getResultPanel().getResultPages().moveFirst();
-        getResultPanel().updatePagination();
+        REQUEST_PROCESSOR.post(new Runnable() {
+
+            @Override
+            public void run() {
+                getResultPanel().getResultPages().moveFirst();
+                getResultPanel().updatePagination();
+            }
+        });
     }
 }

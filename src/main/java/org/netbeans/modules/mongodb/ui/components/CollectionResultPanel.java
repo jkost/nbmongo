@@ -68,6 +68,7 @@ import org.netbeans.modules.mongodb.ui.components.result_panel.views.treetable.B
 import org.netbeans.modules.mongodb.ui.components.result_panel.views.treetable.DocumentRootTreeTableHighlighter;
 import org.netbeans.modules.mongodb.options.RenderingOptions.PrefsRenderingOptions;
 import org.netbeans.modules.mongodb.util.BsonProperty;
+import org.netbeans.modules.mongodb.util.Tasks;
 import org.openide.awt.NotificationDisplayer;
 import org.openide.util.Exceptions;
 import org.openide.util.Lookup;
@@ -93,13 +94,16 @@ import org.openide.util.RequestProcessor;
     "# {1} - view title",
     "collectionViewTooltip={0}: {1}",
     "documentEditionShortcutHintTitle=Use CTRL + doubleclick to edit full document",
-    "documentEditionShortcutHintDetails=Click here or use shortcut so this message won't show again."
+    "documentEditionShortcutHintDetails=Click here or use shortcut so this message won't show again.",
+    "TASK_refreshResults=refreshing results"
 })
 public final class CollectionResultPanel extends javax.swing.JPanel {
 
     private static final long serialVersionUID = 1L;
 
     private static final ResultView DEFAULT_RESULT_VIEW = ResultView.TREE_TABLE;
+    
+    private static final RequestProcessor REQUEST_PROCESSOR = new RequestProcessor(CollectionResultPanel.class);
 
     @Getter
     private final Lookup lookup;
@@ -320,11 +324,11 @@ public final class CollectionResultPanel extends javax.swing.JPanel {
     
     public void setResult(CollectionResult result) {
         currentResult = result;
-        RequestProcessor.getDefault().post(resultUpdate); 
+        Tasks.create(REQUEST_PROCESSOR, Bundle.TASK_refreshResults(), resultUpdate).execute();
     }
     
     public void refreshResults() {
-        RequestProcessor.getDefault().post(resultRefresh); 
+        Tasks.create(REQUEST_PROCESSOR, Bundle.TASK_refreshResults(), resultRefresh).execute();
     }
     
     public void editDocument(BsonDocument document, BsonDocument modifiedDocument) {

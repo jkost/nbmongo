@@ -44,7 +44,13 @@ public final class NavLeftAction extends QueryResultPanelAction {
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        getResultPanel().getResultPages().moveBackward();
-        getResultPanel().updatePagination();
+        REQUEST_PROCESSOR.post(new Runnable() {
+
+            @Override
+            public void run() {
+                getResultPanel().getResultPages().moveBackward();
+                getResultPanel().updatePagination();
+            }
+        });
     }
 }

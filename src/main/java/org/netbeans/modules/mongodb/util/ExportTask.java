@@ -25,21 +25,14 @@ import org.openide.util.RequestProcessor;
  * @author Yann D'Isanto
  */
 @Messages({
-    "LBL_exporting=exporting",
     "# {0} - collection name",
     "TASK_export_label=\"{0}\" collection export"
 })
-public final class ExportTask extends AbstractTask<Exporter> {
+public final class ExportTask extends Tasks.SimpleTask<Exporter> {
 
-    private static final RequestProcessor REQUEST_PROCESSOR = new RequestProcessor("export tasks", 1, true);
+    private static final RequestProcessor REQUEST_PROCESSOR = new RequestProcessor(ExportTask.class.getName(), 1, true);
 
     public ExportTask(Exporter exporter) {
-        super(REQUEST_PROCESSOR, exporter);
+        super(REQUEST_PROCESSOR, exporter, Bundle.TASK_export_label(exporter.getProperties().getCollection()), true);
     }
-
-    @Override
-    public String getLabel() {
-        return Bundle.LBL_exporting();
-    }
-
 }

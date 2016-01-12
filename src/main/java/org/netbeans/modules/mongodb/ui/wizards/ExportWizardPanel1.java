@@ -96,6 +96,7 @@ public class ExportWizardPanel1 implements WizardDescriptor.ValidatingPanel<Wiza
         ExportVisualPanel1 panel = getComponent();
         QueryEditor query = panel.getQueryEditor();
         String colName = (String) panel.getCollectionComboBox().getSelectedItem();
+        wiz.putProperty(ExportWizardAction.PROP_COLLECTION, colName);
         wiz.putProperty(ExportWizardAction.PROP_DOCUMENTS,
                 new FindResult(
                         db.getCollection(colName, BsonDocument.class),

@@ -40,7 +40,6 @@ import java.beans.PropertyChangeListener;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import org.netbeans.modules.mongodb.ConnectionInfo;
@@ -51,12 +50,15 @@ import org.netbeans.modules.mongodb.properties.MongoClientURIPropertyEditor;
 import org.netbeans.modules.mongodb.ui.util.DatabaseNameValidator;
 import org.netbeans.modules.mongodb.ui.util.DialogNotification;
 import org.netbeans.modules.mongodb.ui.windows.CollectionView;
+import org.netbeans.modules.mongodb.util.Tasks;
 import org.openide.nodes.AbstractNode;
 import org.openide.nodes.Children;
 import org.openide.nodes.PropertySupport;
 import org.openide.nodes.Sheet;
 import org.openide.util.Exceptions;
 import org.openide.util.NbBundle.Messages;
+import org.openide.util.Task;
+import org.openide.util.TaskListener;
 import org.openide.util.WeakListeners;
 import org.openide.util.lookup.AbstractLookup;
 import org.openide.util.lookup.InstanceContent;
@@ -75,11 +77,11 @@ import org.openide.windows.TopComponent;
     "ACTION_Disconnect=Disconnect",
     "ACTION_CreateDatabase=Create database",
     "createDatabaseText=Database name:",
-    "waitWhileConnecting=Please wait while connecting to mongo database"
+    "waitWhileConnecting=Please wait while connecting to mongo database",
+    "# {0} - database name",
+    "TASK_createDatabase=creating '{0}' database"
 })
 class ConnectionNode extends AbstractNode implements PropertyChangeListener {
-
-    private static final Logger LOG = Logger.getLogger(ConnectionNode.class.getName());
 
     private final MongoConnection connectionHandler;
 
@@ -129,8 +131,8 @@ class ConnectionNode extends AbstractNode implements PropertyChangeListener {
     @Override
     public Image getIcon(int ignored) {
         return isConnected()
-            ? Images.CONNECTION_ICON
-            : Images.CONNECTION_DISCONNECTED_ICON;
+                ? Images.CONNECTION_ICON
+                : Images.CONNECTION_DISCONNECTED_ICON;
     }
 
     @Override
@@ -197,7 +199,7 @@ class ConnectionNode extends AbstractNode implements PropertyChangeListener {
             final ConnectionInfo connection = getLookup().lookup(ConnectionInfo.class);
             try {
                 final PropertySupport.Reflection<MongoClientURI> uriProperty
-                    = new PropertySupport.Reflection<>(connection, MongoClientURI.class, MongoClientURIProperty.KEY);
+                        = new PropertySupport.Reflection<>(connection, MongoClientURI.class, MongoClientURIProperty.KEY);
                 uriProperty.setPropertyEditorClass(MongoClientURIPropertyEditor.class);
                 uriProperty.setDisplayName(MongoClientURIProperty.displayName());
                 set.put(uriProperty);
@@ -297,20 +299,31 @@ class ConnectionNode extends AbstractNode implements PropertyChangeListener {
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            
-            String dbName = DialogNotification.validatingInput(
-                Bundle.createDatabaseText(),
-                Bundle.ACTION_CreateDatabase(),
-                new DatabaseNameValidator(getLookup()));
-            if (dbName != null) {
-                MongoConnection connection = getLookup().lookup(MongoConnection.class);
-                try {
-                    final MongoDatabase db = connection.getClient().getDatabase(dbName.trim());
-                    db.createCollection("default", new CreateCollectionOptions().capped(false));
-                    refreshChildren();
-                } catch (MongoException ex) {
-                    DialogNotification.error(ex);
-                }
+            String input = DialogNotification.validatingInput(
+                    Bundle.createDatabaseText(),
+                    Bundle.ACTION_CreateDatabase(),
+                    new DatabaseNameValidator(getLookup()));
+            if (input != null) {
+                final String dbName = input.trim();
+                Tasks.create(Bundle.TASK_createDatabase(dbName), new Runnable() {
+
+                    @Override
+                    public void run() {
+                        try {
+                            MongoConnection connection = getLookup().lookup(MongoConnection.class);
+                            MongoDatabase db = connection.getClient().getDatabase(dbName);
+                            db.createCollection("default", new CreateCollectionOptions().capped(false));
+                        } catch (MongoException ex) {
+                            DialogNotification.error(ex);
+                        }
+                    }
+                }).execute().addTaskListener(new TaskListener() {
+
+                    @Override
+                    public void taskFinished(Task task) {
+                        refreshChildren();
+                    }
+                });
             }
         }
     }

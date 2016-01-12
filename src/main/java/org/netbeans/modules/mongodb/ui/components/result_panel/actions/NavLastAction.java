@@ -44,7 +44,13 @@ public final class NavLastAction extends QueryResultPanelAction {
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        getResultPanel().getResultPages().moveLast();
-        getResultPanel().updatePagination();
+        REQUEST_PROCESSOR.post(new Runnable() {
+
+            @Override
+            public void run() {
+                getResultPanel().getResultPages().moveLast();
+                getResultPanel().updatePagination();
+            }
+        });
     }
 }

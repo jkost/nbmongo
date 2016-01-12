@@ -17,6 +17,7 @@
  */
 package org.netbeans.modules.mongodb.ui.explorer;
 
+import com.mongodb.MongoException;
 import org.netbeans.modules.mongodb.properties.LocalizedProperties;
 import com.mongodb.client.MongoCollection;
 import java.awt.event.ActionEvent;
@@ -29,12 +30,14 @@ import org.bson.Document;
 import org.netbeans.modules.mongodb.indexes.Index;
 import org.netbeans.modules.mongodb.resources.Images;
 import org.netbeans.modules.mongodb.ui.util.DialogNotification;
-import org.openide.NotifyDescriptor;
+import org.netbeans.modules.mongodb.util.Tasks;
 import org.openide.nodes.AbstractNode;
 import org.openide.nodes.Children;
 import org.openide.nodes.Sheet;
 import org.openide.util.Lookup;
 import org.openide.util.NbBundle;
+import org.openide.util.Task;
+import org.openide.util.TaskListener;
 
 /**
  *
@@ -43,7 +46,9 @@ import org.openide.util.NbBundle;
 @NbBundle.Messages({
     "ACTION_dropIndex=Drop index",
     "# {0} - index name",
-    "dropIndexConfirmText=Permanently drop ''{0}'' index?"
+    "dropIndexConfirmText=Permanently drop ''{0}'' index?",
+    "# {0} - index name",
+    "TASK_dropIndex=dropping '{0}' index"
 })
 class IndexNode extends AbstractNode {
 
@@ -108,10 +113,25 @@ class IndexNode extends AbstractNode {
         @Override
         @SuppressWarnings("unchecked")
         public void actionPerformed(ActionEvent e) {
-            MongoCollection<Document> collection = getLookup().lookup(MongoCollection.class);
+            final MongoCollection<Document> collection = getLookup().lookup(MongoCollection.class);
             if (DialogNotification.confirm(Bundle.dropIndexConfirmText(index.getName()))) {
-                collection.dropIndex(index.getName());
-                ((CollectionNode) getParentNode()).refreshChildren();
+                Tasks.create(Bundle.TASK_dropIndex(index.getName()), new Runnable() {
+
+                    @Override
+                    public void run() {
+                        try {
+                            collection.dropIndex(index.getName());
+                        } catch (MongoException ex) {
+                            DialogNotification.error(ex);
+                        }
+                    }
+                }).execute().addTaskListener(new TaskListener() {
+
+                    @Override
+                    public void taskFinished(Task task) {
+                        ((CollectionNode) getParentNode()).refreshChildren();
+                    }
+                });
             }
         }
     }
