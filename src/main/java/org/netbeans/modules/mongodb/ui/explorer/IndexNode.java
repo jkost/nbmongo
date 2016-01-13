@@ -22,6 +22,7 @@ import org.netbeans.modules.mongodb.properties.LocalizedProperties;
 import com.mongodb.client.MongoCollection;
 import java.awt.event.ActionEvent;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import javax.swing.AbstractAction;
@@ -90,13 +91,72 @@ class IndexNode extends AbstractNode {
     protected Sheet createSheet() {
         Sheet sheet = Sheet.createDefault();
         Sheet.Set set = Sheet.createPropertiesSet();
-        set.put(new LocalizedProperties(IndexNode.class)
+        
+        Index.GlobalOptions globalOptions = index.getGlobalOptions();
+        set.put(new LocalizedProperties(IndexNode.class, true)
                 .stringProperty("name", index.getName())
                 .stringProperty("nameSpace", index.getNameSpace())
-                .booleanProperty("sparse", index.getGlobalOptions().isSparse())
-                .booleanProperty("unique", index.getGlobalOptions().isUnique())
+                .booleanProperty("sparse", globalOptions.isSparse())
+                .booleanProperty("unique", globalOptions.isUnique())
+                .longProperty("expireAfterSeconds", globalOptions.getExpireAfterSeconds())
+                .intProperty("indexVersion", globalOptions.getIndexVersion())
+                .stringProperty("storageEngine", globalOptions.getStorageEngine().toJson())
                 .toArray());
         sheet.put(set);
+
+        Index.TextOptions textOptions = index.getTextOptions();
+        Property[] textProperties = new LocalizedProperties(IndexNode.class, true)
+                .stringProperty("weights", textOptions.getWeights().toJson())
+                .stringProperty("defaultLanguage", textOptions.getDefaultLanguage())
+                .stringProperty("languageOverride", textOptions.getLanguageOverride())
+                .intProperty("textVersion", textOptions.getIndexVersion())
+                .toArray();
+        if(textProperties.length > 0) {
+            set = new Sheet.Set();
+            set.setName("textOptions");
+            set.setDisplayName("Text Options");
+            set.put(textProperties);
+            sheet.put(set);
+        }
+        
+        Index.Geo2DOptions geo2DOptions = index.getGeo2DOptions();
+        Property[] geo2DProperties = new LocalizedProperties(IndexNode.class, true)
+                .intProperty("bits", geo2DOptions.getBits())
+                .doubleProperty("min", geo2DOptions.getMin())
+                .doubleProperty("max", geo2DOptions.getMax())
+                .toArray();
+        if(geo2DProperties.length > 0) {
+            set = new Sheet.Set();
+            set.setName("2dOptions");
+            set.setDisplayName("2D Options");
+            set.put(geo2DProperties);
+            sheet.put(set);
+        }
+        
+        Index.Geo2DSphereOptions geo2DSphereOptions = index.getGeo2DSphereOptions();
+        Property[] geo2DSphereProperties = new LocalizedProperties(IndexNode.class, true)
+                .intProperty("2dsphereVersion", geo2DSphereOptions.getIndexVersion())
+                .toArray();
+        if(geo2DSphereProperties.length > 0) {
+            set = new Sheet.Set();
+            set.setName("2dsphereOptions");
+            set.setDisplayName("2D Sphere Options");
+            set.put(geo2DSphereProperties);
+            sheet.put(set);
+        }
+        
+        Index.GeoHaystackOptions geoHaystackOptions = index.getGeoHaystackOptions();
+        Property[] geoHaystackProperties = new LocalizedProperties(IndexNode.class, true)
+                .doubleProperty("bucketSize", geoHaystackOptions.getBucketSize())
+                .toArray();
+        if(geoHaystackProperties.length > 0) {
+            set = new Sheet.Set();
+            set.setName("geoHaystackOptions");
+            set.setDisplayName("Geo haystack Options");
+            set.put(geoHaystackProperties);
+            sheet.put(set);
+        }
+
         return sheet;
     }
 
@@ -105,6 +165,8 @@ class IndexNode extends AbstractNode {
     }
 
     private class DropIndexAction extends AbstractAction {
+
+        private static final long serialVersionUID = 1L;
 
         public DropIndexAction() {
             super(Bundle.ACTION_dropIndex());

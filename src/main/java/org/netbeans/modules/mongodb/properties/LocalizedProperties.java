@@ -44,14 +44,25 @@ public class LocalizedProperties {
     private final String prefix;
 
     private final List<Property<?>> properties = new ArrayList<>();
+    
+    private final boolean ignoreNullValues;
+
+    public LocalizedProperties(Class<?> bundle, boolean ignoreNullValues) {
+        this(bundle, bundle.getSimpleName(), ignoreNullValues);
+    }
 
     public LocalizedProperties(Class<?> bundle) {
-        this(bundle, bundle.getSimpleName());
+        this(bundle, false);
     }
 
     public LocalizedProperties(Class<?> bundle, String prefix) {
+        this(bundle, bundle.getSimpleName(), false);
+    }
+    
+    public LocalizedProperties(Class<?> bundle, String prefix, boolean ignoreNullValues) {
         this.bundle = NbBundle.getBundle(bundle);
         this.prefix = prefix;
+        this.ignoreNullValues = ignoreNullValues;
     }
 
     public Property[] toArray() {
@@ -60,6 +71,10 @@ public class LocalizedProperties {
 
     public LocalizedProperties booleanProperty(String propertyName, boolean value) {
         return localizedProperty(propertyName, Boolean.class, value);
+    }
+
+    public LocalizedProperties doubleProperty(String propertyName, double value) {
+        return localizedProperty(propertyName, Double.class, value);
     }
 
     public LocalizedProperties intProperty(String propertyName, int value) {
@@ -87,7 +102,9 @@ public class LocalizedProperties {
     }
 
     private <T> LocalizedProperties localizedProperty(String propertyName, Class<T> propertyType, T value) {
-        properties.add(new LocalizedProperty<>(bundle, prefix, propertyName, propertyType, value));
+        if(ignoreNullValues || value != null) {
+            properties.add(new LocalizedProperty<>(bundle, prefix, propertyName, propertyType, value));
+        }
         return this;
     }
 
