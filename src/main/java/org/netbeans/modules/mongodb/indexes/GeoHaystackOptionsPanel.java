@@ -25,6 +25,8 @@ import org.netbeans.modules.mongodb.indexes.Index.GeoHaystackOptions;
  */
 public class GeoHaystackOptionsPanel extends javax.swing.JPanel {
 
+    private static final long serialVersionUID = 1L;
+
     /**
      * Creates new form GeoHaystackOptionsPanel
      */
@@ -33,24 +35,21 @@ public class GeoHaystackOptionsPanel extends javax.swing.JPanel {
     }
 
     public GeoHaystackOptions getGeoHaystackOptions() {
-        Double bucketSize = bucketSizeCheckBox.isSelected() ? (Double) bucketSizeSpinner.getValue() : null;
+        Double bucketSize = (Double) bucketSizeSpinner.getValue();
         return new GeoHaystackOptions(bucketSize);
     }
     
     public void setOptions(GeoHaystackOptions options) {
         Double bucketSize = options.getBucketSize();
         if(bucketSize != null) {
-            bucketSizeCheckBox.setSelected(true);
             bucketSizeSpinner.setValue(bucketSize);
         } else {
-            bucketSizeCheckBox.setSelected(false);
+            bucketSizeSpinner.setValue(2);
         }
     }
     
     void clearOptions() {
         bucketSizeSpinner.setValue(2);
-        bucketSizeSpinner.setEnabled(false);
-        bucketSizeCheckBox.setSelected(false);
     }
     
     /**
@@ -63,17 +62,11 @@ public class GeoHaystackOptionsPanel extends javax.swing.JPanel {
     private void initComponents() {
 
         bucketSizeSpinner = new javax.swing.JSpinner();
-        bucketSizeCheckBox = new javax.swing.JCheckBox();
+        bucketSizeLabel = new javax.swing.JLabel();
 
         bucketSizeSpinner.setModel(new javax.swing.SpinnerNumberModel(1.0d, 1.0d, null, 0.1d));
-        bucketSizeSpinner.setEnabled(false);
 
-        org.openide.awt.Mnemonics.setLocalizedText(bucketSizeCheckBox, org.openide.util.NbBundle.getMessage(GeoHaystackOptionsPanel.class, "GeoHaystackOptionsPanel.bucketSizeCheckBox.text")); // NOI18N
-        bucketSizeCheckBox.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                bucketSizeCheckBoxActionPerformed(evt);
-            }
-        });
+        org.openide.awt.Mnemonics.setLocalizedText(bucketSizeLabel, org.openide.util.NbBundle.getMessage(GeoHaystackOptionsPanel.class, "GeoHaystackOptionsPanel.bucketSizeLabel.text")); // NOI18N
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
@@ -81,9 +74,9 @@ public class GeoHaystackOptionsPanel extends javax.swing.JPanel {
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(bucketSizeCheckBox)
+                .addComponent(bucketSizeLabel)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(bucketSizeSpinner, javax.swing.GroupLayout.DEFAULT_SIZE, 160, Short.MAX_VALUE)
+                .addComponent(bucketSizeSpinner, javax.swing.GroupLayout.DEFAULT_SIZE, 180, Short.MAX_VALUE)
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -92,18 +85,14 @@ public class GeoHaystackOptionsPanel extends javax.swing.JPanel {
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(bucketSizeSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(bucketSizeCheckBox))
+                    .addComponent(bucketSizeLabel))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
 
-    private void bucketSizeCheckBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bucketSizeCheckBoxActionPerformed
-        bucketSizeSpinner.setEnabled(bucketSizeCheckBox.isSelected());
-    }//GEN-LAST:event_bucketSizeCheckBoxActionPerformed
-
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JCheckBox bucketSizeCheckBox;
+    private javax.swing.JLabel bucketSizeLabel;
     private javax.swing.JSpinner bucketSizeSpinner;
     // End of variables declaration//GEN-END:variables
 }

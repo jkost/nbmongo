@@ -93,6 +93,9 @@ class IndexNode extends AbstractNode {
         Sheet.Set set = Sheet.createPropertiesSet();
         
         Index.GlobalOptions globalOptions = index.getGlobalOptions();
+        String storageEngine = globalOptions.getStorageEngine() != null 
+                ? globalOptions.getStorageEngine().toJson() 
+                : null;
         set.put(new LocalizedProperties(IndexNode.class, true)
                 .stringProperty("name", index.getName())
                 .stringProperty("nameSpace", index.getNameSpace())
@@ -100,13 +103,16 @@ class IndexNode extends AbstractNode {
                 .booleanProperty("unique", globalOptions.isUnique())
                 .longProperty("expireAfterSeconds", globalOptions.getExpireAfterSeconds())
                 .intProperty("indexVersion", globalOptions.getIndexVersion())
-                .stringProperty("storageEngine", globalOptions.getStorageEngine().toJson())
+                .stringProperty("storageEngine", storageEngine)
                 .toArray());
         sheet.put(set);
 
         Index.TextOptions textOptions = index.getTextOptions();
+        String weights = textOptions.getWeights() != null 
+                ? textOptions.getWeights().toJson() 
+                : null;
         Property[] textProperties = new LocalizedProperties(IndexNode.class, true)
-                .stringProperty("weights", textOptions.getWeights().toJson())
+                .stringProperty("weights", weights)
                 .stringProperty("defaultLanguage", textOptions.getDefaultLanguage())
                 .stringProperty("languageOverride", textOptions.getLanguageOverride())
                 .intProperty("textVersion", textOptions.getIndexVersion())

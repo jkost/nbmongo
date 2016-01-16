@@ -69,19 +69,19 @@ public class LocalizedProperties {
         return properties.toArray(new Property[properties.size()]);
     }
 
-    public LocalizedProperties booleanProperty(String propertyName, boolean value) {
+    public LocalizedProperties booleanProperty(String propertyName, Boolean value) {
         return localizedProperty(propertyName, Boolean.class, value);
     }
 
-    public LocalizedProperties doubleProperty(String propertyName, double value) {
+    public LocalizedProperties doubleProperty(String propertyName, Double value) {
         return localizedProperty(propertyName, Double.class, value);
     }
 
-    public LocalizedProperties intProperty(String propertyName, int value) {
+    public LocalizedProperties intProperty(String propertyName, Integer value) {
         return localizedProperty(propertyName, Integer.class, value);
     }
 
-    public LocalizedProperties longProperty(String propertyName, long value) {
+    public LocalizedProperties longProperty(String propertyName, Long value) {
         return localizedProperty(propertyName, Long.class, value);
     }
 
@@ -97,12 +97,12 @@ public class LocalizedProperties {
         return localizedProperty(propertyName, String.class, String.valueOf(value));
     }
 
-    public LocalizedProperties yesNoProperty(String propertyName, boolean value) {
+    public LocalizedProperties yesNoProperty(String propertyName, Boolean value) {
         return localizedProperty(propertyName, String.class, value ? Bundle.yes() : Bundle.no());
     }
 
     private <T> LocalizedProperties localizedProperty(String propertyName, Class<T> propertyType, T value) {
-        if(ignoreNullValues || value != null) {
+        if(value != null || ignoreNullValues == false) {
             properties.add(new LocalizedProperty<>(bundle, prefix, propertyName, propertyType, value));
         }
         return this;

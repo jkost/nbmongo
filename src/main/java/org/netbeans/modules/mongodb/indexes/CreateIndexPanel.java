@@ -56,7 +56,8 @@ import org.openide.util.NbBundle.Messages;
     "createIndexText=Create Index",
     "ACTION_Create_Index=Create Index",
     "VALIDATION_emptyName=specify the index name",
-    "VALIDATION_noKey=specify at least one key"
+    "VALIDATION_noKey=specify at least one key",
+    "VALIDATION_haystackRequiresMatchField=specify the haystack index match field"
 })
 public class CreateIndexPanel extends ValidablePanel {
 
@@ -134,6 +135,9 @@ public class CreateIndexPanel extends ValidablePanel {
         addFieldButton.setEnabled(keysCount < 31);
         if (keysCount == 0) {
             return Bundle.VALIDATION_noKey();
+        }
+        if (keysCount == 1 && keyFieldsListModel.get(0).getType() == Index.Type.GEOSPATIAL_HAYSTACK) {
+            return Bundle.VALIDATION_haystackRequiresMatchField();
         }
         return null;
     }
