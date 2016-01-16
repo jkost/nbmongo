@@ -4,7 +4,7 @@ NetBeans MongoDB
 [NetBeans](http://netbeans.org) plugin for accessing [MongoDB](http://mongodb.org). It adds
 a node to the Services tab. Right click it to add connections.
 
-Current release: [8.1.4](https://github.com/le-yams/netbeans-mongodb/releases/tag/nbmongo-8.1.4)
+Current release: [8.2.0](https://github.com/le-yams/netbeans-mongodb/releases/tag/nbmongo-8.2.0)
 
 Development version (master): 
   * ![](https://le-yams.ci.cloudbees.com/buildStatus/icon?job=NBMongo%20master%20build)
@@ -19,7 +19,7 @@ Main features
  * Manage collections indexes
  * Query documents (json criteria/projection/sort can be specified)
  * Perform Map/Reduce
- * Add/Edit/Delete documents as json
+ * Add/Edit/Delete documents as json (mongo shell notation supported)
  * Import/Export json
  * Use some mongo [native tools](https://github.com/le-yams/netbeans-mongodb/wiki/MongoNativeTools) as mongo shell, mongodump, mongorestore, etc. (mongo bin folder path must be configured in options)
 
