@@ -163,9 +163,9 @@
     "IndexKeyNode.field.name=Key field",
     "IndexKeyNode.field.displayname=Key field",
     "IndexKeyNode.field.shortdesc=Index key field name",
-    "IndexKeyNode.sort.name=Sort",
-    "IndexKeyNode.sort.displayname=Sort",
-    "IndexKeyNode.sort.shortdesc=Index key field sort"
+    "IndexKeyNode.type.name=Type",
+    "IndexKeyNode.type.displayname=Type",
+    "IndexKeyNode.type.shortdesc=Index key type"
 })
 package org.netbeans.modules.mongodb.ui.explorer;
 

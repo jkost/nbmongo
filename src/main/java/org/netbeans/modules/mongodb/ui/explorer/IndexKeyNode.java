@@ -50,7 +50,7 @@ final class IndexKeyNode extends AbstractNode {
         Sheet.Set set = Sheet.createPropertiesSet();
         set.put(new LocalizedProperties(IndexKeyNode.class)
                 .stringProperty("field", key.getField())
-                .objectStringProperty("sort", key.getType())
+                .objectStringProperty("type", key.getType())
                 .toArray());
         sheet.put(set);
         return sheet;
