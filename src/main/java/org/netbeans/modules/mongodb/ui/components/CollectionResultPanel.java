@@ -18,6 +18,7 @@
 package org.netbeans.modules.mongodb.ui.components;
 
 import java.awt.CardLayout;
+import java.awt.Container;
 import java.awt.Cursor;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
@@ -29,8 +30,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
+import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ImageIcon;
+import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.JTable;
@@ -44,15 +47,22 @@ import javax.swing.event.TableColumnModelEvent;
 import javax.swing.event.TableColumnModelListener;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
+import javax.swing.text.EditorKit;
 import javax.swing.text.PlainDocument;
 import javax.swing.tree.TreePath;
 import lombok.Getter;
 import lombok.Setter;
+import org.bson.BsonBoolean;
 import org.bson.BsonDocument;
+import org.bson.BsonInt32;
 import org.bson.BsonValue;
+import org.netbeans.api.editor.mimelookup.MimeLookup;
 import org.netbeans.modules.mongodb.CollectionInfo;
 import org.netbeans.modules.mongodb.api.CollectionResult;
 import org.netbeans.modules.mongodb.api.CollectionResultPages;
+import org.netbeans.modules.mongodb.api.FindCriteria;
+import org.netbeans.modules.mongodb.api.FindCriteria.SortOrder;
+import org.netbeans.modules.mongodb.api.FindResult;
 import org.netbeans.modules.mongodb.resources.Images;
 import org.netbeans.modules.mongodb.ui.util.IntegerDocumentFilter;
 import org.netbeans.modules.mongodb.ui.actions.*;
@@ -68,6 +78,8 @@ import org.netbeans.modules.mongodb.ui.components.result_panel.views.treetable.B
 import org.netbeans.modules.mongodb.ui.components.result_panel.views.treetable.BsonValueNode;
 import org.netbeans.modules.mongodb.ui.components.result_panel.views.treetable.DocumentRootTreeTableHighlighter;
 import org.netbeans.modules.mongodb.options.RenderingOptions.PrefsRenderingOptions;
+import org.netbeans.modules.mongodb.ui.components.result_panel.views.text.ResultsTextView;
+import org.netbeans.modules.mongodb.ui.windows.CollectionView;
 import org.netbeans.modules.mongodb.util.BsonProperty;
 import org.netbeans.modules.mongodb.util.Tasks;
 import org.openide.awt.NotificationDisplayer;
@@ -76,6 +88,7 @@ import org.openide.util.Lookup;
 import org.openide.util.NbBundle.Messages;
 import org.openide.util.NbPreferences;
 import org.openide.util.RequestProcessor;
+import org.openide.windows.TopComponent;
 
 /**
  *
@@ -96,14 +109,23 @@ import org.openide.util.RequestProcessor;
     "collectionViewTooltip={0}: {1}",
     "documentEditionShortcutHintTitle=Use CTRL + doubleclick to edit full document",
     "documentEditionShortcutHintDetails=Click here or use shortcut so this message won't show again.",
-    "TASK_refreshResults=refreshing results"
+    "TASK_refreshResults=refreshing results",
+    "MENU_queryWithProperty=Query with this property",
+    "ACTION_usePropertySetFindFilter=use as find filter",
+    "ACTION_usePropertySetFindProjection=use as find projection",
+    "# {0} - sort order",
+    "ACTION_usePropertySetFindSort=use as find sort in {0} order",
+    "ACTION_usePropertyAddFindFilter=add to current filter",
+    "ACTION_usePropertyAddFindProjection=add to current projection",
+    "# {0} - sort order",
+    "ACTION_usePropertyAddFindSort=add to current sort in {0} order"
 })
 public final class CollectionResultPanel extends javax.swing.JPanel {
 
     private static final long serialVersionUID = 1L;
 
     private static final ResultView DEFAULT_RESULT_VIEW = ResultView.TREE_TABLE;
-    
+
     private static final RequestProcessor REQUEST_PROCESSOR = new RequestProcessor(CollectionResultPanel.class);
 
     @Getter
@@ -120,18 +142,20 @@ public final class CollectionResultPanel extends javax.swing.JPanel {
 
     @Getter
     private final DocumentsFlatTableModel flatTableModel;
+    
+    @Getter
+    private final ResultsTextView textView;
 
     @Getter
     @Setter
     private boolean displayDocumentEditionShortcutHint = true;
-    
-    
+
     @Getter
     private final boolean readOnly;
 
     @Getter
     private CollectionResult currentResult;
-    
+
     private final Runnable resultRefresh = new Runnable() {
 
         @Override
@@ -140,7 +164,7 @@ public final class CollectionResultPanel extends javax.swing.JPanel {
             getResultPages().refresh();
         }
     };
-    
+
     private final Runnable resultUpdate = new Runnable() {
 
         @Override
@@ -149,6 +173,7 @@ public final class CollectionResultPanel extends javax.swing.JPanel {
             getResultPages().setQueryResult(currentResult);
         }
     };
+
     private final CollectionResultPages.Listener pagesListener = new CollectionResultPages.Listener() {
 
         @Override
@@ -162,7 +187,7 @@ public final class CollectionResultPanel extends javax.swing.JPanel {
         }
 
     };
-    
+
     /**
      * Creates new form QueryResultPanel
      */
@@ -177,14 +202,23 @@ public final class CollectionResultPanel extends javax.swing.JPanel {
 
         resultViewButtons.put(ResultView.FLAT_TABLE, flatTableViewButton);
         resultViewButtons.put(ResultView.TREE_TABLE, treeTableViewButton);
+        resultViewButtons.put(ResultView.TEXT, textViewButton);
 
         int pageSize = 20; // TODO: store/load from pref
         currentResult = CollectionResult.EMPTY;
-            
+
+        
+        EditorKit editorKit = MimeLookup.getLookup("text/x-json").lookup(EditorKit.class);
+        if (editorKit != null) {
+            textViewComponent.setEditorKit(editorKit);
+        }
+        textViewComponent.setEditable(false);
+        textView = new ResultsTextView(textViewComponent, new CollectionResultPages(currentResult, pageSize, readOnly));
         treeTableModel = new DocumentsTreeTableModel(new CollectionResultPages(currentResult, pageSize, readOnly));
         flatTableModel = new DocumentsFlatTableModel(new CollectionResultPages(currentResult, pageSize, readOnly));
         resultViews.put(ResultView.TREE_TABLE, treeTableModel);
         resultViews.put(ResultView.FLAT_TABLE, flatTableModel);
+        resultViews.put(ResultView.TEXT, textView);
 
         final ListSelectionListener tableSelectionListener = new ListSelectionListener() {
 
@@ -258,35 +292,31 @@ public final class CollectionResultPanel extends javax.swing.JPanel {
                             editDocumentAction.setDocument(documentRootNode.getValue().asDocument());
                             editDocumentAction.actionPerformed(null);
                         }
-                    } else {
-                        if (node.isLeaf()) {
-                            if (readOnly == false) {
-                                dislayDocumentEditionShortcutHintIfNecessary();
-                                if (node instanceof BsonPropertyNode) {
-                                    BsonPropertyNode propertyNode = (BsonPropertyNode) node;
-                                    if (BsonPropertyEditor.isQuickEditableBsonValue(propertyNode.getValue())) {
-                                        editBsonPropertyNodeAction.setPropertyNode(propertyNode);
-                                        editBsonPropertyNodeAction.actionPerformed(null);
-                                    }
-                                } else if (BsonPropertyEditor.isQuickEditableBsonValue(node.getValue())) {
-                                    editBsonValueNodeAction.setValueNode(node);
-                                    editBsonValueNodeAction.actionPerformed(null);
+                    } else if (node.isLeaf()) {
+                        if (readOnly == false) {
+                            dislayDocumentEditionShortcutHintIfNecessary();
+                            if (node instanceof BsonPropertyNode) {
+                                BsonPropertyNode propertyNode = (BsonPropertyNode) node;
+                                if (BsonPropertyEditor.isQuickEditableBsonValue(propertyNode.getValue())) {
+                                    editBsonPropertyNodeAction.setPropertyNode(propertyNode);
+                                    editBsonPropertyNodeAction.actionPerformed(null);
                                 }
-                            }
-                        } else {
-                            if (resultTreeTable.isCollapsed(path)) {
-                                resultTreeTable.expandPath(path);
-                            } else {
-                                resultTreeTable.collapsePath(path);
+                            } else if (BsonPropertyEditor.isQuickEditableBsonValue(node.getValue())) {
+                                editBsonValueNodeAction.setValueNode(node);
+                                editBsonValueNodeAction.actionPerformed(null);
                             }
                         }
+                    } else if (resultTreeTable.isCollapsed(path)) {
+                        resultTreeTable.expandPath(path);
+                    } else {
+                        resultTreeTable.collapsePath(path);
                     }
                 }
             }
 
             @Override
             public void mouseReleased(MouseEvent e) {
-                if(e.isPopupTrigger() || SwingUtilities.isRightMouseButton(e)) {
+                if (e.isPopupTrigger() || SwingUtilities.isRightMouseButton(e)) {
                     final TreePath path = resultTreeTable.getPathForLocation(e.getX(), e.getY());
                     if (path != null) {
                         final int row = resultTreeTable.getRowForPath(path);
@@ -324,16 +354,15 @@ public final class CollectionResultPanel extends javax.swing.JPanel {
         getResultPages().addListener(pagesListener);
     }
 
-    
     public void setResult(CollectionResult result) {
         currentResult = result;
         Tasks.create(REQUEST_PROCESSOR, Bundle.TASK_refreshResults(), resultUpdate).execute();
     }
-    
+
     public void refreshResults() {
         Tasks.create(REQUEST_PROCESSOR, Bundle.TASK_refreshResults(), resultRefresh).execute();
     }
-    
+
     public void editDocument(BsonDocument document, BsonDocument modifiedDocument) {
         getResultPages().updateDocument(document, modifiedDocument);
     }
@@ -345,7 +374,7 @@ public final class CollectionResultPanel extends javax.swing.JPanel {
             case TREE_TABLE:
                 return resultTreeTable;
             default:
-                throw new AssertionError();
+                return null;
         }
     }
 
@@ -357,12 +386,19 @@ public final class CollectionResultPanel extends javax.swing.JPanel {
         return treeTableModel.getPages();
     }
 
+    public CollectionResultPages getTextViewPages() {
+        return textView.getPages();
+    }
+
     public CollectionResultPages getResultPages() {
         return resultViews.get(resultView).getPages();
     }
 
     public BsonDocument getResultTableSelectedDocument() {
         final JTable table = getResultTable();
+        if(table == null) { // TEXT view
+            return null;
+        }
         int row = table.getSelectedRow();
         if (row == -1) {
             return null;
@@ -383,7 +419,7 @@ public final class CollectionResultPanel extends javax.swing.JPanel {
         getResultPages().removeListener(pagesListener);
         this.resultView = resultView;
         getResultPages().addListener(pagesListener);
-        if(getResultPages().getQueryResult().equals(currentResult) == false) {
+        if (getResultPages().getQueryResult().equals(currentResult) == false) {
             setResult(currentResult);
         }
         updateResultPanel();
@@ -429,7 +465,8 @@ public final class CollectionResultPanel extends javax.swing.JPanel {
 
             @Override
             public void run() {
-                boolean itemSelected = getResultTable().getSelectedRow() > -1;
+                JTable table = getResultTable();
+                boolean itemSelected = table != null && table.getSelectedRow() > -1;
                 addButton.setEnabled(readOnly == false);
                 deleteButton.setEnabled(itemSelected && readOnly == false);
                 editButton.setEnabled(itemSelected && readOnly == false);
@@ -440,6 +477,7 @@ public final class CollectionResultPanel extends javax.swing.JPanel {
     private void changePageSize(int pageSize) {
         getTreeTablePages().setPageSize(pageSize);
         getFlatTablePages().setPageSize(pageSize);
+        getTextViewPages().setPageSize(pageSize);
     }
 
     /**
@@ -455,6 +493,7 @@ public final class CollectionResultPanel extends javax.swing.JPanel {
         documentsToolBar = new javax.swing.JToolBar();
         treeTableViewButton = new javax.swing.JToggleButton();
         flatTableViewButton = new javax.swing.JToggleButton();
+        textViewButton = new javax.swing.JToggleButton();
         jSeparator4 = new javax.swing.JToolBar.Separator();
         expandTreeButton = new javax.swing.JButton();
         collapseTreeButton = new javax.swing.JButton();
@@ -480,6 +519,8 @@ public final class CollectionResultPanel extends javax.swing.JPanel {
         resultTreeTable = new org.jdesktop.swingx.JXTreeTable();
         flatTableScrollPane = new javax.swing.JScrollPane();
         resultFlatTable = new javax.swing.JTable();
+        textViewScrollPane = new javax.swing.JScrollPane();
+        textViewComponent = new javax.swing.JEditorPane();
 
         setLayout(new java.awt.BorderLayout(0, 5));
 
@@ -501,6 +542,14 @@ public final class CollectionResultPanel extends javax.swing.JPanel {
         flatTableViewButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         flatTableViewButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
         documentsToolBar.add(flatTableViewButton);
+
+        textViewButton.setAction(treeViewAction);
+        resultViewButtonGroup.add(textViewButton);
+        textViewButton.setFocusable(false);
+        textViewButton.setHideActionText(true);
+        textViewButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        textViewButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        documentsToolBar.add(textViewButton);
         documentsToolBar.add(jSeparator4);
 
         expandTreeButton.setAction(expandTreeAction);
@@ -611,6 +660,10 @@ public final class CollectionResultPanel extends javax.swing.JPanel {
 
         resultPanel.add(flatTableScrollPane, "FLAT_TABLE");
 
+        textViewScrollPane.setViewportView(textViewComponent);
+
+        resultPanel.add(textViewScrollPane, "TEXT");
+
         add(resultPanel, java.awt.BorderLayout.CENTER);
     }// </editor-fold>//GEN-END:initComponents
 
@@ -630,8 +683,6 @@ public final class CollectionResultPanel extends javax.swing.JPanel {
     private final EditBsonPropertyNodeAction editBsonPropertyNodeAction = new EditBsonPropertyNodeAction(this, null);
 
     private final EditBsonValueNodeAction editBsonValueNodeAction = new EditBsonValueNodeAction(this, null);
-    
-    private final FindWithBsonPropertyNodeAction findWithBsonPropertyNodeAction = new FindWithBsonPropertyNodeAction(this, null);
 
     private final Action refreshDocumentsAction = new RefreshDocumentsAction(this);
 
@@ -649,13 +700,31 @@ public final class CollectionResultPanel extends javax.swing.JPanel {
 
     private final Action flatTableViewAction = ChangeResultViewAction.create(this, ResultView.FLAT_TABLE);
 
+    private final Action treeViewAction = ChangeResultViewAction.create(this, ResultView.TEXT);
+
     private final Action collapseTreeAction = new CollapseAllDocumentsAction(this);
 
     private final Action expandTreeAction = new ExpandAllDocumentsAction(this);
 
+    private final PropertyNodeAction usePropertySetFindFilterAction = new UsePropertySetFindFilterAction();
+
+    private final PropertyNodeAction usePropertySetFindProjectionAction = new UsePropertySetFindProjectionAction();
+
+    private final PropertyNodeAction usePropertySetFindSortAscAction = new UsePropertySetFindSortAction(SortOrder.ASCENDING);
+
+    private final PropertyNodeAction usePropertySetFindSortDescAction = new UsePropertySetFindSortAction(SortOrder.DESCENDING);
+
+    private final PropertyNodeAction usePropertyAddFindFilterAction = new UsePropertyAddFindFilterAction();
+
+    private final PropertyNodeAction usePropertyAddFindProjectionAction = new UsePropertyAddFindProjectionAction();
+
+    private final PropertyNodeAction usePropertyAddFindSortAscAction = new UsePropertyAddFindSortAction(SortOrder.ASCENDING);
+
+    private final PropertyNodeAction usePropertyAddFindSortDescAction = new UsePropertyAddFindSortAction(SortOrder.DESCENDING);
+
     public enum ResultView {
 
-        FLAT_TABLE, TREE_TABLE
+        FLAT_TABLE, TREE_TABLE, TEXT
 
     }
 
@@ -688,6 +757,9 @@ public final class CollectionResultPanel extends javax.swing.JPanel {
     @Getter
     private org.jdesktop.swingx.JXTreeTable resultTreeTable;
     private javax.swing.ButtonGroup resultViewButtonGroup;
+    private javax.swing.JToggleButton textViewButton;
+    private javax.swing.JEditorPane textViewComponent;
+    private javax.swing.JScrollPane textViewScrollPane;
     private javax.swing.JLabel totalDocumentsLabel;
     private javax.swing.JScrollPane treeTableScrollPane;
     private javax.swing.JToggleButton treeTableViewButton;
@@ -698,31 +770,57 @@ public final class CollectionResultPanel extends javax.swing.JPanel {
         if (treePath != null) {
             BsonValueNode selectedNode = (BsonValueNode) treePath.getLastPathComponent();
             final BsonValueNode documentRootNode = (BsonValueNode) treePath.getPathComponent(1);
-            menu.add(new JMenuItem(new CopyFullDocumentToClipboardAction(documentRootNode.getValue().asDocument())));
+            Action copyFullDocumentAction = new CopyFullDocumentToClipboardAction(documentRootNode.getValue().asDocument());
             if (selectedNode != documentRootNode) {
                 if (selectedNode instanceof BsonPropertyNode) {
                     BsonPropertyNode propertyNode = (BsonPropertyNode) selectedNode;
                     BsonProperty property = propertyNode.getBsonProperty();
-                    
-                    if(lookup.lookup(CollectionInfo.class) != null) {
-                        findWithBsonPropertyNodeAction.setPropertyNode(propertyNode);
-                        menu.add(new JMenuItem(findWithBsonPropertyNodeAction));
-                    }
                     menu.add(new JMenuItem(new CopyKeyValuePairToClipboardAction(property)));
                     menu.add(new JMenuItem(new CopyKeyToClipboardAction(property)));
                     menu.add(new JMenuItem(new CopyValueToClipboardAction(property.getValue())));
+                    menu.add(new JMenuItem(copyFullDocumentAction));
+                    menu.addSeparator();
+
+                    if (lookup.lookup(CollectionInfo.class) != null) {
+                        JMenu queryWithPropertyMenu = new JMenu(Bundle.MENU_queryWithProperty());
+                        menu.add(queryWithPropertyMenu);
+                        usePropertySetFindFilterAction.setPropertyNode(propertyNode);
+                        usePropertySetFindProjectionAction.setPropertyNode(propertyNode);
+                        usePropertySetFindSortAscAction.setPropertyNode(propertyNode);
+                        usePropertySetFindSortDescAction.setPropertyNode(propertyNode);
+                        queryWithPropertyMenu.add(new JMenuItem(usePropertySetFindFilterAction));
+                        queryWithPropertyMenu.add(new JMenuItem(usePropertySetFindProjectionAction));
+                        queryWithPropertyMenu.add(new JMenuItem(usePropertySetFindSortAscAction));
+                        queryWithPropertyMenu.add(new JMenuItem(usePropertySetFindSortDescAction));
+                        if (currentResult instanceof FindResult) {
+                            usePropertyAddFindFilterAction.setPropertyNode(propertyNode);
+                            usePropertyAddFindProjectionAction.setPropertyNode(propertyNode);
+                            usePropertyAddFindSortAscAction.setPropertyNode(propertyNode);
+                            usePropertyAddFindSortDescAction.setPropertyNode(propertyNode);
+                            queryWithPropertyMenu.addSeparator();
+                            queryWithPropertyMenu.add(new JMenuItem(usePropertyAddFindFilterAction));
+                            queryWithPropertyMenu.add(new JMenuItem(usePropertyAddFindProjectionAction));
+                            queryWithPropertyMenu.add(new JMenuItem(usePropertyAddFindSortAscAction));
+                            queryWithPropertyMenu.add(new JMenuItem(usePropertyAddFindSortDescAction));
+                        }
+                    }
                     if (isQuickEditableBsonValue(property.getValue())) {
+                        menu.addSeparator();
                         editBsonPropertyNodeAction.setPropertyNode(propertyNode);
                         menu.add(new JMenuItem(editBsonPropertyNodeAction));
                     }
                 } else {
                     BsonValue value = selectedNode.getValue();
                     menu.add(new JMenuItem(new CopyValueToClipboardAction(value)));
+                    menu.add(new JMenuItem(copyFullDocumentAction));
                     if (isQuickEditableBsonValue(value)) {
+                        menu.addSeparator();
                         editBsonValueNodeAction.setValueNode((BsonValueNode) selectedNode);
                         menu.add(new JMenuItem(editBsonValueNodeAction));
                     }
                 }
+            } else {
+                menu.add(new JMenuItem(copyFullDocumentAction));
             }
             if (readOnly == false) {
                 menu.addSeparator();
@@ -763,15 +861,23 @@ public final class CollectionResultPanel extends javax.swing.JPanel {
                 Bundle.documentEditionShortcutHintDetails(),
                 new ActionListener() {
 
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-                        displayDocumentEditionShortcutHint = false;
-                    }
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    displayDocumentEditionShortcutHint = false;
                 }
+            }
             );
         }
     }
 
+    TopComponent getParentTopComponent() {
+        Container parent = getParent();
+        while(parent != null && (parent instanceof TopComponent) == false) {
+            parent = parent.getParent();
+        }
+        return (TopComponent) parent;
+    }
+    
     public Preferences prefs() {
         return NbPreferences.forModule(CollectionResultPanel.class).node(CollectionResultPanel.class.getName());
     }
@@ -787,6 +893,7 @@ public final class CollectionResultPanel extends javax.swing.JPanel {
         final int pageSize = prefs.getInt("result-view-table-page-size", getTreeTablePages().getPageSize());
         getTreeTablePages().setPageSize(pageSize);
         getFlatTablePages().setPageSize(pageSize);
+        getTextViewPages().setPageSize(pageSize);
         pageSizeField.setText(String.valueOf(pageSize));
     }
 
@@ -804,7 +911,188 @@ public final class CollectionResultPanel extends javax.swing.JPanel {
     }
 
     public static interface View {
-        
+
         CollectionResultPages getPages();
-    } 
+    }
+
+    abstract class PropertyNodeAction extends AbstractAction {
+
+        private static final long serialVersionUID = 1L;
+
+        @Getter
+        @Setter
+        private BsonPropertyNode propertyNode;
+
+        public PropertyNodeAction(String name) {
+            super(name);
+        }
+
+        BsonProperty getBsonProperty() {
+            return propertyNode.getBsonProperty();
+        }
+    }
+
+    private static final BsonInt32 ASC = new BsonInt32(1);
+
+    private static final BsonInt32 DESC = new BsonInt32(-1);
+
+    abstract class SortPropertyNodeAction extends PropertyNodeAction {
+
+        private static final long serialVersionUID = 1L;
+
+        @Getter
+        private final SortOrder sortOrder;
+
+        public SortPropertyNodeAction(String name, SortOrder sortOrder) {
+            super(name);
+            this.sortOrder = sortOrder;
+        }
+
+        BsonValue getSortValue() {
+            return sortOrder == SortOrder.ASCENDING ? ASC : DESC;
+        }
+    }
+
+    class UsePropertySetFindFilterAction extends PropertyNodeAction {
+
+        private static final long serialVersionUID = 1L;
+
+        public UsePropertySetFindFilterAction() {
+            super(Bundle.ACTION_usePropertySetFindFilter());
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            Lookup lookup = getLookup();
+            CollectionInfo collection = lookup.lookup(CollectionInfo.class);
+            if (collection != null) {
+                FindCriteria findCriteria = FindCriteria.builder().filter(getBsonProperty().asDocument()).build();
+                CollectionView view = new CollectionView(collection, lookup, findCriteria);
+                view.open();
+                view.requestActive();
+            }
+
+        }
+
+    }
+
+    class UsePropertySetFindProjectionAction extends PropertyNodeAction {
+
+        private static final long serialVersionUID = 1L;
+
+        public UsePropertySetFindProjectionAction() {
+            super(Bundle.ACTION_usePropertySetFindProjection());
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            Lookup lookup = getLookup();
+            CollectionInfo collection = lookup.lookup(CollectionInfo.class);
+            if (collection != null) {
+                BsonDocument projection = new BsonDocument(getBsonProperty().getName(), BsonBoolean.TRUE);
+                FindCriteria findCriteria = FindCriteria.builder().projection(projection).build();
+                CollectionView view = new CollectionView(collection, lookup, findCriteria);
+                view.open();
+                view.requestActive();
+            }
+
+        }
+
+    }
+
+    class UsePropertySetFindSortAction extends SortPropertyNodeAction {
+
+        private static final long serialVersionUID = 1L;
+
+        public UsePropertySetFindSortAction(SortOrder sortOrder) {
+            super(Bundle.ACTION_usePropertySetFindSort(sortOrder.name().toLowerCase()), sortOrder);
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            Lookup lookup = getLookup();
+            CollectionInfo collection = lookup.lookup(CollectionInfo.class);
+            if (collection != null) {
+                BsonDocument sort = new BsonDocument(getBsonProperty().getName(), getSortValue());
+                FindCriteria findCriteria = FindCriteria.builder().sort(sort).build();
+                CollectionView view = new CollectionView(collection, lookup, findCriteria);
+                view.open();
+                view.requestActive();
+            }
+
+        }
+
+    }
+
+    class UsePropertyAddFindFilterAction extends PropertyNodeAction {
+
+        private static final long serialVersionUID = 1L;
+
+        public UsePropertyAddFindFilterAction() {
+            super(Bundle.ACTION_usePropertyAddFindFilter());
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            // cast, if not a find result, this action should not be enabled
+            FindResult currentFindResult = (FindResult) currentResult;
+            FindCriteria currentCriteria = currentFindResult.getFindCriteria();
+            BsonDocument filter = currentCriteria.getFilter().clone();
+            BsonProperty property = getBsonProperty();
+            filter.put(property.getName(), property.getValue());
+
+            // cast, if not a find query view, this action should not be enabled
+            CollectionView parent = (CollectionView) getParentTopComponent();
+            parent.setFindCriteria(currentCriteria.copy().filter(filter).build());
+        }
+
+    }
+
+    class UsePropertyAddFindProjectionAction extends PropertyNodeAction {
+
+        private static final long serialVersionUID = 1L;
+
+        public UsePropertyAddFindProjectionAction() {
+            super(Bundle.ACTION_usePropertyAddFindProjection());
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            // cast, if not a find result, this action should not be enabled
+            FindResult currentFindResult = (FindResult) currentResult;
+            FindCriteria currentCriteria = currentFindResult.getFindCriteria();
+            BsonDocument projection = currentCriteria.getProjection().clone();
+            BsonProperty property = getBsonProperty();
+            projection.put(property.getName(), BsonBoolean.TRUE);
+            
+            // cast, if not a find query view, this action should not be enabled
+            CollectionView parent = (CollectionView) getParentTopComponent();
+            parent.setFindCriteria(currentCriteria.copy().projection(projection).build());
+        }
+
+    }
+
+    class UsePropertyAddFindSortAction extends SortPropertyNodeAction {
+
+        private static final long serialVersionUID = 1L;
+
+        public UsePropertyAddFindSortAction(SortOrder sortOrder) {
+            super(Bundle.ACTION_usePropertyAddFindSort(sortOrder.name().toLowerCase()), sortOrder);
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            // cast, if not a find result, this action should not be enabled
+            FindResult currentFindResult = (FindResult) currentResult;
+            FindCriteria currentCriteria = currentFindResult.getFindCriteria();
+            BsonDocument sort = currentCriteria.getSort().clone();
+            sort.put(getBsonProperty().getName(), getSortValue());
+            
+            // cast, if not a find query view, this action should not be enabled
+            CollectionView parent = (CollectionView) getParentTopComponent();
+            parent.setFindCriteria(currentCriteria.copy().sort(sort).build());
+        }
+
+    }
+
 }

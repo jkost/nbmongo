@@ -25,10 +25,11 @@ import javax.swing.Action;
 import lombok.Getter;
 import org.bson.BsonDocument;
 import org.netbeans.modules.mongodb.ConnectionInfo;
+import org.netbeans.modules.mongodb.api.FindCriteria;
 import org.netbeans.modules.mongodb.api.FindResult;
 import org.netbeans.modules.mongodb.resources.Images;
 import org.netbeans.modules.mongodb.ui.components.CollectionResultPanel;
-import org.netbeans.modules.mongodb.ui.components.QueryEditor;
+import org.netbeans.modules.mongodb.ui.components.FindCriteriaEditor;
 import org.netbeans.modules.mongodb.ui.windows.collectionview.actions.ClearQueryAction;
 import org.netbeans.modules.mongodb.ui.windows.collectionview.actions.EditQueryAction;
 import org.netbeans.modules.mongodb.util.SystemCollectionPredicate;
@@ -66,7 +67,7 @@ public final class CollectionView extends TopComponent /*implements QueryResultW
     private final boolean isSystemCollection;
 
     @Getter
-    private final QueryEditor queryEditor = new QueryEditor();
+    private final FindCriteriaEditor criteriaEditor = new FindCriteriaEditor();
 
     @Getter
     private Lookup lookup;
@@ -78,10 +79,10 @@ public final class CollectionView extends TopComponent /*implements QueryResultW
     private final Action clearQueryAction = new ClearQueryAction(this);
 
     public CollectionView(CollectionInfo collectionInfo, Lookup lookup) {
-        this(collectionInfo, lookup, null);
+        this(collectionInfo, lookup, FindCriteria.EMPTY);
     }
     
-    public CollectionView(CollectionInfo collectionInfo, Lookup lookup, BsonDocument criteria) {
+    public CollectionView(CollectionInfo collectionInfo, Lookup lookup, FindCriteria findCriteria) {
         super(lookup);
         this.lookup = lookup;
         isSystemCollection = SystemCollectionPredicate.get().eval(collectionInfo.getName());
@@ -91,11 +92,7 @@ public final class CollectionView extends TopComponent /*implements QueryResultW
             ? Images.SYSTEM_COLLECTION_ICON
             : Images.COLLECTION_ICON);
         loadPreferences();
-        if(criteria != null) {
-            queryEditor.setCriteria(criteria);
-            criteriaField.setText(criteria.toJson());
-        }
-        getResultPanel().setResult(new FindResult(getCollection(), criteria, null, null));
+        setFindCriteria(findCriteria);
     }
 
     @SuppressWarnings("unchecked")
@@ -130,15 +127,19 @@ public final class CollectionView extends TopComponent /*implements QueryResultW
     }
 
     public void updateQueryFieldsFromEditor() {
-        BsonDocument criteria = queryEditor.getCriteria();
-        BsonDocument projection = queryEditor.getProjection();
-        BsonDocument sort = queryEditor.getSort();
-        criteriaField.setText(criteria != null ? criteria.toJson() : "");
-        projectionField.setText(projection != null ? projection.toJson() : "");
-        sortField.setText(sort != null ? sort.toJson() : "");
-        getResultPanel().setResult(new FindResult(getCollection(), criteria, projection, sort));
+        setFindCriteria(criteriaEditor.getFindCriteria());
     }
 
+    public void setFindCriteria(FindCriteria findCriteria) {
+        BsonDocument filter = findCriteria.getFilter();
+        BsonDocument projection = findCriteria.getProjection();
+        BsonDocument sort = findCriteria.getSort();
+        filterField.setText(filter != null ? filter.toJson() : "");
+        projectionField.setText(projection != null ? projection.toJson() : "");
+        sortField.setText(sort != null ? sort.toJson() : "");
+        getResultPanel().setResult(new FindResult(getCollection(), findCriteria));
+    }
+    
     public Preferences prefs() {
         return NbPreferences.forModule(CollectionView.class).node(CollectionView.class.getName());
     }
@@ -169,8 +170,8 @@ public final class CollectionView extends TopComponent /*implements QueryResultW
     private void initComponents() {
 
         queryPanel = new javax.swing.JPanel();
-        criteriaLabel = new javax.swing.JLabel();
-        criteriaField = new javax.swing.JTextField();
+        filterLabel = new javax.swing.JLabel();
+        filterField = new javax.swing.JTextField();
         projectionLabel = new javax.swing.JLabel();
         projectionField = new javax.swing.JTextField();
         sortLabel = new javax.swing.JLabel();
@@ -181,10 +182,10 @@ public final class CollectionView extends TopComponent /*implements QueryResultW
 
         queryPanel.setBorder(javax.swing.BorderFactory.createTitledBorder(org.openide.util.NbBundle.getMessage(CollectionView.class, "CollectionView.queryPanel.border.title"))); // NOI18N
 
-        org.openide.awt.Mnemonics.setLocalizedText(criteriaLabel, org.openide.util.NbBundle.getMessage(CollectionView.class, "CollectionView.criteriaLabel.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(filterLabel, org.openide.util.NbBundle.getMessage(CollectionView.class, "CollectionView.filterLabel.text")); // NOI18N
 
-        criteriaField.setEditable(false);
-        criteriaField.setText(org.openide.util.NbBundle.getMessage(CollectionView.class, "CollectionView.criteriaField.text")); // NOI18N
+        filterField.setEditable(false);
+        filterField.setText(org.openide.util.NbBundle.getMessage(CollectionView.class, "CollectionView.filterField.text")); // NOI18N
 
         org.openide.awt.Mnemonics.setLocalizedText(projectionLabel, org.openide.util.NbBundle.getMessage(CollectionView.class, "CollectionView.projectionLabel.text")); // NOI18N
 
@@ -213,9 +214,9 @@ public final class CollectionView extends TopComponent /*implements QueryResultW
                         .addComponent(clearQueryButton)
                         .addContainerGap(329, Short.MAX_VALUE))
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, queryPanelLayout.createSequentialGroup()
-                        .addComponent(criteriaLabel)
+                        .addComponent(filterLabel)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(criteriaField))
+                        .addComponent(filterField))
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, queryPanelLayout.createSequentialGroup()
                         .addGroup(queryPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(projectionLabel)
@@ -226,14 +227,14 @@ public final class CollectionView extends TopComponent /*implements QueryResultW
                             .addComponent(sortField)))))
         );
 
-        queryPanelLayout.linkSize(javax.swing.SwingConstants.HORIZONTAL, new java.awt.Component[] {criteriaLabel, projectionLabel, sortLabel});
+        queryPanelLayout.linkSize(javax.swing.SwingConstants.HORIZONTAL, new java.awt.Component[] {filterLabel, projectionLabel, sortLabel});
 
         queryPanelLayout.setVerticalGroup(
             queryPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(queryPanelLayout.createSequentialGroup()
                 .addGroup(queryPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(criteriaField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(criteriaLabel))
+                    .addComponent(filterField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(filterLabel))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(queryPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(projectionField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -272,9 +273,9 @@ public final class CollectionView extends TopComponent /*implements QueryResultW
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton clearQueryButton;
-    private javax.swing.JTextField criteriaField;
-    private javax.swing.JLabel criteriaLabel;
     private javax.swing.JButton editQueryButton;
+    private javax.swing.JTextField filterField;
+    private javax.swing.JLabel filterLabel;
     private javax.swing.JTextField projectionField;
     private javax.swing.JLabel projectionLabel;
     private javax.swing.JPanel queryPanel;

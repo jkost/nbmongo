@@ -17,20 +17,19 @@
  */
 package org.netbeans.modules.mongodb.api;
 
+import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import java.util.ArrayList;
 import java.util.List;
-import lombok.AllArgsConstructor;
+import java.util.Objects;
 import lombok.Getter;
 import lombok.Setter;
 import org.bson.BsonDocument;
-import org.bson.conversions.Bson;
 
 /**
  *
  * @author Yann D'Isanto
  */
-@AllArgsConstructor
 public final class FindResult implements CollectionResult {
 
     @Getter
@@ -38,27 +37,24 @@ public final class FindResult implements CollectionResult {
     
     @Getter
     @Setter
-    private Bson filter;
+    private FindCriteria findCriteria;
 
-    @Getter
-    @Setter
-    private Bson projection;
-
-    @Getter
-    @Setter
-    private Bson sort;
-
+    public FindResult(MongoCollection<BsonDocument> collection, FindCriteria findCriteria) {
+        Objects.requireNonNull(collection, "collection can't be null");
+        this.collection = collection;
+        this.findCriteria = findCriteria != null ? findCriteria : FindCriteria.EMPTY;
+    }
+    
+    
+    
     @Override
     public long getTotalElementsCount() {
-        return collection.count(filter);
+        return collection.count(findCriteria.getFilter());
     }
 
     @Override
     public List<BsonDocument> get(long offset, int count) {
-        return collection
-                .find(filter != null ? filter : new BsonDocument())
-                .projection(projection)
-                .sort(sort)
+        return findIterable()
                 .skip((int) offset)
                 .limit(count)
                 .into(new ArrayList<BsonDocument>());
@@ -66,10 +62,14 @@ public final class FindResult implements CollectionResult {
 
     @Override
     public Iterable<BsonDocument> iterable() {
+        return findIterable();
+    }
+    
+    private FindIterable<BsonDocument> findIterable() {
         return collection
-                .find(filter != null ? filter : new BsonDocument())
-                .projection(projection)
-                .sort(sort);
+                .find(findCriteria.getFilter() != null ? findCriteria.getFilter() : new BsonDocument())
+                .projection(findCriteria.getProjection())
+                .sort(findCriteria.getSort());
     }
     
 }

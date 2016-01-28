@@ -24,7 +24,8 @@ import javax.swing.JComboBox;
 import javax.swing.JPanel;
 import javax.swing.event.ChangeListener;
 import org.bson.BsonDocument;
-import org.netbeans.modules.mongodb.ui.components.QueryEditor;
+import org.netbeans.modules.mongodb.api.FindCriteria;
+import org.netbeans.modules.mongodb.ui.components.FindCriteriaEditor;
 import org.openide.util.ChangeSupport;
 import org.openide.util.NbBundle.Messages;
 
@@ -33,7 +34,7 @@ public final class ExportVisualPanel1 extends JPanel {
 
     private final ChangeSupport changeSupport = new ChangeSupport(this);
 
-    private final QueryEditor queryEditor = new QueryEditor();
+    private final FindCriteriaEditor criteriaEditor = new FindCriteriaEditor();
 
     public ExportVisualPanel1(MongoDatabase db) {
         initComponents();
@@ -58,15 +59,16 @@ public final class ExportVisualPanel1 extends JPanel {
         return collectionComboBox;
     }
 
-    QueryEditor getQueryEditor() {
-        return queryEditor;
+    FindCriteriaEditor getCriteriaEditor() {
+        return criteriaEditor;
     }
 
     void updateQueryFieldsFromEditor() {
-        final BsonDocument criteria = queryEditor.getCriteria();
-        final BsonDocument projection = queryEditor.getProjection();
-        final BsonDocument sort = queryEditor.getSort();
-        criteriaField.setText(criteria != null ? criteria.toJson() : "");
+        FindCriteria findCriteria = criteriaEditor.getFindCriteria();
+        BsonDocument filter = findCriteria.getFilter();
+        BsonDocument projection = findCriteria.getProjection();
+        BsonDocument sort = findCriteria.getSort();
+        filterField.setText(filter != null ? filter.toJson() : "");
         projectionField.setText(projection != null ? projection.toJson() : "");
         sortField.setText(sort != null ? sort.toJson() : "");
     }
@@ -88,15 +90,15 @@ public final class ExportVisualPanel1 extends JPanel {
     private void initComponents() {
 
         collectionLabel = new javax.swing.JLabel();
-        collectionComboBox = new javax.swing.JComboBox<String>();
+        collectionComboBox = new javax.swing.JComboBox<>();
         queryPanel = new javax.swing.JPanel();
         editQueryButton = new javax.swing.JButton();
         clearQueryButton = new javax.swing.JButton();
         sortField = new javax.swing.JTextField();
         sortLabel = new javax.swing.JLabel();
         projectionLabel = new javax.swing.JLabel();
-        criteriaLabel = new javax.swing.JLabel();
-        criteriaField = new javax.swing.JTextField();
+        filterLabel = new javax.swing.JLabel();
+        filterField = new javax.swing.JTextField();
         projectionField = new javax.swing.JTextField();
 
         org.openide.awt.Mnemonics.setLocalizedText(collectionLabel, org.openide.util.NbBundle.getMessage(ExportVisualPanel1.class, "ExportVisualPanel1.collectionLabel.text")); // NOI18N
@@ -123,9 +125,9 @@ public final class ExportVisualPanel1 extends JPanel {
 
         org.openide.awt.Mnemonics.setLocalizedText(projectionLabel, org.openide.util.NbBundle.getMessage(ExportVisualPanel1.class, "ExportVisualPanel1.projectionLabel.text")); // NOI18N
 
-        org.openide.awt.Mnemonics.setLocalizedText(criteriaLabel, org.openide.util.NbBundle.getMessage(ExportVisualPanel1.class, "ExportVisualPanel1.criteriaLabel.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(filterLabel, org.openide.util.NbBundle.getMessage(ExportVisualPanel1.class, "ExportVisualPanel1.filterLabel.text")); // NOI18N
 
-        criteriaField.setEditable(false);
+        filterField.setEditable(false);
 
         projectionField.setEditable(false);
 
@@ -143,9 +145,9 @@ public final class ExportVisualPanel1 extends JPanel {
                         .addComponent(clearQueryButton)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 355, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(queryPanelLayout.createSequentialGroup()
-                        .addComponent(criteriaLabel)
+                        .addComponent(filterLabel)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(criteriaField))
+                        .addComponent(filterField))
                     .addGroup(queryPanelLayout.createSequentialGroup()
                         .addComponent(projectionLabel)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -157,7 +159,7 @@ public final class ExportVisualPanel1 extends JPanel {
                 .addContainerGap())
         );
 
-        queryPanelLayout.linkSize(javax.swing.SwingConstants.HORIZONTAL, new java.awt.Component[] {criteriaLabel, projectionLabel, sortLabel});
+        queryPanelLayout.linkSize(javax.swing.SwingConstants.HORIZONTAL, new java.awt.Component[] {filterLabel, projectionLabel, sortLabel});
 
         queryPanelLayout.linkSize(javax.swing.SwingConstants.HORIZONTAL, new java.awt.Component[] {clearQueryButton, editQueryButton});
 
@@ -166,8 +168,8 @@ public final class ExportVisualPanel1 extends JPanel {
             .addGroup(queryPanelLayout.createSequentialGroup()
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGroup(queryPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(criteriaLabel)
-                    .addComponent(criteriaField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(filterLabel)
+                    .addComponent(filterField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(queryPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(projectionLabel)
@@ -210,15 +212,13 @@ public final class ExportVisualPanel1 extends JPanel {
     }// </editor-fold>//GEN-END:initComponents
 
     private void editQueryButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_editQueryButtonActionPerformed
-        if (queryEditor.showDialog()) {
+        if (criteriaEditor.showDialog()) {
             updateQueryFieldsFromEditor();
         }
     }//GEN-LAST:event_editQueryButtonActionPerformed
 
     private void clearQueryButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_clearQueryButtonActionPerformed
-        queryEditor.setCriteria(null);
-        queryEditor.setProjection(null);
-        queryEditor.setSort(null);
+        criteriaEditor.setFindCriteria(FindCriteria.EMPTY);
         updateQueryFieldsFromEditor();
     }//GEN-LAST:event_clearQueryButtonActionPerformed
 
@@ -226,9 +226,9 @@ public final class ExportVisualPanel1 extends JPanel {
     private javax.swing.JButton clearQueryButton;
     private javax.swing.JComboBox<String> collectionComboBox;
     private javax.swing.JLabel collectionLabel;
-    private javax.swing.JTextField criteriaField;
-    private javax.swing.JLabel criteriaLabel;
     private javax.swing.JButton editQueryButton;
+    private javax.swing.JTextField filterField;
+    private javax.swing.JLabel filterLabel;
     private javax.swing.JTextField projectionField;
     private javax.swing.JLabel projectionLabel;
     private javax.swing.JPanel queryPanel;

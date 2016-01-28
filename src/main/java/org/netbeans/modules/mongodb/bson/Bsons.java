@@ -42,25 +42,25 @@ import org.bson.types.ObjectId;
  */
 public final class Bsons {
 
-    private static final JsonWriterSettings shell = new JsonWriterSettings(JsonMode.SHELL, false);
-    private static final JsonWriterSettings shellAndPretty = new JsonWriterSettings(JsonMode.SHELL, "  ", "\n");
-    private static final JsonWriterSettings strict = new JsonWriterSettings(JsonMode.STRICT, false);
-    private static final JsonWriterSettings strictAndPretty = new JsonWriterSettings(JsonMode.STRICT, "  ", "\n");
+    public static final JsonWriterSettings SHELL = new JsonWriterSettings(JsonMode.SHELL, false);
+    public static final JsonWriterSettings SHELL_PRETTY = new JsonWriterSettings(JsonMode.SHELL, "  ", "\n");
+    public static final JsonWriterSettings STRICT = new JsonWriterSettings(JsonMode.STRICT, false);
+    public static final JsonWriterSettings STRICT_PRETTY = new JsonWriterSettings(JsonMode.STRICT, "  ", "\n");
 
     public static String shell(BsonValue value) {
-        return toJson(value, shell);
+        return toJson(value, SHELL);
     }
 
     public static String shellAndPretty(BsonValue value) {
-        return toJson(value, shellAndPretty);
+        return toJson(value, SHELL_PRETTY);
     }
 
     public static String strict(BsonValue value) {
-        return toJson(value, strict);
+        return toJson(value, STRICT);
     }
 
     public static String strictAndPretty(BsonValue value) {
-        return toJson(value, strictAndPretty);
+        return toJson(value, STRICT_PRETTY);
     }
 
     public static String toJson(BsonValue value, final JsonWriterSettings settings) {

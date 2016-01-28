@@ -39,7 +39,7 @@ public final class EditQueryAction extends CollectionViewAction {
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        if (getView().getQueryEditor().showDialog()) {
+        if (getView().getCriteriaEditor().showDialog()) {
             getView().updateQueryFieldsFromEditor();
         }
     }
