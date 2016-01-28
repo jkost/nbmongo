@@ -23,7 +23,7 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import org.bson.BsonDocument;
 import org.netbeans.modules.mongodb.api.FindResult;
-import org.netbeans.modules.mongodb.ui.components.QueryEditor;
+import org.netbeans.modules.mongodb.ui.components.FindCriteriaEditor;
 import org.openide.WizardDescriptor;
 import org.openide.WizardValidationException;
 import org.openide.util.ChangeSupport;
@@ -75,13 +75,11 @@ public class ExportWizardPanel1 implements WizardDescriptor.ValidatingPanel<Wiza
     @Override
     public void readSettings(WizardDescriptor wiz) {
         final ExportVisualPanel1 panel = getComponent();
-        final QueryEditor query = panel.getQueryEditor();
+        final FindCriteriaEditor criteriaEditor = panel.getCriteriaEditor();
         FindResult documents = (FindResult) wiz.getProperty(ExportWizardAction.PROP_DOCUMENTS);
         if(documents != null) {
             panel.getCollectionComboBox().setSelectedItem(documents.getCollection().getNamespace().getCollectionName());
-            query.setCriteria((BsonDocument) documents.getFilter());
-            query.setProjection((BsonDocument) documents.getProjection());
-            query.setSort((BsonDocument) documents.getSort());
+            criteriaEditor.setFindCriteria(documents.getFindCriteria());
         } else {
             String collection = (String) wiz.getProperty(ExportWizardAction.PROP_COLLECTION);
             if (collection != null) {
@@ -94,15 +92,12 @@ public class ExportWizardPanel1 implements WizardDescriptor.ValidatingPanel<Wiza
     @Override
     public void storeSettings(WizardDescriptor wiz) {
         ExportVisualPanel1 panel = getComponent();
-        QueryEditor query = panel.getQueryEditor();
         String colName = (String) panel.getCollectionComboBox().getSelectedItem();
         wiz.putProperty(ExportWizardAction.PROP_COLLECTION, colName);
         wiz.putProperty(ExportWizardAction.PROP_DOCUMENTS,
                 new FindResult(
                         db.getCollection(colName, BsonDocument.class),
-                        query.getCriteria(),
-                        query.getProjection(),
-                        query.getSort()
+                        panel.getCriteriaEditor().getFindCriteria()
                 ));
     }
 

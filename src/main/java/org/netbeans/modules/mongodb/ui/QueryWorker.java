@@ -34,25 +34,25 @@ public final class QueryWorker extends QueryResultWorker {
 
     private final MongoCollection<BsonDocument> collection;
 
-    private final Bson criteria;
+    private final Bson filter;
 
     private final Bson projection;
 
     private final Bson sort;
 
-    public QueryWorker(String name, MongoCollection<BsonDocument> collection, Bson criteria, Bson projection, Bson sort, int cacheLoadingBlockSize) {
+    public QueryWorker(String name, MongoCollection<BsonDocument> collection, Bson filter, Bson projection, Bson sort, int cacheLoadingBlockSize) {
         super(name, cacheLoadingBlockSize);
         this.collection = collection;
-        this.criteria = criteria;
+        this.filter = filter;
         this.projection = projection;
         this.sort = sort;
     }
 
     @Override
     protected QueryResult createQuery() throws Exception {
-        FindIterable<BsonDocument> query = criteria != null ? collection.find(criteria) : collection.find();
+        FindIterable<BsonDocument> query = filter != null ? collection.find(filter) : collection.find();
         query = query.projection(projection).sort(sort);
-        long size = criteria != null ? collection.count(criteria) : collection.count();
+        long size = filter != null ? collection.count(filter) : collection.count();
         return new QueryResult.MongoCursorResult(query.iterator(), this, size);
     }
 }

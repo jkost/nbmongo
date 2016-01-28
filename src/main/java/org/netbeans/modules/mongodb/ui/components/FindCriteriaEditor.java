@@ -27,6 +27,7 @@ import lombok.Getter;
 import org.bson.BsonDocument;
 import org.bson.json.JsonParseException;
 import org.netbeans.api.editor.mimelookup.MimeLookup;
+import org.netbeans.modules.mongodb.api.FindCriteria;
 import org.netbeans.modules.mongodb.bson.Bsons;
 import org.netbeans.modules.mongodb.ui.util.DialogNotification;
 import org.openide.util.NbBundle;
@@ -37,10 +38,10 @@ import org.openide.windows.WindowManager;
  * @author Yann D'Isanto
  */
 @NbBundle.Messages({
-    "invalidCriteriaJson=invalid criteria json",
+    "invalidFilterJson=invalid filter json",
     "invalidProjectionJson=invalid projection json",
     "invalidSortJson=invalid sort json"})
-public final class QueryEditor extends javax.swing.JPanel {
+public final class FindCriteriaEditor extends javax.swing.JPanel {
 
     private final EditorKit jsonEditorKit = MimeLookup.getLookup("text/x-json").lookup(EditorKit.class);
 
@@ -49,46 +50,32 @@ public final class QueryEditor extends javax.swing.JPanel {
     private int dialogResult;
 
     @Getter
-    private BsonDocument criteria;
-
-    @Getter
-    private BsonDocument projection;
-
-    @Getter
-    private BsonDocument sort;
+    private FindCriteria findCriteria;
 
     /**
      * Creates new form QueryPanel
      */
-    public QueryEditor() {
+    public FindCriteriaEditor() {
         initComponents();
     }
 
-    public BsonDocument parseCriteria() throws JsonParseException {
-        return getEditorValue(criteriaEditor);
+    public BsonDocument parseFilter() throws JsonParseException {
+        return getEditorValue(filterEditor);
     }
 
-    public void setCriteria(BsonDocument criteria) {
-        setEditorValue(criteriaEditor, criteria);
-        this.criteria = criteria;
+    public void setFindCriteria(FindCriteria findCriteria) {
+        setEditorValue(filterEditor, findCriteria.getFilter());
+        setEditorValue(projectionEditor, findCriteria.getProjection());
+        setEditorValue(sortEditor, findCriteria.getSort());
+        this.findCriteria = findCriteria;
     }
 
     public BsonDocument parseProjection() throws JsonParseException {
         return getEditorValue(projectionEditor);
     }
 
-    public void setProjection(BsonDocument projection) {
-        setEditorValue(projectionEditor, projection);
-        this.projection = projection;
-    }
-
     public BsonDocument parseSort() throws JsonParseException {
         return getEditorValue(sortEditor);
-    }
-
-    public void setSort(BsonDocument sort) {
-        setEditorValue(sortEditor, sort);
-        this.sort = sort;
     }
 
     private BsonDocument getEditorValue(JEditorPane editor) throws JsonParseException {
@@ -102,9 +89,9 @@ public final class QueryEditor extends javax.swing.JPanel {
 
     public boolean validateInput() {
         try {
-            parseCriteria();
+            parseFilter();
         } catch (JsonParseException ex) {
-            DialogNotification.error(Bundle.invalidCriteriaJson());
+            DialogNotification.error(Bundle.invalidFilterJson());
             return false;
         }
         try {
@@ -123,9 +110,9 @@ public final class QueryEditor extends javax.swing.JPanel {
     }
 
     private void refreshInput() {
-        setEditorValue(criteriaEditor, criteria);
-        setEditorValue(projectionEditor, projection);
-        setEditorValue(sortEditor, sort);
+        setEditorValue(filterEditor, findCriteria.getFilter());
+        setEditorValue(projectionEditor, findCriteria.getProjection());
+        setEditorValue(sortEditor, findCriteria.getSort());
     }
 
     public boolean showDialog() {
@@ -138,9 +125,11 @@ public final class QueryEditor extends javax.swing.JPanel {
         dialogResult = JOptionPane.CLOSED_OPTION;
         dialog.setVisible(true);
         if (dialogResult == JOptionPane.OK_OPTION) {
-            criteria = parseCriteria();
-            projection = parseProjection();
-            sort = parseSort();
+            findCriteria = FindCriteria.builder()
+                .filter(parseFilter())
+                .projection(parseProjection())
+                .sort(parseSort())
+                .build();
             return true;
         }
         return false;
@@ -160,10 +149,10 @@ public final class QueryEditor extends javax.swing.JPanel {
         cancelButton = new javax.swing.JButton();
         okButton = new javax.swing.JButton();
         splitPane1 = new javax.swing.JSplitPane();
-        criteriaPanel = new javax.swing.JPanel();
-        criteriaLabel = new javax.swing.JLabel();
-        criteriaScrollPane = new javax.swing.JScrollPane();
-        criteriaEditor = new javax.swing.JEditorPane();
+        filterPanel = new javax.swing.JPanel();
+        filterLabel = new javax.swing.JLabel();
+        filterScrollPane = new javax.swing.JScrollPane();
+        filterEditor = new javax.swing.JEditorPane();
         splitPane2 = new javax.swing.JSplitPane();
         projectionPanel = new javax.swing.JPanel();
         projectionLabel = new javax.swing.JLabel();
@@ -187,14 +176,14 @@ public final class QueryEditor extends javax.swing.JPanel {
             .addGap(0, 90, Short.MAX_VALUE)
         );
 
-        org.openide.awt.Mnemonics.setLocalizedText(cancelButton, org.openide.util.NbBundle.getMessage(QueryEditor.class, "QueryEditor.cancelButton.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(cancelButton, org.openide.util.NbBundle.getMessage(FindCriteriaEditor.class, "FindCriteriaEditor.cancelButton.text")); // NOI18N
         cancelButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 cancelButtonActionPerformed(evt);
             }
         });
 
-        org.openide.awt.Mnemonics.setLocalizedText(okButton, org.openide.util.NbBundle.getMessage(QueryEditor.class, "QueryEditor.okButton.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(okButton, org.openide.util.NbBundle.getMessage(FindCriteriaEditor.class, "FindCriteriaEditor.okButton.text")); // NOI18N
         okButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 okButtonActionPerformed(evt);
@@ -235,40 +224,40 @@ public final class QueryEditor extends javax.swing.JPanel {
         splitPane1.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
         splitPane1.setResizeWeight(0.5);
 
-        org.openide.awt.Mnemonics.setLocalizedText(criteriaLabel, org.openide.util.NbBundle.getMessage(QueryEditor.class, "QueryEditor.criteriaLabel.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(filterLabel, org.openide.util.NbBundle.getMessage(FindCriteriaEditor.class, "FindCriteriaEditor.filterLabel.text")); // NOI18N
 
-        criteriaEditor.setEditorKit(jsonEditorKit);
-        criteriaScrollPane.setViewportView(criteriaEditor);
+        filterEditor.setEditorKit(jsonEditorKit);
+        filterScrollPane.setViewportView(filterEditor);
 
-        javax.swing.GroupLayout criteriaPanelLayout = new javax.swing.GroupLayout(criteriaPanel);
-        criteriaPanel.setLayout(criteriaPanelLayout);
-        criteriaPanelLayout.setHorizontalGroup(
-            criteriaPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(criteriaPanelLayout.createSequentialGroup()
+        javax.swing.GroupLayout filterPanelLayout = new javax.swing.GroupLayout(filterPanel);
+        filterPanel.setLayout(filterPanelLayout);
+        filterPanelLayout.setHorizontalGroup(
+            filterPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(filterPanelLayout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(criteriaPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(criteriaPanelLayout.createSequentialGroup()
-                        .addComponent(criteriaLabel)
+                .addGroup(filterPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(filterPanelLayout.createSequentialGroup()
+                        .addComponent(filterLabel)
                         .addGap(0, 0, Short.MAX_VALUE))
-                    .addComponent(criteriaScrollPane, javax.swing.GroupLayout.DEFAULT_SIZE, 429, Short.MAX_VALUE))
+                    .addComponent(filterScrollPane, javax.swing.GroupLayout.DEFAULT_SIZE, 429, Short.MAX_VALUE))
                 .addContainerGap())
         );
-        criteriaPanelLayout.setVerticalGroup(
-            criteriaPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(criteriaPanelLayout.createSequentialGroup()
+        filterPanelLayout.setVerticalGroup(
+            filterPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(filterPanelLayout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(criteriaLabel)
+                .addComponent(filterLabel)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(criteriaScrollPane, javax.swing.GroupLayout.DEFAULT_SIZE, 115, Short.MAX_VALUE)
+                .addComponent(filterScrollPane, javax.swing.GroupLayout.DEFAULT_SIZE, 115, Short.MAX_VALUE)
                 .addContainerGap())
         );
 
-        splitPane1.setTopComponent(criteriaPanel);
+        splitPane1.setTopComponent(filterPanel);
 
         splitPane2.setDividerLocation(200);
         splitPane2.setResizeWeight(0.5);
 
-        org.openide.awt.Mnemonics.setLocalizedText(projectionLabel, org.openide.util.NbBundle.getMessage(QueryEditor.class, "QueryEditor.projectionLabel.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(projectionLabel, org.openide.util.NbBundle.getMessage(FindCriteriaEditor.class, "FindCriteriaEditor.projectionLabel.text")); // NOI18N
 
         projectionEditor.setEditorKit(jsonEditorKit);
         projectionScrollPane.setViewportView(projectionEditor);
@@ -298,7 +287,7 @@ public final class QueryEditor extends javax.swing.JPanel {
 
         splitPane2.setLeftComponent(projectionPanel);
 
-        org.openide.awt.Mnemonics.setLocalizedText(sortLabel, org.openide.util.NbBundle.getMessage(QueryEditor.class, "QueryEditor.sortLabel.text")); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(sortLabel, org.openide.util.NbBundle.getMessage(FindCriteriaEditor.class, "FindCriteriaEditor.sortLabel.text")); // NOI18N
 
         sortEditor.setEditorKit(jsonEditorKit);
         sortScrollPane.setViewportView(sortEditor);
@@ -357,11 +346,11 @@ public final class QueryEditor extends javax.swing.JPanel {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton cancelButton;
-    private javax.swing.JEditorPane criteriaEditor;
-    private javax.swing.JLabel criteriaLabel;
-    private javax.swing.JPanel criteriaPanel;
-    private javax.swing.JScrollPane criteriaScrollPane;
     private javax.swing.JPanel dialogPanel;
+    private javax.swing.JEditorPane filterEditor;
+    private javax.swing.JLabel filterLabel;
+    private javax.swing.JPanel filterPanel;
+    private javax.swing.JScrollPane filterScrollPane;
     private javax.swing.JButton okButton;
     private javax.swing.JPanel panel;
     private javax.swing.JEditorPane projectionEditor;

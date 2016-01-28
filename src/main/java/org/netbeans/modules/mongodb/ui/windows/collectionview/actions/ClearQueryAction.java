@@ -18,7 +18,8 @@
 package org.netbeans.modules.mongodb.ui.windows.collectionview.actions;
 
 import java.awt.event.ActionEvent;
-import org.netbeans.modules.mongodb.ui.components.QueryEditor;
+import org.netbeans.modules.mongodb.api.FindCriteria;
+import org.netbeans.modules.mongodb.ui.components.FindCriteriaEditor;
 import org.netbeans.modules.mongodb.ui.windows.CollectionView;
 import org.openide.util.NbBundle.Messages;
 
@@ -40,10 +41,8 @@ public final class ClearQueryAction extends CollectionViewAction {
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        final QueryEditor queryEditor = getView().getQueryEditor();
-        queryEditor.setCriteria(null);
-        queryEditor.setProjection(null);
-        queryEditor.setSort(null);
+        final FindCriteriaEditor criteriaEditor = getView().getCriteriaEditor();
+        criteriaEditor.setFindCriteria(FindCriteria.EMPTY);
         getView().updateQueryFieldsFromEditor();
     }
 }

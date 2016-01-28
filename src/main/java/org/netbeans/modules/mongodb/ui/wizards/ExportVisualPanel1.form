@@ -83,9 +83,9 @@
                           <EmptySpace pref="355" max="-2" attributes="0"/>
                       </Group>
                       <Group type="102" alignment="0" attributes="0">
-                          <Component id="criteriaLabel" linkSize="1" min="-2" max="-2" attributes="0"/>
+                          <Component id="filterLabel" linkSize="1" min="-2" max="-2" attributes="0"/>
                           <EmptySpace max="-2" attributes="0"/>
-                          <Component id="criteriaField" max="32767" attributes="0"/>
+                          <Component id="filterField" max="32767" attributes="0"/>
                       </Group>
                       <Group type="102" alignment="0" attributes="0">
                           <Component id="projectionLabel" linkSize="1" min="-2" max="-2" attributes="0"/>
@@ -107,8 +107,8 @@
               <Group type="102" alignment="0" attributes="0">
                   <EmptySpace max="32767" attributes="0"/>
                   <Group type="103" groupAlignment="3" attributes="0">
-                      <Component id="criteriaLabel" alignment="3" min="-2" max="-2" attributes="0"/>
-                      <Component id="criteriaField" alignment="3" min="-2" max="-2" attributes="0"/>
+                      <Component id="filterLabel" alignment="3" min="-2" max="-2" attributes="0"/>
+                      <Component id="filterField" alignment="3" min="-2" max="-2" attributes="0"/>
                   </Group>
                   <EmptySpace max="-2" attributes="0"/>
                   <Group type="103" groupAlignment="3" attributes="0">
@@ -169,14 +169,14 @@
             </Property>
           </Properties>
         </Component>
-        <Component class="javax.swing.JLabel" name="criteriaLabel">
+        <Component class="javax.swing.JLabel" name="filterLabel">
           <Properties>
             <Property name="text" type="java.lang.String" editor="org.netbeans.modules.i18n.form.FormI18nStringEditor">
-              <ResourceString bundle="org/netbeans/modules/nbmongo/ui/wizards/Bundle.properties" key="ExportVisualPanel1.criteriaLabel.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
+              <ResourceString bundle="org/netbeans/modules/mongodb/ui/wizards/Bundle.properties" key="ExportVisualPanel1.filterLabel.text" replaceFormat="org.openide.util.NbBundle.getMessage({sourceFileName}.class, &quot;{key}&quot;)"/>
             </Property>
           </Properties>
         </Component>
-        <Component class="javax.swing.JTextField" name="criteriaField">
+        <Component class="javax.swing.JTextField" name="filterField">
           <Properties>
             <Property name="editable" type="boolean" value="false"/>
           </Properties>
