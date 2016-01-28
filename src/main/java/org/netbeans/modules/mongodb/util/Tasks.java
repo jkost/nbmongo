@@ -19,6 +19,7 @@ package org.netbeans.modules.mongodb.util;
 
 import lombok.Getter;
 import org.netbeans.api.progress.ProgressHandle;
+import org.netbeans.api.progress.ProgressHandleFactory;
 import org.openide.util.RequestProcessor;
 import org.openide.util.TaskListener;
 
@@ -65,8 +66,8 @@ public final class Tasks {
         public final RequestProcessor.Task execute() {
             final RequestProcessor.Task task = requestProcessor.create(runnable);
             final ProgressHandle progressHandle = cancellable 
-                    ? ProgressHandle.createHandle(getLabel(), task)
-                    : ProgressHandle.createHandle(getLabel());
+                    ? ProgressHandleFactory.createHandle(getLabel(), task)
+                    : ProgressHandleFactory.createHandle(getLabel());
             task.addTaskListener(new TaskListener() {
                 @Override
                 public void taskFinished(org.openide.util.Task task) {

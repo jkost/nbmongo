@@ -22,7 +22,7 @@ import com.mongodb.MongoException;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.Getter;
-import org.netbeans.api.progress.BaseProgressUtils;
+import org.netbeans.api.progress.ProgressUtils;
 import org.netbeans.modules.mongodb.ui.util.DialogNotification;
 import org.openide.util.Lookup;
 import org.openide.util.NbBundle.Messages;
@@ -55,7 +55,7 @@ public class MongoConnection {
     public MongoClient connect() {
         synchronized (connectionLock) {
             if (client == null) {
-                BaseProgressUtils.showProgressDialogAndRun(new Runnable() {
+                ProgressUtils.showProgressDialogAndRun(new Runnable() {
 
                     @Override
                     public void run() {
