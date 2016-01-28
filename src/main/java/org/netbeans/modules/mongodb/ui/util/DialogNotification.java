@@ -17,7 +17,11 @@
  */
 package org.netbeans.modules.mongodb.ui.util;
 
+import javax.swing.JComboBox;
+import javax.swing.JPanel;
+import net.miginfocom.swing.MigLayout;
 import org.netbeans.modules.mongodb.ui.util.ValidatingInputLine.InputValidator;
+import org.openide.DialogDescriptor;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.NotifyDescriptor.Confirmation;
@@ -46,8 +50,31 @@ public final class DialogNotification {
         notify(new Message(message, NotifyDescriptor.ERROR_MESSAGE));
     }
     
+    @SuppressWarnings("unchecked")
+    public static <T> T select(String title, T[] values) {
+        return select(title, values, null);
+    }
+    
+    @SuppressWarnings("unchecked")
+    public static <T> T select(String title, T[] values, T selection) {
+        JComboBox<T> combo = new JComboBox<>(values);
+        combo.setSelectedItem(selection);
+        JPanel panel = new JPanel(new MigLayout());
+        panel.add(combo, "gap 5 5 5 5");
+        final DialogDescriptor desc = new DialogDescriptor(panel, title);
+        T item = null;
+        if (NotifyDescriptor.OK_OPTION.equals(DialogDisplayer.getDefault().notify(desc))) {
+            item = (T) combo.getSelectedItem();
+        }
+        return item;
+    }
+    
     public static String validatingInput(String text, String title, InputValidator validator) {
-        InputLine input = new ValidatingInputLine(text, title, validator);
+        return validatingInput(text, title, validator, null);
+    }
+    
+    public static String validatingInput(String text, String title, InputValidator validator, String defaultValue) {
+        InputLine input = new ValidatingInputLine(text, title, validator, defaultValue);
         if(notify(input) == NotifyDescriptor.OK_OPTION) {
             return input.getInputText();
         }

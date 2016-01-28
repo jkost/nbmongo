@@ -67,7 +67,7 @@ public class BsonDocumentEditor extends JPanel {
 
     private final JEditorPane editor = new JEditorPane();
 
-    private final JPanel searchPane = new JPanel(new BorderLayout());
+    private final JPanel searchPane;
 
     private final JTextField searchField = new JTextField();
 
@@ -76,7 +76,11 @@ public class BsonDocumentEditor extends JPanel {
     @Getter
     private NotificationLineSupport notificationLineSupport;
 
-    private BsonDocumentEditor() {
+    public BsonDocumentEditor() {
+        this(true);
+    }
+
+    public BsonDocumentEditor(boolean searchPanel) {
         super(new BorderLayout());
         EditorKit editorKit = MimeLookup.getLookup("text/x-json").lookup(EditorKit.class);
         if (editorKit != null) {
@@ -84,90 +88,96 @@ public class BsonDocumentEditor extends JPanel {
         }
         final JScrollPane scrollPane = new JScrollPane(editor);
         scrollPane.setPreferredSize(new Dimension(450, 300));
-        JButton closeSearchButton = CloseButtonFactory.createBigCloseButton();
-
-        searchPane.add(searchField, BorderLayout.CENTER);
-        searchPane.add(closeSearchButton, BorderLayout.EAST);
-        final Action closeSearchAction = new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                searchPane.setVisible(false);
-                notificationLineSupport.clearMessages();
-                notificationLineSupport.setInformationMessage(Bundle.HINT_search());
-                editor.requestFocusInWindow();
-            }
-        };
-        closeSearchButton.addActionListener(closeSearchAction);
-        searchField.getInputMap().put(ESCAPE_KEYSTROKE, "closeSearch");
-        searchField.getActionMap().put("closeSearch", closeSearchAction);
-
-        editor.getInputMap().put(SEARCH_KEYSTROKE, "search");
-        editor.getActionMap().put("search", new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                String selection = editor.getSelectedText();
-                if (selection != null && selection.isEmpty() == false) {
-                    searchField.setText(selection);
-                }
-                notificationLineSupport.clearMessages();
-                searchPane.setVisible(true);
-                searchField.selectAll();
-                searchField.requestFocusInWindow();
-
-            }
-        });
-        searchField.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                String search = searchField.getText();
-                if (search.isEmpty()) {
-                    return;
-                }
-                notificationLineSupport.clearMessages();
-                int index = editor.getText().indexOf(search, lastSearchIndex);
-                if (index == -1 && lastSearchIndex > 0) {
-                    lastSearchIndex = 0;
-                    index = editor.getText().indexOf(search);
-                }
-                if (index > -1) {
-                    editor.setCaretPosition(index);
-                    editor.setSelectionStart(index);
-                    lastSearchIndex = index + search.length();
-                    editor.setSelectionEnd(lastSearchIndex);
-                    notificationLineSupport.setInformationMessage(Bundle.HINT_nextResult());
-                } else {
-                    notificationLineSupport.setInformationMessage(Bundle.HINT_noResultFound());
-                    editor.setSelectionEnd(editor.getSelectionStart());
-                }
-            }
-        });
-        searchField.getDocument().addDocumentListener(new DocumentListener() {
-
-            @Override
-            public void insertUpdate(DocumentEvent e) {
-                lastSearchIndex = 0;
-                notificationLineSupport.setInformationMessage(Bundle.HINT_nextResult());
-            }
-
-            @Override
-            public void removeUpdate(DocumentEvent e) {
-                lastSearchIndex = 0;
-                notificationLineSupport.setInformationMessage(Bundle.HINT_nextResult());
-            }
-
-            @Override
-            public void changedUpdate(DocumentEvent e) {
-            }
-        });
         add(scrollPane, BorderLayout.CENTER);
-        add(searchPane, BorderLayout.SOUTH);
-        searchPane.setVisible(false);
+
+        if (searchPanel) {
+            searchPane = new JPanel(new BorderLayout());
+            JButton closeSearchButton = CloseButtonFactory.createBigCloseButton();
+
+            searchPane.add(searchField, BorderLayout.CENTER);
+            searchPane.add(closeSearchButton, BorderLayout.EAST);
+            final Action closeSearchAction = new AbstractAction() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    searchPane.setVisible(false);
+                    notificationLineSupport.clearMessages();
+                    notificationLineSupport.setInformationMessage(Bundle.HINT_search());
+                    editor.requestFocusInWindow();
+                }
+            };
+            closeSearchButton.addActionListener(closeSearchAction);
+            searchField.getInputMap().put(ESCAPE_KEYSTROKE, "closeSearch");
+            searchField.getActionMap().put("closeSearch", closeSearchAction);
+
+            editor.getInputMap().put(SEARCH_KEYSTROKE, "search");
+            editor.getActionMap().put("search", new AbstractAction() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    String selection = editor.getSelectedText();
+                    if (selection != null && selection.isEmpty() == false) {
+                        searchField.setText(selection);
+                    }
+                    notificationLineSupport.clearMessages();
+                    searchPane.setVisible(true);
+                    searchField.selectAll();
+                    searchField.requestFocusInWindow();
+
+                }
+            });
+            searchField.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    String search = searchField.getText();
+                    if (search.isEmpty()) {
+                        return;
+                    }
+                    notificationLineSupport.clearMessages();
+                    int index = editor.getText().indexOf(search, lastSearchIndex);
+                    if (index == -1 && lastSearchIndex > 0) {
+                        lastSearchIndex = 0;
+                        index = editor.getText().indexOf(search);
+                    }
+                    if (index > -1) {
+                        editor.setCaretPosition(index);
+                        editor.setSelectionStart(index);
+                        lastSearchIndex = index + search.length();
+                        editor.setSelectionEnd(lastSearchIndex);
+                        notificationLineSupport.setInformationMessage(Bundle.HINT_nextResult());
+                    } else {
+                        notificationLineSupport.setInformationMessage(Bundle.HINT_noResultFound());
+                        editor.setSelectionEnd(editor.getSelectionStart());
+                    }
+                }
+            });
+            searchField.getDocument().addDocumentListener(new DocumentListener() {
+
+                @Override
+                public void insertUpdate(DocumentEvent e) {
+                    lastSearchIndex = 0;
+                    notificationLineSupport.setInformationMessage(Bundle.HINT_nextResult());
+                }
+
+                @Override
+                public void removeUpdate(DocumentEvent e) {
+                    lastSearchIndex = 0;
+                    notificationLineSupport.setInformationMessage(Bundle.HINT_nextResult());
+                }
+
+                @Override
+                public void changedUpdate(DocumentEvent e) {
+                }
+            });
+            add(searchPane, BorderLayout.SOUTH);
+            searchPane.setVisible(false);
+        } else {
+            searchPane = null;
+        }
     }
 
     public void setNotificationLineSupport(NotificationLineSupport notificationLineSupport) {
         this.notificationLineSupport = notificationLineSupport;
         notificationLineSupport.clearMessages();
-        if (searchPane.isVisible() == false) {
+        if (searchPane != null && searchPane.isVisible() == false) {
             notificationLineSupport.setInformationMessage(Bundle.HINT_search());
         }
     }
@@ -181,8 +191,25 @@ public class BsonDocumentEditor extends JPanel {
         editor.setCaretPosition(0);
     }
 
+    public boolean isValidContent() {
+        try {
+            BsonDocument.parse(getJson());
+            return true;
+        } catch (JsonParseException ex) {
+            return false;
+        }
+    }
+
+    public BsonDocument getDocument() throws JsonParseException {
+        return BsonDocument.parse(getJson());
+    }
+
     public void setDocument(BsonDocument document) {
         setJson(Bsons.shellAndPretty(document != null ? document : new BsonDocument()));
+    }
+
+    public static BsonDocument show(String title, BsonDocument document) {
+        return show(title, document, true);
     }
 
     /**
@@ -193,23 +220,24 @@ public class BsonDocumentEditor extends JPanel {
      * @return a DBObject representing the input json or null if the dialog has
      * been cancelled.
      */
-    public static BsonDocument show(String title, BsonDocument document) {
-        BsonDocumentEditor editor = new BsonDocumentEditor();
+    public static BsonDocument show(String title, BsonDocument document, boolean searchPanel) {
+        BsonDocumentEditor editor = new BsonDocumentEditor(searchPanel);
         String json = Bsons.shellAndPretty(document != null ? document : new BsonDocument());
+        editor.setJson(json);
         boolean doLoop = true;
         while (doLoop) {
             doLoop = false;
-            editor.setJson(json);
             final DialogDescriptor desc = new DialogDescriptor(editor, title);
-            editor.setNotificationLineSupport(desc.createNotificationLineSupport());
             final JDialog dialog = (JDialog) DialogDisplayer.getDefault().createDialog(desc);
-            // escape key used to close search panel
-            dialog.getRootPane().getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).remove(ESCAPE_KEYSTROKE);
+            if (searchPanel) {
+                editor.setNotificationLineSupport(desc.createNotificationLineSupport());
+                // escape key used to close search panel
+                dialog.getRootPane().getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).remove(ESCAPE_KEYSTROKE);
+            }
             dialog.setVisible(true);
             if (desc.getValue().equals(NotifyDescriptor.OK_OPTION)) {
-                json = editor.getJson();
                 try {
-                    return BsonDocument.parse(json);
+                    return editor.getDocument();
                 } catch (JsonParseException ex) {
                     DialogNotification.error(Bundle.invalidJson());
                     doLoop = true;
@@ -226,14 +254,20 @@ public class BsonDocumentEditor extends JPanel {
      * @param json the json to display
      */
     public static void showReadOnly(String title, BsonDocument document) {
-        BsonDocumentEditor editor = new BsonDocumentEditor();
+        showReadOnly(title, document, true);
+    }
+
+    public static void showReadOnly(String title, BsonDocument document, boolean searchPanel) {
+        BsonDocumentEditor editor = new BsonDocumentEditor(searchPanel);
         editor.editor.setEditable(false);
         editor.setDocument(document);
         final DialogDescriptor desc = new DialogDescriptor(editor, title, true, NotifyDescriptor.PLAIN_MESSAGE, NotifyDescriptor.OK_OPTION, null);
-        editor.setNotificationLineSupport(desc.createNotificationLineSupport());
         final JDialog dialog = (JDialog) DialogDisplayer.getDefault().createDialog(desc);
-        // escape key used to close search panel
-        dialog.getRootPane().getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).remove(ESCAPE_KEYSTROKE);
+        if (searchPanel) {
+            editor.setNotificationLineSupport(desc.createNotificationLineSupport());
+            // escape key used to close search panel
+            dialog.getRootPane().getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).remove(ESCAPE_KEYSTROKE);
+        }
         dialog.setVisible(true);
     }
 }

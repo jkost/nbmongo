@@ -49,6 +49,7 @@ import org.netbeans.modules.mongodb.api.MongoErrorCode;
 import org.netbeans.modules.mongodb.indexes.CreateIndexPanel;
 import org.netbeans.modules.mongodb.indexes.Index;
 import org.netbeans.modules.mongodb.native_tools.MongoNativeToolsAction;
+import org.netbeans.modules.mongodb.ui.actions.OpenAggregationPipelineAction;
 import org.netbeans.modules.mongodb.ui.actions.OpenMapReduceWindowAction;
 import org.netbeans.modules.mongodb.ui.util.CollectionNameValidator;
 import org.netbeans.modules.mongodb.ui.util.DialogNotification;
@@ -177,6 +178,7 @@ final class CollectionNode extends AbstractNode {
         final List<Action> actions = new LinkedList<>();
         actions.add(SystemAction.get(OpenAction.class));
         actions.add(new OpenCollectionInNewTabAction());
+        actions.add(new OpenAggregationPipelineAction(getLookup()));
         actions.add(new OpenMapReduceWindowAction(getLookup()));
         actions.add(null);
         actions.add(new RefreshChildrenAction(Bundle.ACTION_RefreshIndexes(), childFactory));

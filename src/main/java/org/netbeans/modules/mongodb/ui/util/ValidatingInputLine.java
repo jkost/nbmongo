@@ -38,16 +38,23 @@ import org.openide.util.NbBundle.Messages;
     "VALIDATION_forbidden_character=can't contains \'{0}\'",
     "VALIDATION_invalid_character=invalid character",
     "# {0} - max length",
-    "VALIDATION_maxLength=max length is {0} characters"})
+    "VALIDATION_maxLength=max length is {0} characters",
+    "# {0} - value",
+    "VALIDATION_positiveInteger=must be a positive integer: {0}"
+})
 public final class ValidatingInputLine extends InputLine {
 
     private final InputValidator validator;
 
-    public ValidatingInputLine(String text, String title, InputValidator validator) {
+    public ValidatingInputLine(String text, String title, InputValidator validator, String defaultValue) {
         super(text, title);
         this.validator = validator;
         createNotificationLineSupport();
-        performValidation();
+        if (defaultValue != null) {
+            textField.setText(defaultValue);
+        } else {
+            performValidation();
+        }
     }
 
     private void performValidation() {
@@ -88,5 +95,28 @@ public final class ValidatingInputLine extends InputLine {
     public static interface InputValidator {
 
         void validate(String inputText) throws IllegalArgumentException;
+
+        public static final InputValidator POSITIVE_INTEGER = new InputValidator() {
+            @Override
+            public void validate(String inputText) throws IllegalArgumentException {
+                try {
+                    int value = Integer.parseInt(inputText);
+                    if (value < 0) {
+                        throw new IllegalArgumentException(Bundle.VALIDATION_positiveInteger(inputText));
+                    }
+                } catch (NumberFormatException ex) {
+                    throw new IllegalArgumentException(Bundle.VALIDATION_positiveInteger(inputText));
+                }
+            }
+        };
+        public static final InputValidator NON_EMPTY = new InputValidator() {
+            @Override
+            public void validate(String inputText) throws IllegalArgumentException {
+                if (inputText.isEmpty()) {
+                    throw new IllegalArgumentException(Bundle.VALIDATION_empty());
+                }
+            }
+        };
+
     }
 }

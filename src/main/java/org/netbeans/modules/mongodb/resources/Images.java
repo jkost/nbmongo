@@ -130,6 +130,12 @@ public interface Images {
     @StaticResource
     String CROSS_ICON_PATH = "org/netbeans/modules/mongodb/images/cross.png"; //NOI18N
 
+    @StaticResource
+    String TOGGLE_COLLAPSE_ICON_PATH = "org/netbeans/modules/mongodb/images/toggle-collapse.png"; //NOI18N
+
+    @StaticResource
+    String TOGGLE_EXPAND_ICON_PATH = "org/netbeans/modules/mongodb/images/toggle-expand.png"; //NOI18N
+
     Image COLLECTION_ICON = ImageUtilities.loadImage(COLLECTION_ICON_PATH);
 
     Image SYSTEM_COLLECTION_ICON = ImageUtilities.loadImage(SYSTEM_COLLECTION_ICON_PATH);
@@ -191,5 +197,9 @@ public interface Images {
     Image SHADING_ICON = ImageUtilities.loadImage(SHADING_ICON_PATH);
 
     Image CROSS_ICON = ImageUtilities.loadImage(CROSS_ICON_PATH);
+
+    Image TOGGLE_COLLAPSE_ICON = ImageUtilities.loadImage(TOGGLE_COLLAPSE_ICON_PATH);
+
+    Image TOGGLE_EXPAND_ICON = ImageUtilities.loadImage(TOGGLE_EXPAND_ICON_PATH);
 
 }
