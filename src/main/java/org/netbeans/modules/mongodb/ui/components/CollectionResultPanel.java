@@ -36,7 +36,6 @@ import javax.swing.ImageIcon;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
-import javax.swing.JSeparator;
 import javax.swing.JTable;
 import javax.swing.JToggleButton;
 import javax.swing.ListSelectionModel;
@@ -48,6 +47,7 @@ import javax.swing.event.TableColumnModelEvent;
 import javax.swing.event.TableColumnModelListener;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
+import javax.swing.text.EditorKit;
 import javax.swing.text.PlainDocument;
 import javax.swing.tree.TreePath;
 import lombok.Getter;
@@ -56,6 +56,7 @@ import org.bson.BsonBoolean;
 import org.bson.BsonDocument;
 import org.bson.BsonInt32;
 import org.bson.BsonValue;
+import org.netbeans.api.editor.mimelookup.MimeLookup;
 import org.netbeans.modules.mongodb.CollectionInfo;
 import org.netbeans.modules.mongodb.api.CollectionResult;
 import org.netbeans.modules.mongodb.api.CollectionResultPages;
@@ -77,6 +78,7 @@ import org.netbeans.modules.mongodb.ui.components.result_panel.views.treetable.B
 import org.netbeans.modules.mongodb.ui.components.result_panel.views.treetable.BsonValueNode;
 import org.netbeans.modules.mongodb.ui.components.result_panel.views.treetable.DocumentRootTreeTableHighlighter;
 import org.netbeans.modules.mongodb.options.RenderingOptions.PrefsRenderingOptions;
+import org.netbeans.modules.mongodb.ui.components.result_panel.views.text.ResultsTextView;
 import org.netbeans.modules.mongodb.ui.windows.CollectionView;
 import org.netbeans.modules.mongodb.util.BsonProperty;
 import org.netbeans.modules.mongodb.util.Tasks;
@@ -140,6 +142,9 @@ public final class CollectionResultPanel extends javax.swing.JPanel {
 
     @Getter
     private final DocumentsFlatTableModel flatTableModel;
+    
+    @Getter
+    private final ResultsTextView textView;
 
     @Getter
     @Setter
@@ -197,14 +202,23 @@ public final class CollectionResultPanel extends javax.swing.JPanel {
 
         resultViewButtons.put(ResultView.FLAT_TABLE, flatTableViewButton);
         resultViewButtons.put(ResultView.TREE_TABLE, treeTableViewButton);
+        resultViewButtons.put(ResultView.TEXT, textViewButton);
 
         int pageSize = 20; // TODO: store/load from pref
         currentResult = CollectionResult.EMPTY;
 
+        
+        EditorKit editorKit = MimeLookup.getLookup("text/x-json").lookup(EditorKit.class);
+        if (editorKit != null) {
+            textViewComponent.setEditorKit(editorKit);
+        }
+        textViewComponent.setEditable(false);
+        textView = new ResultsTextView(textViewComponent, new CollectionResultPages(currentResult, pageSize, readOnly));
         treeTableModel = new DocumentsTreeTableModel(new CollectionResultPages(currentResult, pageSize, readOnly));
         flatTableModel = new DocumentsFlatTableModel(new CollectionResultPages(currentResult, pageSize, readOnly));
         resultViews.put(ResultView.TREE_TABLE, treeTableModel);
         resultViews.put(ResultView.FLAT_TABLE, flatTableModel);
+        resultViews.put(ResultView.TEXT, textView);
 
         final ListSelectionListener tableSelectionListener = new ListSelectionListener() {
 
@@ -360,7 +374,7 @@ public final class CollectionResultPanel extends javax.swing.JPanel {
             case TREE_TABLE:
                 return resultTreeTable;
             default:
-                throw new AssertionError();
+                return null;
         }
     }
 
@@ -372,12 +386,19 @@ public final class CollectionResultPanel extends javax.swing.JPanel {
         return treeTableModel.getPages();
     }
 
+    public CollectionResultPages getTextViewPages() {
+        return textView.getPages();
+    }
+
     public CollectionResultPages getResultPages() {
         return resultViews.get(resultView).getPages();
     }
 
     public BsonDocument getResultTableSelectedDocument() {
         final JTable table = getResultTable();
+        if(table == null) { // TEXT view
+            return null;
+        }
         int row = table.getSelectedRow();
         if (row == -1) {
             return null;
@@ -444,7 +465,8 @@ public final class CollectionResultPanel extends javax.swing.JPanel {
 
             @Override
             public void run() {
-                boolean itemSelected = getResultTable().getSelectedRow() > -1;
+                JTable table = getResultTable();
+                boolean itemSelected = table != null && table.getSelectedRow() > -1;
                 addButton.setEnabled(readOnly == false);
                 deleteButton.setEnabled(itemSelected && readOnly == false);
                 editButton.setEnabled(itemSelected && readOnly == false);
@@ -455,6 +477,7 @@ public final class CollectionResultPanel extends javax.swing.JPanel {
     private void changePageSize(int pageSize) {
         getTreeTablePages().setPageSize(pageSize);
         getFlatTablePages().setPageSize(pageSize);
+        getTextViewPages().setPageSize(pageSize);
     }
 
     /**
@@ -470,6 +493,7 @@ public final class CollectionResultPanel extends javax.swing.JPanel {
         documentsToolBar = new javax.swing.JToolBar();
         treeTableViewButton = new javax.swing.JToggleButton();
         flatTableViewButton = new javax.swing.JToggleButton();
+        textViewButton = new javax.swing.JToggleButton();
         jSeparator4 = new javax.swing.JToolBar.Separator();
         expandTreeButton = new javax.swing.JButton();
         collapseTreeButton = new javax.swing.JButton();
@@ -495,6 +519,8 @@ public final class CollectionResultPanel extends javax.swing.JPanel {
         resultTreeTable = new org.jdesktop.swingx.JXTreeTable();
         flatTableScrollPane = new javax.swing.JScrollPane();
         resultFlatTable = new javax.swing.JTable();
+        textViewScrollPane = new javax.swing.JScrollPane();
+        textViewComponent = new javax.swing.JEditorPane();
 
         setLayout(new java.awt.BorderLayout(0, 5));
 
@@ -516,6 +542,14 @@ public final class CollectionResultPanel extends javax.swing.JPanel {
         flatTableViewButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         flatTableViewButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
         documentsToolBar.add(flatTableViewButton);
+
+        textViewButton.setAction(treeViewAction);
+        resultViewButtonGroup.add(textViewButton);
+        textViewButton.setFocusable(false);
+        textViewButton.setHideActionText(true);
+        textViewButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        textViewButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        documentsToolBar.add(textViewButton);
         documentsToolBar.add(jSeparator4);
 
         expandTreeButton.setAction(expandTreeAction);
@@ -626,6 +660,10 @@ public final class CollectionResultPanel extends javax.swing.JPanel {
 
         resultPanel.add(flatTableScrollPane, "FLAT_TABLE");
 
+        textViewScrollPane.setViewportView(textViewComponent);
+
+        resultPanel.add(textViewScrollPane, "TEXT");
+
         add(resultPanel, java.awt.BorderLayout.CENTER);
     }// </editor-fold>//GEN-END:initComponents
 
@@ -662,6 +700,8 @@ public final class CollectionResultPanel extends javax.swing.JPanel {
 
     private final Action flatTableViewAction = ChangeResultViewAction.create(this, ResultView.FLAT_TABLE);
 
+    private final Action treeViewAction = ChangeResultViewAction.create(this, ResultView.TEXT);
+
     private final Action collapseTreeAction = new CollapseAllDocumentsAction(this);
 
     private final Action expandTreeAction = new ExpandAllDocumentsAction(this);
@@ -684,7 +724,7 @@ public final class CollectionResultPanel extends javax.swing.JPanel {
 
     public enum ResultView {
 
-        FLAT_TABLE, TREE_TABLE
+        FLAT_TABLE, TREE_TABLE, TEXT
 
     }
 
@@ -717,6 +757,9 @@ public final class CollectionResultPanel extends javax.swing.JPanel {
     @Getter
     private org.jdesktop.swingx.JXTreeTable resultTreeTable;
     private javax.swing.ButtonGroup resultViewButtonGroup;
+    private javax.swing.JToggleButton textViewButton;
+    private javax.swing.JEditorPane textViewComponent;
+    private javax.swing.JScrollPane textViewScrollPane;
     private javax.swing.JLabel totalDocumentsLabel;
     private javax.swing.JScrollPane treeTableScrollPane;
     private javax.swing.JToggleButton treeTableViewButton;
@@ -850,6 +893,7 @@ public final class CollectionResultPanel extends javax.swing.JPanel {
         final int pageSize = prefs.getInt("result-view-table-page-size", getTreeTablePages().getPageSize());
         getTreeTablePages().setPageSize(pageSize);
         getFlatTablePages().setPageSize(pageSize);
+        getTextViewPages().setPageSize(pageSize);
         pageSizeField.setText(String.valueOf(pageSize));
     }
 

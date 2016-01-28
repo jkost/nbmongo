@@ -33,7 +33,9 @@ import org.openide.util.NbBundle.Messages;
     "ACTION_displayResultsAsTreeTable=Display results in tree table",
     "ACTION_displayResultsAsTreeTable_tooltip=Display results in tree table",
     "ACTION_displayResultsAsFlatTable=Display results in flat table",
-    "ACTION_displayResultsAsFlatTable_tooltip=Display results in flat table"
+    "ACTION_displayResultsAsFlatTable_tooltip=Display results in flat table",
+    "ACTION_displayResultsAsText=Display results as text",
+    "ACTION_displayResultsAsText_tooltip=Display results as text"
 })
 public final class ChangeResultViewAction extends QueryResultPanelAction {
 
@@ -63,6 +65,11 @@ public final class ChangeResultViewAction extends QueryResultPanelAction {
                     Bundle.ACTION_displayResultsAsTreeTable(),
                     new ImageIcon(Images.TREE_TABLE_VIEW_ICON),
                     Bundle.ACTION_displayResultsAsTreeTable_tooltip());
+            case TEXT:
+                return new ChangeResultViewAction(resultPanel, resultView,
+                    Bundle.ACTION_displayResultsAsText(),
+                    new ImageIcon(Images.TEXT_VIEW_ICON),
+                    Bundle.ACTION_displayResultsAsText_tooltip());
             default:
                 throw new AssertionError();
         }

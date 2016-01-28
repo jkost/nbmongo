@@ -80,6 +80,9 @@ public interface Images {
     String FLAT_TABLE_VIEW_ICON_PATH = "org/netbeans/modules/mongodb/images/flat_table.png"; //NOI18N
 
     @StaticResource
+    String TEXT_VIEW_ICON_PATH = "org/netbeans/modules/mongodb/images/text_view.png"; //NOI18N
+
+    @StaticResource
     String EXPAND_TREE_PATH = "org/netbeans/modules/mongodb/images/expandTree.png"; //NOI18N
 
     @StaticResource
@@ -153,6 +156,8 @@ public interface Images {
     Image TREE_TABLE_VIEW_ICON = ImageUtilities.loadImage(TREE_TABLE_VIEW_ICON_PATH);
 
     Image FLAT_TABLE_VIEW_ICON = ImageUtilities.loadImage(FLAT_TABLE_VIEW_ICON_PATH);
+
+    Image TEXT_VIEW_ICON = ImageUtilities.loadImage(TEXT_VIEW_ICON_PATH);
 
     Image EXPAND_TREE_ICON = ImageUtilities.loadImage(EXPAND_TREE_PATH);
 
