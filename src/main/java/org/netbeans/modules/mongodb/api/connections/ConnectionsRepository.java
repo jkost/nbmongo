@@ -45,7 +45,7 @@ public final class ConnectionsRepository extends Repository.PrefsRepository<Conn
 
     @Override
     protected void storeItem(ConnectionInfo item, Preferences node) throws BackingStoreException {
-        node.put(ConnectionInfo.PROPERTY_ID, item.getDisplayName());
+        node.put(ConnectionInfo.PROPERTY_ID, item.getId().toString());
         node.put(ConnectionInfo.PROPERTY_DISPLAY_NAME, item.getDisplayName());
         node.put(ConnectionInfo.PROPERTY_URI, item.getUri());
     }

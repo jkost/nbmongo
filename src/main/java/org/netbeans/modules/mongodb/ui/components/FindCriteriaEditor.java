@@ -52,10 +52,15 @@ public final class FindCriteriaEditor extends javax.swing.JPanel {
     @Getter
     private FindCriteria findCriteria;
 
+    public FindCriteriaEditor() {
+        this(FindCriteria.EMPTY);
+    }
+
     /**
      * Creates new form QueryPanel
      */
-    public FindCriteriaEditor() {
+    public FindCriteriaEditor(FindCriteria findCriteria) {
+        this.findCriteria = findCriteria;
         initComponents();
     }
 
@@ -126,10 +131,10 @@ public final class FindCriteriaEditor extends javax.swing.JPanel {
         dialog.setVisible(true);
         if (dialogResult == JOptionPane.OK_OPTION) {
             findCriteria = FindCriteria.builder()
-                .filter(parseFilter())
-                .projection(parseProjection())
-                .sort(parseSort())
-                .build();
+                    .filter(parseFilter())
+                    .projection(parseProjection())
+                    .sort(parseSort())
+                    .build();
             return true;
         }
         return false;

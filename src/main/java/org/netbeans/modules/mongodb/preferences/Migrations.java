@@ -52,11 +52,11 @@ public final class Migrations {
         VERSIONS.put("8.3.0", Prefs.Version.V2);
     }
 
-    static final Prefs.Version PREFS_EXPECTED_VERSION = VERSIONS.get(NBMongo.moduleInfo().getImplementationVersion());
+    private static final Prefs.Version EXPECTED_PREFS_VERSION = VERSIONS.get(NBMongo.moduleInfo().getImplementationVersion());
 
     static final Migration V1_TO_V2 = new V1ToV2(null);
 
-    public static final Migration DEFAULT = new Migration(PREFS_EXPECTED_VERSION, null) {
+    public static final Migration DEFAULT = new Migration(EXPECTED_PREFS_VERSION, null) {
         @Override
         protected void performMigration(Preferences prefs) throws Exception {
             // DO NOTHING
@@ -68,20 +68,20 @@ public final class Migrations {
 
     static {
         MIGRATIONS = new HashMap<>();
-        MIGRATIONS.put(Prefs.Version.UNDEFINED, DEFAULT);
+        MIGRATIONS.put(Prefs.Version.UNDEFINED, V1_TO_V2);
         MIGRATIONS.put(Prefs.Version.V1, V1_TO_V2);
         MIGRATIONS.put(Prefs.Version.V2, DEFAULT);
     }
 
     public static void migrateIfNecessary() {
-        if (PREFS_EXPECTED_VERSION == null) {
+        if (EXPECTED_PREFS_VERSION == null) {
             return;
         };
-        Prefs.Version actualVersion = NBMongo.prefs().version();
-        if (actualVersion == PREFS_EXPECTED_VERSION) {
+        Prefs.Version actualPrefsVersion = NBMongo.prefs().version();
+        if (actualPrefsVersion == EXPECTED_PREFS_VERSION) {
             return;
         }
-        MIGRATIONS.get(actualVersion).run();
+        MIGRATIONS.get(actualPrefsVersion).run();
     }
 
     @AllArgsConstructor
