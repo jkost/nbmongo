@@ -127,6 +127,9 @@ public interface Images {
     @StaticResource
     String SHADING_ICON_PATH = "org/netbeans/modules/mongodb/images/shading.png"; //NOI18N
 
+    @StaticResource
+    String CROSS_ICON_PATH = "org/netbeans/modules/mongodb/images/cross.png"; //NOI18N
+
     Image COLLECTION_ICON = ImageUtilities.loadImage(COLLECTION_ICON_PATH);
 
     Image SYSTEM_COLLECTION_ICON = ImageUtilities.loadImage(SYSTEM_COLLECTION_ICON_PATH);
@@ -186,5 +189,7 @@ public interface Images {
     Image TEXT_ALIGN_JUSTIFY_ICON = ImageUtilities.loadImage(TEXT_ALIGN_JUSTIFY_ICON_PATH);
 
     Image SHADING_ICON = ImageUtilities.loadImage(SHADING_ICON_PATH);
+
+    Image CROSS_ICON = ImageUtilities.loadImage(CROSS_ICON_PATH);
 
 }
