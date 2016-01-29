@@ -49,7 +49,6 @@ import javax.swing.event.TableColumnModelEvent;
 import javax.swing.event.TableColumnModelListener;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
-import javax.swing.text.EditorKit;
 import javax.swing.text.PlainDocument;
 import javax.swing.tree.TreePath;
 import lombok.Getter;
@@ -58,7 +57,6 @@ import org.bson.BsonBoolean;
 import org.bson.BsonDocument;
 import org.bson.BsonInt32;
 import org.bson.BsonValue;
-import org.netbeans.api.editor.mimelookup.MimeLookup;
 import org.netbeans.modules.mongodb.CollectionInfo;
 import org.netbeans.modules.mongodb.api.CollectionResult;
 import org.netbeans.modules.mongodb.api.CollectionResultPages;
@@ -208,15 +206,10 @@ public final class CollectionResultPanel extends javax.swing.JPanel {
 
         int pageSize = 20; // TODO: store/load from pref
         currentResult = CollectionResult.EMPTY;
-
-        EditorKit editorKit = MimeLookup.getLookup("text/x-json").lookup(EditorKit.class);
-        if (editorKit != null) {
-            textViewComponent.setEditorKit(editorKit);
-        }
-        textViewComponent.setEditable(false);
-        textView = new ResultsTextView(textViewComponent, new CollectionResultPages(currentResult, pageSize, readOnly));
         treeTableModel = new DocumentsTreeTableModel(new CollectionResultPages(currentResult, pageSize, readOnly));
         flatTableModel = new DocumentsFlatTableModel(new CollectionResultPages(currentResult, pageSize, readOnly));
+        textView = new ResultsTextView(new CollectionResultPages(currentResult, pageSize, readOnly));
+        resultPanel.add(textView, "TEXT");
         resultViews.put(ResultView.TREE_TABLE, treeTableModel);
         resultViews.put(ResultView.FLAT_TABLE, flatTableModel);
         resultViews.put(ResultView.TEXT, textView);
@@ -548,8 +541,6 @@ public final class CollectionResultPanel extends javax.swing.JPanel {
         resultTreeTable = new org.jdesktop.swingx.JXTreeTable();
         flatTableScrollPane = new javax.swing.JScrollPane();
         resultFlatTable = new javax.swing.JTable();
-        textViewScrollPane = new javax.swing.JScrollPane();
-        textViewComponent = new javax.swing.JEditorPane();
 
         setLayout(new java.awt.BorderLayout(0, 5));
 
@@ -702,10 +693,6 @@ public final class CollectionResultPanel extends javax.swing.JPanel {
 
         resultPanel.add(flatTableScrollPane, "FLAT_TABLE");
 
-        textViewScrollPane.setViewportView(textViewComponent);
-
-        resultPanel.add(textViewScrollPane, "TEXT");
-
         add(resultPanel, java.awt.BorderLayout.CENTER);
     }// </editor-fold>//GEN-END:initComponents
 
@@ -808,8 +795,6 @@ public final class CollectionResultPanel extends javax.swing.JPanel {
     private javax.swing.ButtonGroup resultViewButtonGroup;
     private javax.swing.JToggleButton sortFieldsButton;
     private javax.swing.JToggleButton textViewButton;
-    private javax.swing.JEditorPane textViewComponent;
-    private javax.swing.JScrollPane textViewScrollPane;
     private javax.swing.JLabel totalDocumentsLabel;
     private javax.swing.JScrollPane treeTableScrollPane;
     private javax.swing.JToggleButton treeTableViewButton;

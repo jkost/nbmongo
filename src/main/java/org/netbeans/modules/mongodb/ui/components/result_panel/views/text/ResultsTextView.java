@@ -17,25 +17,36 @@
  */
 package org.netbeans.modules.mongodb.ui.components.result_panel.views.text;
 
+import java.awt.BorderLayout;
 import java.util.List;
+import javax.swing.JEditorPane;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
+import javax.swing.text.EditorKit;
 import javax.swing.text.JTextComponent;
 import lombok.Getter;
 import lombok.Setter;
 import org.bson.BsonDocument;
+import org.netbeans.api.editor.mimelookup.MimeLookup;
 import org.netbeans.modules.mongodb.api.CollectionResultPages;
 import org.netbeans.modules.mongodb.bson.Bsons;
 import org.netbeans.modules.mongodb.ui.components.CollectionResultPanel;
 import org.netbeans.modules.mongodb.util.BsonUtils;
+import org.netbeans.modules.mongodb.ui.components.SearchableTextComponent;
 
 /**
  *
  * @author Yann D'Isanto
  */
-public final class ResultsTextView implements CollectionResultPanel.View, CollectionResultPages.Listener {
+public final class ResultsTextView extends JPanel implements CollectionResultPanel.View, CollectionResultPages.Listener, SearchableTextComponent.MessageDisplayer {
 
-    private final JTextComponent textComponent;
+    private static final long serialVersionUID = 1L;
+    
+    private final JEditorPane textComponent;
 
+    private final JLabel messageLabel = new JLabel();
+    
     @Getter
     private final CollectionResultPages pages;
 
@@ -43,9 +54,17 @@ public final class ResultsTextView implements CollectionResultPanel.View, Collec
     @Setter
     private boolean sortDocumentsFields;
 
-    public ResultsTextView(JTextComponent textComponent, CollectionResultPages pages) {
-        this.textComponent = textComponent;
+    public ResultsTextView(CollectionResultPages pages) {
+        super(new BorderLayout(5, 5));
+        textComponent = new JEditorPane();
+        EditorKit editorKit = MimeLookup.getLookup("text/x-json").lookup(EditorKit.class);
+        if (editorKit != null) {
+            textComponent.setEditorKit(editorKit);
+        }
+        textComponent.setEditable(false);
         this.pages = pages;
+        add(new SearchableTextComponent(textComponent, this), BorderLayout.CENTER);
+        add(messageLabel, BorderLayout.SOUTH);
         pages.addListener(this);
         refreshTextComponent();
     }
@@ -60,6 +79,18 @@ public final class ResultsTextView implements CollectionResultPanel.View, Collec
         refreshTextComponent();
     }
 
+    @Override
+    public void infoMessage(String text) {
+        messageLabel.setVisible(true);
+        messageLabel.setText(text);
+    }
+
+    @Override
+    public void clearMessage() {
+        messageLabel.setVisible(false);
+    }
+
+    
     private void refreshTextComponent() {
         SwingUtilities.invokeLater(new Runnable() {
 
