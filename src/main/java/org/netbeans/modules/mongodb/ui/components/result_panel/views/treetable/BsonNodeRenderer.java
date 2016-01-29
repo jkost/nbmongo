@@ -24,6 +24,7 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.util.EnumMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import javax.swing.BorderFactory;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -149,8 +150,21 @@ public class BsonNodeRenderer extends JPanel implements TreeCellRenderer {
         RenderingOptionsItem keyRendering = renderingOptions.key();
         RenderingOptionsItem valueRendering = renderingOptions.get(value.getBsonType());
         if (value.isDocument() && parent instanceof RootNode) {
-            BsonValue id = value.asDocument().get("_id");
-            valueLabel.setText(stringifyValue(id));
+            BsonDocument document = value.asDocument();
+            BsonValue id = document.get("_id");
+            if(id != null) {
+                valueLabel.setText(stringifyValue(id));
+            } else if(document.isEmpty()) {
+                valueLabel.setText("{ }");
+            } else {
+                Entry<String, BsonValue> field = document.entrySet().iterator().next();
+                valueLabel.setText(
+                        new StringBuilder(field.getKey())
+                                .append(":")
+                                .append(stringifyValue(field.getValue()))
+                                .toString()
+                );
+            }
             valueRendering = renderingOptions.documentRoot();
         } else {
             if (idNode) {
