@@ -30,7 +30,7 @@ import lombok.Builder;
 import lombok.Setter;
 import lombok.Value;
 import org.bson.BsonType;
-import org.openide.util.NbPreferences;
+import org.netbeans.modules.mongodb.preferences.Prefs;
 
 /**
  *
@@ -118,7 +118,7 @@ public interface RenderingOptions {
         }
 
     private static Preferences prefs() {
-        return NbPreferences.forModule(RenderingOptions.class).node("ui").node("bson-rendering");
+        return Prefs.of(Prefs.OPTIONS).node(Prefs.BSON_RENDERING);
     }
 
     public void load() {
@@ -136,7 +136,7 @@ public interface RenderingOptions {
         documentId = loadOptions(prefs, "documentId", DEFAULT.documentId());
     }
 
-    private RenderingOptionsItem loadOptions(Preferences prefs, String key, RenderingOptionsItem defaultOptions) {
+    public static RenderingOptionsItem loadOptions(Preferences prefs, String key, RenderingOptionsItem defaultOptions) {
         StringBuilder sb = new StringBuilder(key);
         sb.append(".font");
         PropertyEditor fontEditor = fontEditor();
@@ -170,7 +170,7 @@ public interface RenderingOptions {
         storeOptions(prefs, "documentId", documentId());
     }
 
-    private void storeOptions(Preferences prefs, String key, RenderingOptionsItem options) {
+    public static void storeOptions(Preferences prefs, String key, RenderingOptionsItem options) {
         PropertyEditor fontEditor = fontEditor();
         final StringBuilder sb = new StringBuilder(key);
         sb.append(".font");

@@ -23,7 +23,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.netbeans.api.extexecution.ExecutionDescriptor;
-import org.netbeans.modules.mongodb.ConnectionInfo;
+import org.netbeans.modules.mongodb.api.connections.ConnectionInfo;
 import org.openide.util.Lookup;
 import org.openide.util.NbBundle.Messages;
 

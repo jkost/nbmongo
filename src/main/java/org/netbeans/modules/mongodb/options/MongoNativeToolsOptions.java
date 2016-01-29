@@ -22,14 +22,10 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
+import org.netbeans.modules.mongodb.preferences.Prefs;
 import org.netbeans.modules.mongodb.util.Version;
 import org.openide.util.Exceptions;
-import org.openide.util.NbPreferences;
 
 /**
  *
@@ -39,10 +35,6 @@ public enum MongoNativeToolsOptions {
 
     INSTANCE;
 
-    private static final String TOOLS_FOLDER = "mongodb-tools-folder";
-
-    private static final String TOOLS_VERSION = "mongodb-tools-version";
-
     private String toolsFolder;
 
     private Version toolsVersion;
@@ -51,37 +43,27 @@ public enum MongoNativeToolsOptions {
         load();
     }
 
-    private Preferences getPreferences() {
-        return NbPreferences.forModule(MongoNativeToolsOptions.class);
+    private Preferences prefs() {
+        return Prefs.of(Prefs.OPTIONS).node(Prefs.NATIVE_TOOLS);
     }
 
     public void load() {
-        Preferences prefs = getPreferences();
-        toolsFolder = prefs.get(TOOLS_FOLDER, null);
-        if(toolsFolder == null) {
-            // try to use mongo shell executable path (a plugin older version option)
-            String mongoExecPath = prefs.get("mongo-exec-path", null);
-            if(mongoExecPath != null) {
-                Path toolsFolderPath = Paths.get(mongoExecPath).getParent();
-                if(Files.isDirectory(toolsFolderPath)) {
-                    toolsFolder = toolsFolderPath.toString();
-                }
-            }
-        }
-        final String versionAsString = prefs.get(TOOLS_VERSION, null);
+        Preferences prefs = prefs();
+        toolsFolder = prefs.get(Prefs.NativeToolsOptions.FOLDER, null);
+        final String versionAsString = prefs.get(Prefs.NativeToolsOptions.VERSION, null);
         if (versionAsString != null) {
             toolsVersion = new Version(versionAsString);
         }
     }
 
     public void store() {
-        Preferences prefs = getPreferences();
+        Preferences prefs = prefs();
         if (toolsFolder == null) {
-            prefs.remove(TOOLS_FOLDER);
-            prefs.remove(TOOLS_VERSION);
+            prefs.remove(Prefs.NativeToolsOptions.FOLDER);
+            prefs.remove(Prefs.NativeToolsOptions.VERSION);
         } else {
-            prefs.put(TOOLS_FOLDER, toolsFolder);
-            prefs.put(TOOLS_VERSION, toolsVersion.toString());
+            prefs.put(Prefs.NativeToolsOptions.FOLDER, toolsFolder);
+            prefs.put(Prefs.NativeToolsOptions.VERSION, toolsVersion.toString());
         }
     }
 

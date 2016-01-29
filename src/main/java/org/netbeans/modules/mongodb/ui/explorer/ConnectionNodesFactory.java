@@ -1,77 +1,53 @@
-/* 
- * The MIT License
+/*
+ * Copyright (C) 2016 Yann D'Isanto
  *
- * Copyright 2013 Tim Boudreau.
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 package org.netbeans.modules.mongodb.ui.explorer;
 
-import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
-import java.util.UUID;
 import java.util.prefs.BackingStoreException;
-import java.util.prefs.Preferences;
-import org.netbeans.modules.mongodb.ConnectionInfo;
+import org.netbeans.modules.mongodb.api.connections.ConnectionInfo;
+import org.netbeans.modules.mongodb.util.PrefsRepositories;
+import org.netbeans.modules.mongodb.util.Repository.PrefsRepository;
 import org.openide.util.Exceptions;
 
 /**
  *
- * @author Tim Boudreau
+ * @author Yann D'Isanto
  */
 class ConnectionNodesFactory extends RefreshableChildFactory<ConnectionInfo> {
 
-    private ConnectionInfo[] connections() {
-        try {
-            Preferences prefs = MongoServicesNode.prefs();
-            String[] kids = prefs.childrenNames();
-            ConnectionInfo[] result = new ConnectionInfo[kids.length];
-            for (int i = 0; i < kids.length; i++) {
-                String kid = kids[i];
-                Preferences node = prefs.node(kid);
-                UUID uuid;
-                try {
-                    uuid = UUID.fromString(kid);
-                } catch(IllegalArgumentException ex) {
-                    // old connection info, need migration
-                    uuid = UUID.randomUUID();
-                    Preferences oldNode = node;
-                    node = prefs.node(uuid.toString());
-                    for (String key : oldNode.keys()) {
-                        node.put(key, oldNode.get(key, null));
-                    }
-                    node.flush();
-                    oldNode.removeNode();
-                    oldNode.flush();
-                }
-                result[i] = new ConnectionInfo(uuid, node);
-            }
-            return result;
-        } catch (BackingStoreException ex) {
-            Exceptions.printStackTrace(ex);
-            return new ConnectionInfo[0];
-        }
-    }
-
     @Override
     protected boolean createKeys(List<ConnectionInfo> list) {
-        list.addAll(Arrays.asList(connections()));
+        PrefsRepository<ConnectionInfo> repo = PrefsRepositories.CONNECTIONS.get();
+        try {
+            for (ConnectionInfo connectionInfo : repo.all().values()) {
+                list.add(connectionInfo);
+            }
+        } catch (BackingStoreException ex) {
+            Exceptions.printStackTrace(ex);
+        }
+        Collections.sort(list, new Comparator<ConnectionInfo>() {
+            @Override
+            public int compare(ConnectionInfo c1, ConnectionInfo c2) {
+                return c1.getDisplayName().compareTo(c2.getDisplayName());
+            }
+        });
         return true;
     }
 

@@ -21,17 +21,20 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.netbeans.modules.mongodb;
+package org.netbeans.modules.mongodb.api.connections;
 
 import com.mongodb.MongoClientURI;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.util.UUID;
 import java.util.prefs.BackingStoreException;
-import java.util.prefs.Preferences;
+import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NonNull;
+import org.netbeans.modules.mongodb.util.PrefsRepositories;
+import org.netbeans.modules.mongodb.util.Repository;
+import org.netbeans.modules.mongodb.util.Repository.PrefsRepository;
 import org.openide.util.Exceptions;
 import org.openide.util.Parameters;
 
@@ -41,33 +44,38 @@ import org.openide.util.Parameters;
  * @author Yann D'Isanto
  */
 @EqualsAndHashCode(of = {"id"})
-public final class ConnectionInfo implements Comparable<ConnectionInfo>, AutoCloseable {
-
-    public static final String PREFS_KEY_DISPLAY_NAME = "displayName"; //NOI18N
-
-    public static final String PREFS_KEY_ID = "id"; //NOI18N
-
-    public static final String PREFS_KEY_URI = "uri"; //NOI18N
+@AllArgsConstructor
+@Getter
+public final class ConnectionInfo implements Comparable<ConnectionInfo>, AutoCloseable, Repository.RepositoryItem {
 
     public static final String DEFAULT_URI = "mongodb://localhost"; //NOI18N
+    
+    public static final String PROPERTY_DISPLAY_NAME = "displayName"; //NOI18N
 
-    @Getter
+    public static final String PROPERTY_ID = "id"; //NOI18N
+
+    public static final String PROPERTY_URI = "uri"; //NOI18N
+
+
+    @NonNull
     private final UUID id;
 
-    private final Preferences node;
+    @NonNull
+    private String displayName;
+
+    @NonNull
+    private String uri;
 
     private final PropertyChangeSupport supp = new PropertyChangeSupport(this);
 
-    public ConnectionInfo(@NonNull UUID id, @NonNull Preferences node) {
-        this.node = node;
-        this.id = id;
+    public ConnectionInfo(String displayName, String uri) {
+        this(UUID.randomUUID(), displayName, uri);
     }
 
-    public ConnectionInfo(@NonNull Preferences parent) {
-        id = UUID.randomUUID();
-        node = parent.node(id.toString());
+    public ConnectionInfo(String id, String displayName, String uri) {
+        this(UUID.fromString(id), displayName, uri);
     }
-
+    
     public void addPropertyChangeListener(PropertyChangeListener listener) {
         supp.addPropertyChangeListener(listener);
     }
@@ -84,43 +92,30 @@ public final class ConnectionInfo implements Comparable<ConnectionInfo>, AutoClo
         supp.removePropertyChangeListener(propertyName, listener);
     }
 
-    public String getDisplayName() {
-        return node.get(PREFS_KEY_DISPLAY_NAME, getMongoURI().getURI());
-    }
-
-    public void setDisplayName(String displayName) {
-        Parameters.notNull(PREFS_KEY_DISPLAY_NAME, displayName);
+    public void setDisplayName(@NonNull String displayName) {
         String old = getDisplayName();
-        if (!displayName.equals(old)) {
-            if (displayName.trim().isEmpty()) {
-                node.remove(PREFS_KEY_DISPLAY_NAME);
-            } else {
-                node.put(PREFS_KEY_DISPLAY_NAME, displayName.trim());
-            }
-            supp.firePropertyChange(PREFS_KEY_DISPLAY_NAME, old, displayName.trim());
+        if (displayName.equals(this.displayName) == false) {
+            this.displayName = displayName;
+            supp.firePropertyChange(PROPERTY_DISPLAY_NAME, old, displayName.trim());
         }
     }
 
     public MongoClientURI getMongoURI() {
-        return new MongoClientURI(node.get(PREFS_KEY_URI, DEFAULT_URI).trim());
+        return new MongoClientURI(uri);
     }
-    
+
     public void setMongoURI(MongoClientURI uri) {
-        Parameters.notNull(PREFS_KEY_URI, uri);
+        Parameters.notNull(PROPERTY_URI, uri);
         final MongoClientURI old = getMongoURI();
         if (!old.equals(uri)) {
-            node.put(PREFS_KEY_URI, uri.getURI());
-            supp.firePropertyChange(PREFS_KEY_URI, old, uri);
+            this.uri = uri.getURI();
+            supp.firePropertyChange(PROPERTY_URI, old, uri);
         }
     }
-    
+
     private void save() {
         try {
-            node.parent().flush();
-            node.parent().sync();
-            node.flush();
-            node.parent().sync();
-            node.sync();
+            PrefsRepositories.CONNECTIONS.get().put(this);
         } catch (BackingStoreException ex) {
             Exceptions.printStackTrace(ex);
         }
@@ -128,17 +123,17 @@ public final class ConnectionInfo implements Comparable<ConnectionInfo>, AutoClo
 
     public void delete() {
         try {
-            node.removeNode();
+            PrefsRepositories.CONNECTIONS.get().remove(this);
         } catch (BackingStoreException ex) {
             Exceptions.printStackTrace(ex);
         }
     }
-    
+
     @Override
     public void close() {
         save();
     }
-    
+
     @Override
     public String toString() {
         return getDisplayName(); //NOI18N
@@ -147,5 +142,10 @@ public final class ConnectionInfo implements Comparable<ConnectionInfo>, AutoClo
     @Override
     public int compareTo(ConnectionInfo o) {
         return id.compareTo(o.id);
+    }
+
+    @Override
+    public String getKey() {
+        return id.toString();
     }
 }

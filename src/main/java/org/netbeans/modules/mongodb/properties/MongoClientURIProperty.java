@@ -20,7 +20,7 @@ package org.netbeans.modules.mongodb.properties;
 import com.mongodb.MongoClientURI;
 import java.beans.PropertyEditor;
 import java.lang.reflect.InvocationTargetException;
-import org.netbeans.modules.mongodb.ConnectionInfo;
+import org.netbeans.modules.mongodb.api.connections.ConnectionInfo;
 import org.openide.nodes.PropertySupport;
 import org.openide.util.Lookup;
 import org.openide.util.NbBundle.Messages;

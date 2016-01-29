@@ -28,13 +28,12 @@ import org.netbeans.modules.mongodb.ui.components.NewConnectionPanel;
 import com.mongodb.MongoClientURI;
 import java.awt.event.ActionEvent;
 import java.util.logging.Logger;
-import java.util.prefs.Preferences;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import org.netbeans.api.core.ide.ServicesTabNodeRegistration;
-import org.netbeans.modules.mongodb.ConnectionInfo;
+import org.netbeans.modules.mongodb.api.connections.ConnectionInfo;
 import org.netbeans.modules.mongodb.native_tools.MongoNativeToolsAction;
 import org.openide.DialogDescriptor;
 import org.openide.DialogDisplayer;
@@ -42,7 +41,6 @@ import org.openide.NotifyDescriptor;
 import org.openide.nodes.AbstractNode;
 import org.openide.nodes.Children;
 import org.openide.util.NbBundle.Messages;
-import org.openide.util.NbPreferences;
 
 /**
  * The services tab node for MongoDB connections.
@@ -78,10 +76,6 @@ public final class MongoServicesNode extends AbstractNode {
         return factory;
     }
 
-    static Preferences prefs() {
-        return NbPreferences.forModule(MongoServicesNode.class).node("connections"); //NOI18N
-    }
-
     @Override
     public Action[] getActions(boolean context) {
         return new Action[]{
@@ -93,6 +87,8 @@ public final class MongoServicesNode extends AbstractNode {
 
     @Messages("LBL_newConnection=New Connection")
     private class NewConnectionAction extends AbstractAction {
+
+        private static final long serialVersionUID = 1L;
 
         public NewConnectionAction() {
             super(Bundle.LBL_newConnection());
@@ -113,12 +109,8 @@ public final class MongoServicesNode extends AbstractNode {
             if (NotifyDescriptor.OK_OPTION.equals(DialogDisplayer.getDefault().notify(desc))) {
                 final MongoClientURI uri = panel.getMongoURI();
                 final String name = panel.getConnectionName();
-                final Preferences prefs = prefs();
-                try (ConnectionInfo info = new ConnectionInfo(prefs)) {
-                    if (!name.isEmpty()) {
-                        info.setDisplayName(name);
-                    }
-                    info.setMongoURI(uri);
+                try (ConnectionInfo info = new ConnectionInfo(name, uri.getURI())) {
+                    // DO NOTHING, connection is saved on close
                 } finally {
                     factory.refresh();
                 }

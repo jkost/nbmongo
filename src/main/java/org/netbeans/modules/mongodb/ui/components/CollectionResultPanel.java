@@ -78,6 +78,7 @@ import org.netbeans.modules.mongodb.ui.components.result_panel.views.treetable.B
 import org.netbeans.modules.mongodb.ui.components.result_panel.views.treetable.BsonValueNode;
 import org.netbeans.modules.mongodb.ui.components.result_panel.views.treetable.DocumentRootTreeTableHighlighter;
 import org.netbeans.modules.mongodb.options.RenderingOptions.PrefsRenderingOptions;
+import org.netbeans.modules.mongodb.preferences.Prefs;
 import org.netbeans.modules.mongodb.ui.components.result_panel.views.text.ResultsTextView;
 import org.netbeans.modules.mongodb.ui.windows.CollectionView;
 import org.netbeans.modules.mongodb.util.BsonProperty;
@@ -86,7 +87,6 @@ import org.openide.awt.NotificationDisplayer;
 import org.openide.util.Exceptions;
 import org.openide.util.Lookup;
 import org.openide.util.NbBundle.Messages;
-import org.openide.util.NbPreferences;
 import org.openide.util.RequestProcessor;
 import org.openide.windows.TopComponent;
 
@@ -883,14 +883,9 @@ public final class CollectionResultPanel extends javax.swing.JPanel {
         }
         return (TopComponent) parent;
     }
-    
-    public Preferences prefs() {
-        return NbPreferences.forModule(CollectionResultPanel.class).node(CollectionResultPanel.class.getName());
-    }
 
     public void loadPreferences() {
-        final Preferences prefs = prefs();
-        final String version = prefs.get("version", "1.0");
+        final Preferences prefs = Prefs.of(Prefs.COLLECTION_RESULTS_PANEL);
         displayDocumentEditionShortcutHint = prefs.getBoolean("display-document-edition-shortcut-hint", true);
         final String resultViewPref = prefs.get("result-view", ResultView.TREE_TABLE.name());
         final ResultView rView = ResultView.valueOf(resultViewPref);
@@ -904,8 +899,7 @@ public final class CollectionResultPanel extends javax.swing.JPanel {
     }
 
     public void writePreferences() {
-        final Preferences prefs = prefs();
-        prefs.put("version", "1.0");
+        final Preferences prefs = Prefs.of(Prefs.COLLECTION_RESULTS_PANEL);
         prefs.putInt("result-view-table-page-size", getTreeTablePages().getPageSize());
         prefs.put("result-view", resultView.name());
         prefs.putBoolean("display-document-edition-shortcut-hint", displayDocumentEditionShortcutHint);

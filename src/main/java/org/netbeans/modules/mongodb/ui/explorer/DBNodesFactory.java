@@ -28,7 +28,7 @@ import com.mongodb.MongoSocketException;
 import java.util.Collections;
 import java.util.List;
 import lombok.AllArgsConstructor;
-import org.netbeans.modules.mongodb.ConnectionInfo;
+import org.netbeans.modules.mongodb.api.connections.ConnectionInfo;
 import org.netbeans.modules.mongodb.DbInfo;
 import org.netbeans.modules.mongodb.MongoConnection;
 import org.openide.util.Lookup;

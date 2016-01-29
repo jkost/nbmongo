@@ -22,7 +22,7 @@ import java.util.concurrent.Callable;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.netbeans.api.extexecution.ExecutionDescriptor;
-import org.netbeans.modules.mongodb.ConnectionInfo;
+import org.netbeans.modules.mongodb.api.connections.ConnectionInfo;
 import org.netbeans.modules.mongodb.ui.actions.ExecutionAction;
 import org.netbeans.modules.mongodb.util.ProcessCreator;
 import org.openide.util.Lookup;

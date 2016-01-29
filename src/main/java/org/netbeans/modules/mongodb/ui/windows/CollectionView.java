@@ -19,12 +19,10 @@ package org.netbeans.modules.mongodb.ui.windows;
 
 import com.mongodb.client.MongoCollection;
 import org.netbeans.modules.mongodb.CollectionInfo;
-import java.util.prefs.BackingStoreException;
-import java.util.prefs.Preferences;
 import javax.swing.Action;
 import lombok.Getter;
 import org.bson.BsonDocument;
-import org.netbeans.modules.mongodb.ConnectionInfo;
+import org.netbeans.modules.mongodb.api.connections.ConnectionInfo;
 import org.netbeans.modules.mongodb.api.FindCriteria;
 import org.netbeans.modules.mongodb.api.FindResult;
 import org.netbeans.modules.mongodb.resources.Images;
@@ -33,10 +31,8 @@ import org.netbeans.modules.mongodb.ui.components.FindCriteriaEditor;
 import org.netbeans.modules.mongodb.ui.windows.collectionview.actions.ClearQueryAction;
 import org.netbeans.modules.mongodb.ui.windows.collectionview.actions.EditQueryAction;
 import org.netbeans.modules.mongodb.util.SystemCollectionPredicate;
-import org.openide.util.Exceptions;
 import org.openide.util.Lookup;
 import org.openide.util.NbBundle.Messages;
-import org.openide.util.NbPreferences;
 import org.openide.windows.TopComponent;
 
 /**
@@ -140,25 +136,12 @@ public final class CollectionView extends TopComponent /*implements QueryResultW
         getResultPanel().setResult(new FindResult(getCollection(), findCriteria));
     }
     
-    public Preferences prefs() {
-        return NbPreferences.forModule(CollectionView.class).node(CollectionView.class.getName());
-    }
-
     void loadPreferences() {
-        Preferences prefs = prefs();
-        String version = prefs.get("version", "1.0");
         getResultPanel().loadPreferences();
     }
 
     void writePreferences() {
-        Preferences prefs = prefs();
-        prefs.put("version", "1.0");
         getResultPanel().writePreferences();
-        try {
-            prefs.flush();
-        } catch (BackingStoreException ex) {
-            Exceptions.printStackTrace(ex);
-        }
     }
     
     /**

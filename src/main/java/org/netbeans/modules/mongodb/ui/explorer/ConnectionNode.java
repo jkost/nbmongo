@@ -42,7 +42,7 @@ import java.util.LinkedList;
 import java.util.List;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
-import org.netbeans.modules.mongodb.ConnectionInfo;
+import org.netbeans.modules.mongodb.api.connections.ConnectionInfo;
 import org.netbeans.modules.mongodb.MongoConnection;
 import org.netbeans.modules.mongodb.MongoConnection.ConnectionState;
 import org.netbeans.modules.mongodb.native_tools.MongoNativeToolsAction;
@@ -218,10 +218,10 @@ class ConnectionNode extends AbstractNode implements PropertyChangeListener {
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
         switch (evt.getPropertyName()) {
-            case ConnectionInfo.PREFS_KEY_DISPLAY_NAME:
+            case ConnectionInfo.PROPERTY_DISPLAY_NAME:
                 setDisplayName((String) evt.getNewValue());
                 break;
-            case ConnectionInfo.PREFS_KEY_URI:
+            case ConnectionInfo.PROPERTY_URI:
                 connectionHandler.disconnect();
                 break;
         }

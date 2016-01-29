@@ -23,8 +23,8 @@ import javax.swing.JCheckBox;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import org.netbeans.modules.mongodb.native_tools.MongoNativeTool;
+import org.netbeans.modules.mongodb.preferences.Prefs;
 import org.netbeans.modules.mongodb.ui.native_tools.NativeToolOptionsDialog.OptionsAndArgsPanel;
-import org.openide.util.NbPreferences;
 
 /**
  *
@@ -49,7 +49,7 @@ public abstract class AbstractOptionsAndArgsPanel extends JPanel implements Opti
     }
 
     protected final Preferences prefs() {
-        return NbPreferences.forModule(MongoDumpOptionsPanel.class).node("native_tools");
+        return Prefs.of(Prefs.NATIVE_TOOLS);
     }
 
     protected final void readOptionFromUI(Map<String, String> options, String optionKey, JTextField textField) {

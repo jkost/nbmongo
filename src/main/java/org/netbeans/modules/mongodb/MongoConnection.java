@@ -17,6 +17,7 @@
  */
 package org.netbeans.modules.mongodb;
 
+import org.netbeans.modules.mongodb.api.connections.ConnectionInfo;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoException;
 import java.util.ArrayList;

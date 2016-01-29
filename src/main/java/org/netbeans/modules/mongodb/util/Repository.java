@@ -42,6 +42,8 @@ public interface Repository<T extends RepositoryItem, E extends Exception> {
     
     void remove(String key) throws E;
 
+    void remove(T item) throws E;
+
     boolean exists(String key) throws E;
     
     @AllArgsConstructor
@@ -82,6 +84,11 @@ public interface Repository<T extends RepositoryItem, E extends Exception> {
             itemNode(key).removeNode();
         }
 
+        @Override
+        public void remove(T item) throws BackingStoreException {
+            remove(item.getKey());
+        }
+        
         @Override
         public final boolean exists(String key) throws BackingStoreException {
             prefs.sync();

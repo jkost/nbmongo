@@ -17,18 +17,27 @@
  */
 package org.netbeans.modules.mongodb.preferences;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.prefs.Preferences;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathFactory;
 import lombok.AllArgsConstructor;
 import org.netbeans.modules.mongodb.NBMongo;
+import org.netbeans.modules.mongodb.preferences.migrations.V1ToV2;
 import org.openide.util.Exceptions;
+import org.w3c.dom.Document;
 
 /**
  *
  * @author Yann D'Isanto
  */
-final class Migrations {
+public final class Migrations {
 
     private static final Map<String, Prefs.Version> VERSIONS;
 
@@ -45,16 +54,9 @@ final class Migrations {
 
     static final Prefs.Version PREFS_EXPECTED_VERSION = VERSIONS.get(NBMongo.moduleInfo().getImplementationVersion());
 
-    static final Migration V1_TO_V2 = new Migration(Prefs.Version.V2, null) {
+    static final Migration V1_TO_V2 = new V1ToV2(null);
 
-        @Override
-        protected void performMigration(Preferences prefs) throws Exception {
-            // TODO: update connections prefs (when repository is used)
-        }
-
-    };
-
-    static final Migration DEFAULT = new Migration(PREFS_EXPECTED_VERSION, null) {
+    public static final Migration DEFAULT = new Migration(PREFS_EXPECTED_VERSION, null) {
         @Override
         protected void performMigration(Preferences prefs) throws Exception {
             // DO NOTHING
@@ -83,7 +85,7 @@ final class Migrations {
     }
 
     @AllArgsConstructor
-    static abstract class Migration implements Runnable {
+    public static abstract class Migration implements Runnable {
 
         private final Prefs.Version version;
 
@@ -105,6 +107,20 @@ final class Migrations {
 
         protected abstract void performMigration(Preferences prefs) throws Exception;
 
+        protected static void migrateString(String key, Preferences source, Preferences target) {
+            migrateString(key, key, source, target);
+        }
+        
+        protected static void migrateString(String oldKey, String newKey, Preferences source, Preferences target) {
+            String value = source.get(oldKey, null);
+            if(value != null) {
+                target.put(newKey, value);
+            }
+        }
     }
 
+    // TEST
+    static {
+        
+    }
 }

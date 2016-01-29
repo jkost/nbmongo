@@ -23,6 +23,7 @@
  */
 package org.netbeans.modules.mongodb;
 
+import org.netbeans.modules.mongodb.api.connections.ConnectionInfo;
 import java.util.Objects;
 import lombok.Getter;
 import lombok.NonNull;
