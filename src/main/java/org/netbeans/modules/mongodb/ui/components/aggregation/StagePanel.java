@@ -38,8 +38,8 @@ import org.bson.BsonDocument;
 import org.bson.BsonInt32;
 import org.bson.BsonString;
 import org.bson.BsonValue;
-import org.netbeans.modules.mongodb.aggregation.PipelineStage;
-import org.netbeans.modules.mongodb.aggregation.PipelineStage.Stage;
+import org.netbeans.modules.mongodb.api.aggregation.PipelineStage;
+import org.netbeans.modules.mongodb.api.aggregation.PipelineStage.Stage;
 import org.netbeans.modules.mongodb.bson.Bsons;
 import org.netbeans.modules.mongodb.resources.Images;
 import org.netbeans.modules.mongodb.ui.util.BsonDocumentEditor;
@@ -73,11 +73,11 @@ final class StagePanel extends JPanel {
 
     private boolean selected;
 
-    public StagePanel(final PipelineStage pipelineStage) {
+    public StagePanel(PipelineStage pipelineStage) {
         this(pipelineStage.getStage(), pipelineStage.getContent());
     }
 
-    public StagePanel(final Stage stage) {
+    public StagePanel(Stage stage) {
         this(stage, defaultContent(stage));
     }
 

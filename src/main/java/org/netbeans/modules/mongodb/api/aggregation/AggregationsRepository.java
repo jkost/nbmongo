@@ -15,7 +15,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-package org.netbeans.modules.mongodb.aggregation;
+package org.netbeans.modules.mongodb.api.aggregation;
 
 import java.lang.ref.SoftReference;
 import java.util.ArrayList;
@@ -35,8 +35,10 @@ import org.netbeans.modules.mongodb.util.Repository.PrefsRepository;
  */
 public final class AggregationsRepository extends PrefsRepository<Aggregation>{
 
+    public static final String NAME = "aggregations";
+    
     public AggregationsRepository() {
-        super(Prefs.of(REPOSITORIES).node("aggregations"));
+        super(Prefs.of(REPOSITORIES).node(NAME));
     }
 
     
@@ -60,20 +62,5 @@ public final class AggregationsRepository extends PrefsRepository<Aggregation>{
         for (PipelineStage stage : aggregation.getPipeline()) {
             node.put(String.valueOf(index ++), stage.toBson().toJson());
         }
-    }
-    
-    
-    private static SoftReference<AggregationsRepository> softRef;
-    
-    public static AggregationsRepository get() {
-        AggregationsRepository repo = null;
-        if(softRef != null) {
-            repo = softRef.get();
-        }
-        if(repo == null) {
-            repo = new AggregationsRepository();
-            softRef = new SoftReference<>(repo);
-        }
-        return repo;
     }
 }

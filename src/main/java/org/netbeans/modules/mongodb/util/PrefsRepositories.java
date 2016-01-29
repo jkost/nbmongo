@@ -19,6 +19,7 @@ package org.netbeans.modules.mongodb.util;
 
 import java.util.prefs.BackingStoreException;
 import lombok.AllArgsConstructor;
+import org.netbeans.modules.mongodb.api.aggregation.AggregationsRepository;
 import org.netbeans.modules.mongodb.api.connections.ConnectionsRepository;
 import org.netbeans.modules.mongodb.util.Repository.PrefsRepository;
 
@@ -29,6 +30,7 @@ import org.netbeans.modules.mongodb.util.Repository.PrefsRepository;
 @AllArgsConstructor
 public enum PrefsRepositories {
     
+    AGGREGATIONS(new AggregationsRepository()),
     CONNECTIONS(new ConnectionsRepository());
     
     private final Repository<?, BackingStoreException> repository;
