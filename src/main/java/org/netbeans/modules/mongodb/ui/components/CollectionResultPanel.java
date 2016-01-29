@@ -364,7 +364,13 @@ public final class CollectionResultPanel extends javax.swing.JPanel {
     }
 
     public void editDocument(BsonDocument document, BsonDocument modifiedDocument) {
-        getResultPages().updateDocument(document, modifiedDocument);
+        for (View view : resultViews.values()) {
+            CollectionResultPages pages = view.getPages();
+            if (pages.getQueryResult().equals(currentResult)) {
+                pages.updateDocument(document, modifiedDocument);
+            }
+        }
+        
     }
 
     private JTable getResultTable() {
