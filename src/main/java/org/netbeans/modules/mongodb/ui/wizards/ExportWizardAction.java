@@ -97,15 +97,15 @@ public final class ExportWizardAction extends AbstractAction {
         wiz.setTitleFormat(new MessageFormat("{0}"));
         wiz.setTitle(Bundle.ACTION_Export());
 
-        String collection = (String) wiz.getProperty(PROP_COLLECTION);
-        Object documentsProperty = wiz.getProperty(PROP_DOCUMENTS);
-        if (documentsProperty instanceof CollectionResult) {
-            documentsProperty = ((CollectionResult) documentsProperty).iterable();
-        }
-        final Iterable<BsonDocument> documents = documentsProperty instanceof CollectionResult
-                ? ((CollectionResult) documentsProperty).iterable()
-                : (Iterable<BsonDocument>) documentsProperty;
         if (DialogDisplayer.getDefault().notify(wiz) == WizardDescriptor.FINISH_OPTION) {
+            String collection = (String) wiz.getProperty(PROP_COLLECTION);
+            Object documentsProperty = wiz.getProperty(PROP_DOCUMENTS);
+            if (documentsProperty instanceof CollectionResult) {
+                documentsProperty = ((CollectionResult) documentsProperty).iterable();
+            }
+            final Iterable<BsonDocument> documents = documentsProperty instanceof CollectionResult
+                    ? ((CollectionResult) documentsProperty).iterable()
+                    : (Iterable<BsonDocument>) documentsProperty;
             ExportProperties properties = ExportProperties.builder()
                     .collection(collection)
                     .documents(documents)
