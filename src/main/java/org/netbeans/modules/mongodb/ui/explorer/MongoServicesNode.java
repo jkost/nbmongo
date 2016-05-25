@@ -32,7 +32,6 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import org.netbeans.api.core.ide.ServicesTabNodeRegistration;
 import org.netbeans.modules.mongodb.api.connections.ConnectionInfo;
 import org.netbeans.modules.mongodb.native_tools.MongoNativeToolsAction;
 import org.openide.DialogDescriptor;
@@ -48,9 +47,14 @@ import org.openide.util.NbBundle.Messages;
  * @author Tim Boudreau
  * @author Yann D'Isanto
  */
-@ServicesTabNodeRegistration(displayName = "#MongoNodeName", iconResource = Images.MONGO_ICON_PATH, position = 3, name = "mongodb")
 @Messages("MongoNodeName=MongoDB")
 public final class MongoServicesNode extends AbstractNode {
+
+    private static final MongoServicesNode DEFAULT = new MongoServicesNode();
+
+    public static MongoServicesNode getDefault() {
+        return DEFAULT;
+    }
 
     private final ConnectionNodesFactory factory;
 
