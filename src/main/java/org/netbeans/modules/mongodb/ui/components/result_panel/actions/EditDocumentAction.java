@@ -26,6 +26,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.bson.BsonDocument;
 import org.bson.BsonValue;
+import org.bson.conversions.Bson;
 import org.netbeans.modules.mongodb.resources.Images;
 import org.netbeans.modules.mongodb.ui.util.DialogNotification;
 import org.netbeans.modules.mongodb.ui.util.BsonDocumentEditor;
@@ -72,16 +73,22 @@ public class EditDocumentAction extends QueryResultPanelAction {
             // display error ?
             return;
         }
+        final Bson idFilter = eq("_id", id);
+        BsonDocument fullDocument = (BsonDocument) getResultPanel().getLookup().lookup(MongoCollection.class).find(idFilter).limit(1).first();
+        if(fullDocument == null) {
+            DialogNotification.error("no document found with _id: " + id);
+            return;
+        }
         final BsonDocument modifiedDocument = BsonDocumentEditor.show(
             Bundle.editDocumentTitle(),
-            getResultPanel().isDocumentsFieldsSorted() ? BsonUtils.sortDocumentFields(document) : document);
+            getResultPanel().isDocumentsFieldsSorted() ? BsonUtils.sortDocumentFields(fullDocument) : fullDocument);
         if (modifiedDocument != null) {
             Tasks.create(Bundle.TASK_updateDocument(), new Runnable() {
 
                 @Override
                 public void run() {
                     try {
-                        getResultPanel().getLookup().lookup(MongoCollection.class).replaceOne(eq("_id", id), modifiedDocument);
+                        getResultPanel().getLookup().lookup(MongoCollection.class).replaceOne(idFilter, modifiedDocument);
                     } catch (MongoException ex) {
                         DialogNotification.error(ex);
                     }

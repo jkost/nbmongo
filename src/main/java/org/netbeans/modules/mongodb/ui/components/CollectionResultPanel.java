@@ -25,6 +25,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.List;
@@ -364,6 +365,27 @@ public final class CollectionResultPanel extends javax.swing.JPanel {
     }
 
     public void editDocument(BsonDocument document, BsonDocument modifiedDocument) {
+        if (currentResult instanceof FindResult) {
+            FindResult result = (FindResult) currentResult;
+            BsonDocument projection = result.getFindCriteria().getProjection();
+            if (projection.isEmpty() == false) {
+                List<String> filtered = new ArrayList<>(modifiedDocument.size());
+                for (String key : modifiedDocument.keySet()) {
+                    if ("_id".equals(key) == false) {
+                        BsonValue value = projection.get(key);
+                        boolean filteredField = value == null
+                                || (value.isBoolean() && value.asBoolean().getValue() == false)
+                                || (value.isInt32() && value.asInt32().getValue() == 0);
+                        if (filteredField) {
+                            filtered.add(key);
+                        }
+                    }
+                }
+                for (String key : filtered) {
+                    modifiedDocument.remove(key);
+                }
+            }
+        }
         for (View view : resultViews.values()) {
             CollectionResultPages pages = view.getPages();
             if (pages.getQueryResult().equals(currentResult)) {
