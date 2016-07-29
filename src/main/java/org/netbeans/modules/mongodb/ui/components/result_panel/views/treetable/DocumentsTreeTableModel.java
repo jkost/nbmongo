@@ -21,6 +21,7 @@ import java.util.List;
 import javax.swing.SwingUtilities;
 import javax.swing.tree.TreePath;
 import lombok.Getter;
+import lombok.Setter;
 import org.bson.BsonDocument;
 import org.jdesktop.swingx.treetable.DefaultTreeTableModel;
 import org.netbeans.modules.mongodb.api.CollectionResultPages;
@@ -34,6 +35,10 @@ public final class DocumentsTreeTableModel extends DefaultTreeTableModel impleme
 
     @Getter
     private final CollectionResultPages pages;
+    
+    @Getter
+    @Setter
+    private boolean sortDocumentsFields;
 
     public DocumentsTreeTableModel(CollectionResultPages pages) {
         this.pages = pages;
@@ -52,7 +57,7 @@ public final class DocumentsTreeTableModel extends DefaultTreeTableModel impleme
     }
 
     private void buildModelFromCurrentPage() {
-        final RootNode rootNode = new RootNode(pages.getCurrentPageItems());
+        final RootNode rootNode = new RootNode(pages.getCurrentPageItems(), sortDocumentsFields);
         SwingUtilities.invokeLater(new Runnable() {
 
             @Override

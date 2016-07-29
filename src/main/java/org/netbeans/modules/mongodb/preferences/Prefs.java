@@ -37,6 +37,9 @@ public enum Prefs {
     public static final String BSON_RENDERING = "bson-rendering";
     
     public static final String COLLECTION_RESULTS_PANEL = "collection-results-panel";
+    
+    public static final String RESULTS_DISPLAY = "results-display";
+    
 
     private Prefs() {
         Migrations.migrateIfNecessary();
@@ -65,5 +68,10 @@ public enum Prefs {
 
         String FOLDER = "folder";
         String VERSION = "version";
+    }
+    
+    public static interface ResultsDisplayOptions {
+        
+        String SORT_DOCUMENTS_FIELDS = "sortDocumentsFields";
     }
 }

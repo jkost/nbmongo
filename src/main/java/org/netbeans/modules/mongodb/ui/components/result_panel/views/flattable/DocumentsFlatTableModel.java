@@ -17,14 +17,15 @@
  */
 package org.netbeans.modules.mongodb.ui.components.result_panel.views.flattable;
 
-import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.TreeSet;
 import javax.swing.SwingUtilities;
 import javax.swing.table.AbstractTableModel;
 import lombok.Getter;
+import lombok.Setter;
 import org.bson.BsonDocument;
 import org.bson.BsonValue;
 import org.netbeans.modules.mongodb.api.CollectionResultPages;
@@ -43,6 +44,10 @@ public final class DocumentsFlatTableModel extends AbstractTableModel implements
 
     private final List<String> columns = new LinkedList<>();
 
+    @Getter
+    @Setter
+    private boolean sortDocumentsFields;
+
     public DocumentsFlatTableModel(CollectionResultPages pages) {
         this.pages = pages;
         pages.addListener(this);
@@ -51,8 +56,8 @@ public final class DocumentsFlatTableModel extends AbstractTableModel implements
 
     private void buildModelFromCurrentPage() {
 
-        Set<String> updatedColumns = new LinkedHashSet<>(columns);
-    
+        Set<String> updatedColumns = sortDocumentsFields ? new TreeSet<>(columns) : new LinkedHashSet<>(columns);
+        
         // update columns if necessary
         boolean columnsChanged = false;
         if (pages != null) {
@@ -64,7 +69,8 @@ public final class DocumentsFlatTableModel extends AbstractTableModel implements
         columns.addAll(updatedColumns);
         int idIndex = columns.indexOf("_id");
         if (idIndex > 0) {
-            Collections.swap(columns, idIndex, 0);
+            columns.remove(idIndex);
+            columns.add(0, "_id");
         }
 
         final boolean tableStructureChanged = columnsChanged;

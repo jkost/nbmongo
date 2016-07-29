@@ -32,8 +32,8 @@ public class BsonPropertyNode extends BsonValueNode {
     @Setter
     private String propertyName;
     
-    public BsonPropertyNode(String propertyName, BsonValue value) {
-        super(value);
+    public BsonPropertyNode(String propertyName, BsonValue value, boolean sortDocumentsFields) {
+        super(value, sortDocumentsFields);
         this.propertyName = propertyName;
     }
     

@@ -25,6 +25,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
@@ -142,7 +143,7 @@ public final class CollectionResultPanel extends javax.swing.JPanel {
 
     @Getter
     private final DocumentsFlatTableModel flatTableModel;
-    
+
     @Getter
     private final ResultsTextView textView;
 
@@ -207,7 +208,6 @@ public final class CollectionResultPanel extends javax.swing.JPanel {
         int pageSize = 20; // TODO: store/load from pref
         currentResult = CollectionResult.EMPTY;
 
-        
         EditorKit editorKit = MimeLookup.getLookup("text/x-json").lookup(EditorKit.class);
         if (editorKit != null) {
             textViewComponent.setEditorKit(editorKit);
@@ -370,7 +370,7 @@ public final class CollectionResultPanel extends javax.swing.JPanel {
                 pages.updateDocument(document, modifiedDocument);
             }
         }
-        
+
     }
 
     private JTable getResultTable() {
@@ -402,7 +402,7 @@ public final class CollectionResultPanel extends javax.swing.JPanel {
 
     public BsonDocument getResultTableSelectedDocument() {
         final JTable table = getResultTable();
-        if(table == null) { // TEXT view
+        if (table == null) { // TEXT view
             return null;
         }
         int row = table.getSelectedRow();
@@ -514,6 +514,7 @@ public final class CollectionResultPanel extends javax.swing.JPanel {
         navLeftButton = new javax.swing.JButton();
         navRightButton = new javax.swing.JButton();
         navLastButton = new javax.swing.JButton();
+        sortFieldsButton = new javax.swing.JToggleButton();
         jSeparator2 = new javax.swing.JToolBar.Separator();
         pageSizeLabel = new javax.swing.JLabel();
         pageSizeField = new javax.swing.JTextField();
@@ -636,6 +637,19 @@ public final class CollectionResultPanel extends javax.swing.JPanel {
         navLastButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         navLastButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
         documentsToolBar.add(navLastButton);
+
+        sortFieldsButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/org/netbeans/modules/mongodb/images/sort-alph-asc.png"))); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(sortFieldsButton, org.openide.util.NbBundle.getMessage(CollectionResultPanel.class, "CollectionResultPanel.sortFieldsButton.text")); // NOI18N
+        sortFieldsButton.setToolTipText(org.openide.util.NbBundle.getMessage(CollectionResultPanel.class, "CollectionResultPanel.sortFieldsButton.toolTipText")); // NOI18N
+        sortFieldsButton.setFocusable(false);
+        sortFieldsButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        sortFieldsButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        sortFieldsButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                sortFieldsButtonActionPerformed(evt);
+            }
+        });
+        documentsToolBar.add(sortFieldsButton);
         documentsToolBar.add(jSeparator2);
 
         org.openide.awt.Mnemonics.setLocalizedText(pageSizeLabel, org.openide.util.NbBundle.getMessage(CollectionResultPanel.class, "CollectionResultPanel.pageSizeLabel.text")); // NOI18N
@@ -677,6 +691,13 @@ public final class CollectionResultPanel extends javax.swing.JPanel {
         final int pageSize = Integer.parseInt(pageSizeField.getText());
         changePageSize(pageSize);
     }//GEN-LAST:event_pageSizeFieldActionPerformed
+
+    private void sortFieldsButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_sortFieldsButtonActionPerformed
+        treeTableModel.setSortDocumentsFields(sortFieldsButton.isSelected());
+        textView.setSortDocumentsFields(sortFieldsButton.isSelected());
+        flatTableModel.setSortDocumentsFields(sortFieldsButton.isSelected());
+        refreshResults();
+    }//GEN-LAST:event_sortFieldsButtonActionPerformed
 
     private final Action addDocumentAction = new AddDocumentAction(this);
 
@@ -763,6 +784,7 @@ public final class CollectionResultPanel extends javax.swing.JPanel {
     @Getter
     private org.jdesktop.swingx.JXTreeTable resultTreeTable;
     private javax.swing.ButtonGroup resultViewButtonGroup;
+    private javax.swing.JToggleButton sortFieldsButton;
     private javax.swing.JToggleButton textViewButton;
     private javax.swing.JEditorPane textViewComponent;
     private javax.swing.JScrollPane textViewScrollPane;
@@ -885,10 +907,14 @@ public final class CollectionResultPanel extends javax.swing.JPanel {
 
     TopComponent getParentTopComponent() {
         Container parent = getParent();
-        while(parent != null && (parent instanceof TopComponent) == false) {
+        while (parent != null && (parent instanceof TopComponent) == false) {
             parent = parent.getParent();
         }
         return (TopComponent) parent;
+    }
+    
+    public boolean isDocumentsFieldsSorted() {
+        return sortFieldsButton.isSelected();
     }
 
     public void loadPreferences() {
@@ -903,6 +929,11 @@ public final class CollectionResultPanel extends javax.swing.JPanel {
         getFlatTablePages().setPageSize(pageSize);
         getTextViewPages().setPageSize(pageSize);
         pageSizeField.setText(String.valueOf(pageSize));
+        boolean sortDocumentsField = prefs.getBoolean("sort-documents-fields", false);
+        sortFieldsButton.setSelected(sortDocumentsField);
+        treeTableModel.setSortDocumentsFields(sortDocumentsField);
+        textView.setSortDocumentsFields(sortDocumentsField);
+        flatTableModel.setSortDocumentsFields(sortDocumentsField);
     }
 
     public void writePreferences() {
@@ -910,6 +941,7 @@ public final class CollectionResultPanel extends javax.swing.JPanel {
         prefs.putInt("result-view-table-page-size", getTreeTablePages().getPageSize());
         prefs.put("result-view", resultView.name());
         prefs.putBoolean("display-document-edition-shortcut-hint", displayDocumentEditionShortcutHint);
+        prefs.putBoolean("sort-documents-fields", sortFieldsButton.isSelected());
         try {
             prefs.flush();
         } catch (BackingStoreException ex) {
@@ -1071,7 +1103,7 @@ public final class CollectionResultPanel extends javax.swing.JPanel {
             BsonDocument projection = currentCriteria.getProjection().clone();
             BsonProperty property = getBsonProperty();
             projection.put(property.getName(), BsonBoolean.TRUE);
-            
+
             // cast, if not a find query view, this action should not be enabled
             CollectionView parent = (CollectionView) getParentTopComponent();
             parent.setFindCriteria(currentCriteria.copy().projection(projection).build());
@@ -1094,12 +1126,20 @@ public final class CollectionResultPanel extends javax.swing.JPanel {
             FindCriteria currentCriteria = currentFindResult.getFindCriteria();
             BsonDocument sort = currentCriteria.getSort().clone();
             sort.put(getBsonProperty().getName(), getSortValue());
-            
+
             // cast, if not a find query view, this action should not be enabled
             CollectionView parent = (CollectionView) getParentTopComponent();
             parent.setFindCriteria(currentCriteria.copy().sort(sort).build());
         }
 
     }
+
+    public static final Comparator<Map.Entry<String, BsonValue>> DOCUMENT_FIELD_ENTRY_KEY_COMPARATOR = new Comparator<Map.Entry<String, BsonValue>>() {
+        
+        @Override
+        public int compare(Map.Entry<String, BsonValue> entry1, Map.Entry<String, BsonValue> entry2) {
+            return entry1.getKey().compareTo(entry2.getKey());
+        }
+    };
 
 }

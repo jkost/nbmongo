@@ -21,10 +21,12 @@ import java.util.List;
 import javax.swing.SwingUtilities;
 import javax.swing.text.JTextComponent;
 import lombok.Getter;
+import lombok.Setter;
 import org.bson.BsonDocument;
 import org.netbeans.modules.mongodb.api.CollectionResultPages;
 import org.netbeans.modules.mongodb.bson.Bsons;
 import org.netbeans.modules.mongodb.ui.components.CollectionResultPanel;
+import org.netbeans.modules.mongodb.util.BsonUtils;
 
 /**
  *
@@ -36,6 +38,10 @@ public final class ResultsTextView implements CollectionResultPanel.View, Collec
 
     @Getter
     private final CollectionResultPages pages;
+
+    @Getter
+    @Setter
+    private boolean sortDocumentsFields;
 
     public ResultsTextView(JTextComponent textComponent, CollectionResultPages pages) {
         this.textComponent = textComponent;
@@ -62,6 +68,9 @@ public final class ResultsTextView implements CollectionResultPanel.View, Collec
                 long index = (pages.getPageIndex() - 1) * pages.getPageSize();
                 StringBuilder textBuilder = new StringBuilder();
                 for (BsonDocument document : pages.getCurrentPageItems()) {
+                    if (sortDocumentsFields) {
+                        document = BsonUtils.sortDocumentFields(document);
+                    }
                     textBuilder
                         .append("\n")
                         .append("/* ").append(index++).append(" */")
@@ -74,4 +83,5 @@ public final class ResultsTextView implements CollectionResultPanel.View, Collec
             }
         });
     }
+    
 }

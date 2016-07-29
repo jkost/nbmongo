@@ -27,11 +27,10 @@ import org.jdesktop.swingx.treetable.DefaultMutableTreeTableNode;
  */
 public class RootNode extends DefaultMutableTreeTableNode {
 
-    public RootNode(Collection<BsonDocument> documents) {
+    public RootNode(Collection<BsonDocument> documents, boolean sortDocumentsFields) {
         for (BsonDocument document : documents) {
-            add(new BsonValueNode(document));
+            add(new BsonValueNode(document, sortDocumentsFields));
         }
     }
-    
     
 }

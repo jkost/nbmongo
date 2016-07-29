@@ -24,6 +24,7 @@ import org.bson.BsonValue;
 import org.netbeans.modules.mongodb.bson.Bsons;
 import org.netbeans.modules.mongodb.options.RenderingOptions.PrefsRenderingOptions;
 import org.netbeans.modules.mongodb.options.RenderingOptions.RenderingOptionsItem;
+import org.netbeans.modules.mongodb.util.BsonUtils;
 
 /**
  *
@@ -31,9 +32,16 @@ import org.netbeans.modules.mongodb.options.RenderingOptions.RenderingOptionsIte
  */
 public final class BsonFlatTableCellRenderer extends DefaultTableCellRenderer {
 
+    private static final long serialVersionUID = 1L;
+
     @Override
     public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
         BsonValue bsonValue = (BsonValue) value;
+        DocumentsFlatTableModel model = (DocumentsFlatTableModel) table.getModel();
+        if(bsonValue.isDocument() && model != null && model.isSortDocumentsFields()) {
+            bsonValue = BsonUtils.sortDocumentFields(bsonValue.asDocument());
+        }
+        
         Component component = super.getTableCellRendererComponent(table, Bsons.shell(bsonValue), isSelected, hasFocus, row, column);
         setToolTipText(getText());
         if (value != null && isSelected == false) {

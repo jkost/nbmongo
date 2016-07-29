@@ -17,12 +17,17 @@
  */
 package org.netbeans.modules.mongodb.ui.components.result_panel.views.treetable;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import org.bson.BsonArray;
 import org.bson.BsonDocument;
 import org.bson.BsonType;
 import org.bson.BsonValue;
 import org.jdesktop.swingx.treetable.DefaultMutableTreeTableNode;
+import org.netbeans.modules.mongodb.ui.components.CollectionResultPanel;
 
 /**
  *
@@ -30,8 +35,11 @@ import org.jdesktop.swingx.treetable.DefaultMutableTreeTableNode;
  */
 public class BsonValueNode extends DefaultMutableTreeTableNode {
 
-    public BsonValueNode(BsonValue value) {
+    private final boolean sortDocumentsFields;
+    
+    public BsonValueNode(BsonValue value, boolean sortDocumentsFields) {
         super(value);
+        this.sortDocumentsFields = sortDocumentsFields;
         refreshChildren();
     }
 
@@ -43,17 +51,23 @@ public class BsonValueNode extends DefaultMutableTreeTableNode {
             // let's put _id as first child if it exists
             BsonValue _id = document.get("_id");
             if (_id != null) {
-                add(new BsonPropertyNode("_id", _id));
+                add(new BsonPropertyNode("_id", _id, false));
             }
-            for (Map.Entry<String, BsonValue> entry : document.entrySet()) {
+            Collection<Map.Entry<String, BsonValue>> fields = document.entrySet();
+            if (sortDocumentsFields) {
+                List<Map.Entry<String, BsonValue>> entries = new ArrayList<>(document.entrySet());
+                Collections.sort(entries, CollectionResultPanel.DOCUMENT_FIELD_ENTRY_KEY_COMPARATOR);
+                fields = entries;
+            }
+            for (Map.Entry<String, BsonValue> entry : fields) {
                 if ("_id".equals(entry.getKey()) == false) {
-                    add(new BsonPropertyNode(entry.getKey(), entry.getValue()));
+                    add(new BsonPropertyNode(entry.getKey(), entry.getValue(), sortDocumentsFields));
                 }
             }
         } else if (value.isArray()) {
             BsonArray array = value.asArray();
             for (BsonValue item : array) {
-                add(new BsonValueNode(item));
+                add(new BsonValueNode(item, sortDocumentsFields));
             }
         }
     }

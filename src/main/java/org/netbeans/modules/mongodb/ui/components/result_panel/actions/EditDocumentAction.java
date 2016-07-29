@@ -30,6 +30,7 @@ import org.netbeans.modules.mongodb.resources.Images;
 import org.netbeans.modules.mongodb.ui.util.DialogNotification;
 import org.netbeans.modules.mongodb.ui.util.BsonDocumentEditor;
 import org.netbeans.modules.mongodb.ui.components.CollectionResultPanel;
+import org.netbeans.modules.mongodb.util.BsonUtils;
 import org.netbeans.modules.mongodb.util.Tasks;
 import org.openide.util.NbBundle.Messages;
 import org.openide.util.Task;
@@ -73,7 +74,7 @@ public class EditDocumentAction extends QueryResultPanelAction {
         }
         final BsonDocument modifiedDocument = BsonDocumentEditor.show(
             Bundle.editDocumentTitle(),
-            document);
+            getResultPanel().isDocumentsFieldsSorted() ? BsonUtils.sortDocumentFields(document) : document);
         if (modifiedDocument != null) {
             Tasks.create(Bundle.TASK_updateDocument(), new Runnable() {
 
@@ -89,7 +90,11 @@ public class EditDocumentAction extends QueryResultPanelAction {
 
                 @Override
                 public void taskFinished(Task task) {
-                    getResultPanel().editDocument(document, modifiedDocument);
+                    
+                    getResultPanel().editDocument(
+                        document, 
+                        getResultPanel().isDocumentsFieldsSorted() ? BsonUtils.sortDocumentFields(modifiedDocument) : modifiedDocument
+                    );
                 }
             });
         }
