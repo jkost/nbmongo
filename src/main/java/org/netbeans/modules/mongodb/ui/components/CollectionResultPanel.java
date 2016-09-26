@@ -834,7 +834,14 @@ public final class CollectionResultPanel extends javax.swing.JPanel {
                 menu.add(new JMenuItem(new DeleteSelectedDocumentAction(this)));
             }
             menu.addSeparator();
+            
+            if(selectedNode.isLeaf() == false) {
+                menu.add(new JMenuItem(new ExpandNodeWithChildrenAction(this, treePath)));
+                menu.addSeparator();
+            }
+            
         }
+        
         menu.add(new JMenuItem(collapseTreeAction));
         menu.add(new JMenuItem(expandTreeAction));
         return menu;
