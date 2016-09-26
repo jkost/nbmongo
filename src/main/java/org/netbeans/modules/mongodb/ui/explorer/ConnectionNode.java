@@ -79,7 +79,9 @@ import org.openide.windows.TopComponent;
     "createDatabaseText=Database name:",
     "waitWhileConnecting=Please wait while connecting to mongo database",
     "# {0} - database name",
-    "TASK_createDatabase=creating '{0}' database"
+    "TASK_createDatabase=creating '{0}' database",
+    "# {0} - connection name",
+    "MSG_confirmConnectionDeletion=Delete connection '{0}'?"
 })
 class ConnectionNode extends AbstractNode implements PropertyChangeListener {
 
@@ -259,9 +261,11 @@ class ConnectionNode extends AbstractNode implements PropertyChangeListener {
         @Override
         public void actionPerformed(ActionEvent e) {
             final ConnectionInfo info = getLookup().lookup(ConnectionInfo.class);
-            connectionHandler.disconnect();
-            info.delete();
-            ((MongoServicesNode) getParentNode()).getChildrenFactory().refresh();
+            if(DialogNotification.confirm(Bundle.MSG_confirmConnectionDeletion(info.getDisplayName()))) {
+                connectionHandler.disconnect();
+                info.delete();
+                ((MongoServicesNode) getParentNode()).getChildrenFactory().refresh();
+            }
         }
     }
 
