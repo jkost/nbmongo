@@ -4,12 +4,15 @@ NetBeans MongoDB
 [NetBeans](http://netbeans.org) plugin for accessing [MongoDB](http://mongodb.org). It adds
 a node to the Services tab. Right click it to add connections.
 
-Current release: [8.2.1](https://github.com/le-yams/netbeans-mongodb/releases/tag/nbmongo-8.2.1)
+Current release: [8.2.3](https://github.com/le-yams/nbmongo/releases/tag/nbmongo-8.2.3.NB82)
 
 Development version (master): 
   * ![](https://le-yams.ci.cloudbees.com/buildStatus/icon?job=NBMongo%20master%20build)
   * [Last successful build](https://le-yams.ci.cloudbees.com/job/NBMongo%20master%20build/lastSuccessfulBuild/)
   
+
+[![Donate](https://www.paypalobjects.com/en_US/i/btn/btn_donate_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=K9QPTXSTYQ2US)
+
 Main features
 -------------
 
