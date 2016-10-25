@@ -23,17 +23,15 @@ import javax.swing.JEditorPane;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
-import javax.swing.text.EditorKit;
-import javax.swing.text.JTextComponent;
 import lombok.Getter;
 import lombok.Setter;
 import org.bson.BsonDocument;
-import org.netbeans.api.editor.mimelookup.MimeLookup;
 import org.netbeans.modules.mongodb.api.CollectionResultPages;
 import org.netbeans.modules.mongodb.bson.Bsons;
 import org.netbeans.modules.mongodb.ui.components.CollectionResultPanel;
 import org.netbeans.modules.mongodb.util.BsonUtils;
 import org.netbeans.modules.mongodb.ui.components.SearchableTextComponent;
+import org.netbeans.modules.mongodb.ui.util.JsonUIUtils;
 
 /**
  *
@@ -57,10 +55,7 @@ public final class ResultsTextView extends JPanel implements CollectionResultPan
     public ResultsTextView(CollectionResultPages pages) {
         super(new BorderLayout(5, 5));
         textComponent = new JEditorPane();
-        EditorKit editorKit = MimeLookup.getLookup("text/x-json").lookup(EditorKit.class);
-        if (editorKit != null) {
-            textComponent.setEditorKit(editorKit);
-        }
+        JsonUIUtils.setJsonEditorKit(textComponent);
         textComponent.setEditable(false);
         this.pages = pages;
         add(new SearchableTextComponent(textComponent, this), BorderLayout.CENTER);
