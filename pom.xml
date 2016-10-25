@@ -4,7 +4,7 @@
 
     <groupId>com.mytdev</groupId>
     <artifactId>nbmongo</artifactId>
-    <version>8.2.2.NB82</version>
+    <version>8.2.3.NB82</version>
     <packaging>nbm</packaging>
 
     <name>NBMongo</name>
