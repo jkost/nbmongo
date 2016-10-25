@@ -115,6 +115,8 @@ public class DefaultListModel<E> extends AbstractListModel<E> implements Iterabl
      * Returns a list iterator of the components of this list, starting at the
      * specified position in the list.
      *
+     * @param index index of the first element to be returned from the list
+     * iterator (by a call to next)
      * @return a list iterator of the components of this list, starting at the
      * specified position in the list
      * @see List#listIterator(int)
@@ -307,7 +309,7 @@ public class DefaultListModel<E> extends AbstractListModel<E> implements Iterabl
      * correct order.
      *
      * @return an array containing the elements of the list
-     * @see Vector#toArray()
+     * @see java.util.Vector#toArray()
      */
     public Object[] toArray() {
         return delegate.toArray(new Object[delegate.size()]);
@@ -336,16 +338,15 @@ public class DefaultListModel<E> extends AbstractListModel<E> implements Iterabl
         fireIntervalRemoved(this, fromIndex, toIndex);
     }
 
-    
     public void addAll(Collection<E> items) {
         int index1 = delegate.size();
-        if(items.isEmpty() == false && delegate.addAll(items)) {
+        if (items.isEmpty() == false && delegate.addAll(items)) {
             fireIntervalAdded(this, index1, delegate.size() - 1);
         }
     }
 
     public void addAll(int index, Collection<E> items) {
-        if(items.isEmpty() == false && delegate.addAll(index, items)) {
+        if (items.isEmpty() == false && delegate.addAll(index, items)) {
             fireIntervalAdded(this, index, index + items.size() - 1);
         }
     }

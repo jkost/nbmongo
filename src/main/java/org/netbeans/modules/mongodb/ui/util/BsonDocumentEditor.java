@@ -79,10 +79,10 @@ public class BsonDocumentEditor extends JPanel {
     }
 
     /**
-     * Displays a modal dialog to input json.
+     * Displays a modal dialog to input a BsonDocument.
      *
      * @param title the dialog title
-     * @param defaultJson the default json
+     * @param document a bson document or {@literal null} for empty document
      * @return a DBObject representing the input json or null if the dialog has
      * been cancelled.
      */
@@ -113,10 +113,10 @@ public class BsonDocumentEditor extends JPanel {
     }
 
     /**
-     * Displays a modal dialog to display json text.
+     * Displays a modal dialog to display a BsonDocument.
      *
      * @param title the dialog title
-     * @param json the json to display
+     * @param document the bson document
      */
     public static void showReadOnly(String title, BsonDocument document) {
         BsonDocumentEditor editor = new BsonDocumentEditor();
