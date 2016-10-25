@@ -4,7 +4,7 @@
 
     <groupId>com.mytdev</groupId>
     <artifactId>nbmongo</artifactId>
-    <version>8.2.2.NB81</version>
+    <version>8.2.3.NB81</version>
     <packaging>nbm</packaging>
 
     <name>NBMongo</name>
@@ -226,7 +226,7 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.16.4</version>
+            <version>1.16.10</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>
@@ -236,7 +236,7 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>nbm-maven-plugin</artifactId>
-                <version>3.14</version>
+                <version>4.1</version>
                 <extensions>true</extensions>
                 <configuration>
                     <author>Yann D'Isanto</author>
@@ -249,7 +249,6 @@
             </plugin>
 
             <plugin>
-                <!-- NetBeans 6.9+ requires JDK 6, starting NetBeans 7.4 source 1.7 will be required   -->
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.5.1</version>
