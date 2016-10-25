@@ -22,14 +22,13 @@ import java.awt.Frame;
 import javax.swing.JDialog;
 import javax.swing.JEditorPane;
 import javax.swing.JOptionPane;
-import javax.swing.text.EditorKit;
 import lombok.Getter;
 import org.bson.BsonDocument;
 import org.bson.json.JsonParseException;
-import org.netbeans.api.editor.mimelookup.MimeLookup;
 import org.netbeans.modules.mongodb.api.FindCriteria;
 import org.netbeans.modules.mongodb.bson.Bsons;
 import org.netbeans.modules.mongodb.ui.util.DialogNotification;
+import org.netbeans.modules.mongodb.ui.util.JsonUIUtils;
 import org.openide.util.NbBundle;
 import org.openide.windows.WindowManager;
 
@@ -43,7 +42,7 @@ import org.openide.windows.WindowManager;
     "invalidSortJson=invalid sort json"})
 public final class FindCriteriaEditor extends javax.swing.JPanel {
 
-    private final EditorKit jsonEditorKit = MimeLookup.getLookup("text/x-json").lookup(EditorKit.class);
+    private static final long serialVersionUID = 1L;
 
     private JDialog dialog;
 
@@ -62,6 +61,9 @@ public final class FindCriteriaEditor extends javax.swing.JPanel {
     public FindCriteriaEditor(FindCriteria findCriteria) {
         this.findCriteria = findCriteria;
         initComponents();
+        JsonUIUtils.setJsonEditorKit(filterEditor);
+        JsonUIUtils.setJsonEditorKit(projectionEditor);
+        JsonUIUtils.setJsonEditorKit(sortEditor);
     }
 
     public BsonDocument parseFilter() throws JsonParseException {
@@ -231,7 +233,6 @@ public final class FindCriteriaEditor extends javax.swing.JPanel {
 
         org.openide.awt.Mnemonics.setLocalizedText(filterLabel, org.openide.util.NbBundle.getMessage(FindCriteriaEditor.class, "FindCriteriaEditor.filterLabel.text")); // NOI18N
 
-        filterEditor.setEditorKit(jsonEditorKit);
         filterScrollPane.setViewportView(filterEditor);
 
         javax.swing.GroupLayout filterPanelLayout = new javax.swing.GroupLayout(filterPanel);
@@ -264,7 +265,6 @@ public final class FindCriteriaEditor extends javax.swing.JPanel {
 
         org.openide.awt.Mnemonics.setLocalizedText(projectionLabel, org.openide.util.NbBundle.getMessage(FindCriteriaEditor.class, "FindCriteriaEditor.projectionLabel.text")); // NOI18N
 
-        projectionEditor.setEditorKit(jsonEditorKit);
         projectionScrollPane.setViewportView(projectionEditor);
 
         javax.swing.GroupLayout projectionPanelLayout = new javax.swing.GroupLayout(projectionPanel);
@@ -294,7 +294,6 @@ public final class FindCriteriaEditor extends javax.swing.JPanel {
 
         org.openide.awt.Mnemonics.setLocalizedText(sortLabel, org.openide.util.NbBundle.getMessage(FindCriteriaEditor.class, "FindCriteriaEditor.sortLabel.text")); // NOI18N
 
-        sortEditor.setEditorKit(jsonEditorKit);
         sortScrollPane.setViewportView(sortEditor);
 
         javax.swing.GroupLayout sortPanelLayout = new javax.swing.GroupLayout(sortPanel);

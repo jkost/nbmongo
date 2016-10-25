@@ -22,11 +22,9 @@ import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JEditorPane;
 import javax.swing.JPanel;
-import javax.swing.text.EditorKit;
 import lombok.Getter;
 import org.bson.BsonDocument;
 import org.bson.json.JsonParseException;
-import org.netbeans.api.editor.mimelookup.MimeLookup;
 import org.netbeans.modules.mongodb.bson.Bsons;
 import org.netbeans.modules.mongodb.ui.components.SearchableTextComponent;
 import org.netbeans.modules.mongodb.ui.components.SearchableTextComponent.MessageDisplayer.NotificationLineSupportMessageDisplayer;
@@ -56,10 +54,7 @@ public class BsonDocumentEditor extends JPanel {
 
     private BsonDocumentEditor() {
         super(new BorderLayout());
-        EditorKit editorKit = MimeLookup.getLookup("text/x-json").lookup(EditorKit.class);
-        if (editorKit != null) {
-            editor.setEditorKit(editorKit);
-        }
+        JsonUIUtils.setJsonEditorKit(editor);
         searchableEditor = new SearchableTextComponent(editor);
         add(searchableEditor, BorderLayout.CENTER);
     }
