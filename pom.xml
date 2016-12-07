@@ -4,7 +4,7 @@
 
     <groupId>com.mytdev</groupId>
     <artifactId>nbmongo</artifactId>
-    <version>8.2.3.NB82</version>
+    <version>8.2.4.NB82</version>
     <packaging>nbm</packaging>
 
     <name>NBMongo</name>
@@ -84,12 +84,6 @@
         <dependency>
             <groupId>org.netbeans.api</groupId>
             <artifactId>org-netbeans-core-ide</artifactId>
-            <version>${netbeans.target.version}</version>
-            <type>jar</type>
-        </dependency>
-        <dependency>
-            <groupId>org.netbeans.api</groupId>
-            <artifactId>org-netbeans-modules-db</artifactId>
             <version>${netbeans.target.version}</version>
             <type>jar</type>
         </dependency>
