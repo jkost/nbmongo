@@ -38,7 +38,7 @@ public final class BsonFlatTableCellRenderer extends DefaultTableCellRenderer {
     public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
         BsonValue bsonValue = (BsonValue) value;
         DocumentsFlatTableModel model = (DocumentsFlatTableModel) table.getModel();
-        if(bsonValue.isDocument() && model != null && model.isSortDocumentsFields()) {
+        if(bsonValue != null && bsonValue.isDocument() && model != null && model.isSortDocumentsFields()) {
             bsonValue = BsonUtils.sortDocumentFields(bsonValue.asDocument());
         }
         
