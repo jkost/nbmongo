@@ -49,7 +49,7 @@ public final class FindResult implements CollectionResult {
     
     @Override
     public long getTotalElementsCount() {
-        return collection.count(findCriteria.getFilter());
+        return collection.countDocuments(findCriteria.getFilter());
     }
 
     @Override
@@ -57,7 +57,7 @@ public final class FindResult implements CollectionResult {
         return findIterable()
                 .skip((int) offset)
                 .limit(count)
-                .into(new ArrayList<BsonDocument>());
+                .into(new ArrayList<>());
     }
 
     @Override

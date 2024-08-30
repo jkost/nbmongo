@@ -4,9 +4,13 @@
 *.jar
 *.war
 *.ear
-build/
-target/
 .DS_Store
 
-/private/
 nb-configuration.xml
+
+.idea/
+nbproject/
+out/
+build/
+target/
+private/

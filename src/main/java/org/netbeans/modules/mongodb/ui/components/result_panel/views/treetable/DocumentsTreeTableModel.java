@@ -58,12 +58,8 @@ public final class DocumentsTreeTableModel extends DefaultTreeTableModel impleme
 
     private void buildModelFromCurrentPage() {
         final RootNode rootNode = new RootNode(pages.getCurrentPageItems(), sortDocumentsFields);
-        SwingUtilities.invokeLater(new Runnable() {
-
-            @Override
-            public void run() {
-                setRoot(rootNode);
-            }
+        SwingUtilities.invokeLater(() -> {
+            setRoot(rootNode);
         });
     }
 

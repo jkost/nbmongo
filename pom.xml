@@ -4,12 +4,12 @@
 
     <groupId>com.mytdev</groupId>
     <artifactId>nbmongo</artifactId>
-    <version>8.2.4.NB82</version>
+    <version>9.0.0</version>
     <packaging>nbm</packaging>
 
     <name>NBMongo</name>
     <description>A NetBeans plugin for accessing MongoDB.</description>
-    <url>https://github.com/le-yams/nbmongo</url>
+    <url>https://github.com/jkost/nbmongo</url>
 
     <licenses>
         <license>
@@ -24,17 +24,15 @@
     
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.source>1.7</maven.compiler.source>
-        <maven.compiler.target>1.7</maven.compiler.target>
-        <netbeans.target.version>RELEASE82</netbeans.target.version>
+        <netbeans.target.version>RELEASE190</netbeans.target.version>
         <netbeans.run.params>${netbeans.run.params.ide}</netbeans.run.params>
         <netbeans.run.params.ide/>
     </properties>
 
     <scm>
-        <url>https://github.com/le-yams/nbmongo</url>
-        <connection>scm:git:git://github.com/le-yams/nbmongo.git</connection>
-        <developerConnection>scm:git:git@github.com:le-yams/nbmongo.git</developerConnection>
+        <url>https://github.com/jkost/nbmongo</url>
+        <connection>scm:git:git://github.com/jkost/nbmongo.git</connection>
+        <developerConnection>scm:git:git@github.com:jkost/nbmongo.git</developerConnection>
     </scm>
     
     <distributionManagement>
@@ -212,10 +210,9 @@
         <dependency>
             <groupId>org.mongodb</groupId>
             <artifactId>mongo-java-driver</artifactId>
-            <version>3.2.0</version>
+            <version>3.12.14</version>
             <type>jar</type>
         </dependency>
-        
         
         <!-- ##### Other Dependencies ##### -->
         <dependency>
@@ -241,7 +238,7 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.16.10</version>
+            <version>1.18.30</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>
@@ -249,27 +246,19 @@
     <build>
         <plugins>
             <plugin>
-                <groupId>org.codehaus.mojo</groupId>
+                <groupId>org.apache.netbeans.utilities</groupId>
                 <artifactId>nbm-maven-plugin</artifactId>
-                <version>4.1</version>
+                <version>4.8</version>
                 <extensions>true</extensions>
-                <configuration>
-                    <author>Yann D'Isanto</author>
-                    <licenseName>MIT License</licenseName>
-                    <licenseFile>MIT-LICENSE.txt</licenseFile>
-                    <keystore>private/keystore</keystore>
-                    <keystorealias></keystorealias>
-                    <keystorepassword></keystorepassword>
-                </configuration>
             </plugin>
 
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.5.1</version>
+                <version>3.12.1</version>
                 <configuration>
-                    <source>${maven.compiler.source}</source>
-                    <target>${maven.compiler.target}</target>
+                    <source>1.8</source>
+                    <target>1.8</target>
                     <compilerArgument>-Xlint:all</compilerArgument>
                 </configuration>
             </plugin>
@@ -277,9 +266,9 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
-                <version>3.0.2</version>
+                <version>3.3.0</version>
                 <configuration>
-                    <!-- to have the jar plugin pickup the nbm generated manifest -->
+                     to have the jar plugin pickup the nbm generated manifest 
                     <archive>
                         <manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
                     </archive>
@@ -287,8 +276,6 @@
             </plugin>
         </plugins>
     </build>
-    
-    
     
     <profiles>
         <profile>
@@ -298,7 +285,7 @@
                     <plugin>
                         <groupId>org.projectlombok</groupId>
                         <artifactId>lombok-maven-plugin</artifactId>
-                        <version>1.16.10.0</version>
+                        <version>1.18.20.0</version>
                         <executions>
                             <execution>
                                 <id>delombok</id>
@@ -327,7 +314,7 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-source-plugin</artifactId>
-                        <version>3.0.1</version>
+                        <version>3.3.0</version>
                         <executions>
                             <execution>
                                 <id>attach-sources</id>
@@ -340,9 +327,9 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-javadoc-plugin</artifactId>
-                        <version>2.10.4</version>
+                        <version>3.6.3</version>
                         <configuration>
-                          <sourcepath>target/generated-sources/delombok</sourcepath>
+                            <sourcepath>target/generated-sources/delombok</sourcepath>
                         </configuration>
                         <executions>
                             <execution>
@@ -356,7 +343,7 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-gpg-plugin</artifactId>
-                        <version>1.6</version>
+                        <version>3.1.0</version>
                         <executions>
                             <execution>
                                 <id>sign-artifacts</id>
@@ -370,7 +357,7 @@
                     <plugin>
                         <groupId>org.sonatype.plugins</groupId>
                         <artifactId>nexus-staging-maven-plugin</artifactId>
-                        <version>1.6.7</version>
+                        <version>1.6.13</version>
                         <extensions>true</extensions>
                         <configuration>
                             <serverId>ossrh</serverId>
@@ -381,7 +368,7 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-release-plugin</artifactId>
-                        <version>2.5.3</version>
+                        <version>3.0.1</version>
                         <configuration>
                             <autoVersionSubmodules>true</autoVersionSubmodules>
                             <useReleaseProfile>false</useReleaseProfile>
@@ -398,6 +385,14 @@
         <developer>
             <id>le-yams</id>
             <name>Yann D'Isanto</name>
+        </developer>
+        <developer>
+            <id>timboudreau</id>
+            <name>Tim Boudreau</name>
+        </developer>
+        <developer>
+            <id>jkost</id>
+            <name>Ioannis Kostaras</name>
         </developer>
     </developers>
     

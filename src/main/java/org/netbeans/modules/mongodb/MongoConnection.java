@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2015 Yann D'Isanto
  *
  * This program is free software; you can redistribute it and/or
@@ -17,13 +17,14 @@
  */
 package org.netbeans.modules.mongodb;
 
-import org.netbeans.modules.mongodb.api.connections.ConnectionInfo;
-import com.mongodb.MongoClient;
 import com.mongodb.MongoException;
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoClients;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.Getter;
 import org.netbeans.api.progress.BaseProgressUtils;
+import org.netbeans.modules.mongodb.api.connections.ConnectionInfo;
 import org.netbeans.modules.mongodb.ui.util.DialogNotification;
 import org.openide.util.Lookup;
 import org.openide.util.NbBundle.Messages;
@@ -62,7 +63,7 @@ public class MongoConnection {
                     public void run() {
                         final ConnectionInfo connection = getLookup().lookup(ConnectionInfo.class);
                         try {
-                            client = new MongoClient(connection.getMongoURI());
+                            client = MongoClients.create(connection.getMongoURI().getURI());
                             fireConnectionStateChanged(ConnectionState.CONNECTED);
                         } catch (MongoException ex) {
                             DialogNotification.error(

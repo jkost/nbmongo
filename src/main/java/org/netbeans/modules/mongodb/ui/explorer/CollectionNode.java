@@ -117,17 +117,14 @@ final class CollectionNode extends AbstractNode {
         this.childFactory = childFactory;
         content.add(collection);
         content.add(collection, new CollectionConverter());
-        content.add(new OpenCookie() {
-            @Override
-            public void open() {
-                if (TopComponentUtils.isNotActivated(CollectionView.class, collection)) {
-                    TopComponent tc = TopComponentUtils.find(CollectionView.class, collection);
-                    if (tc == null) {
-                        tc = new CollectionView(collection, lookup);
-                        tc.open();
-                    }
-                    tc.requestActive();
+        content.add((OpenCookie) () -> {
+            if (TopComponentUtils.isNotActivated(CollectionView.class, collection)) {
+                TopComponent tc = TopComponentUtils.find(CollectionView.class, collection);
+                if (tc == null) {
+                    tc = new CollectionView(collection, lookup);
+                    tc.open();
                 }
+                tc.requestActive();
             }
         });
         setIconBaseWithExtension(SystemCollectionPredicate.get().eval(collection.getName())
@@ -195,7 +192,7 @@ final class CollectionNode extends AbstractNode {
             actions.add(null);
         }
         actions.addAll(Arrays.asList(orig));
-        return actions.toArray(new Action[actions.size()]);
+        return actions.toArray(new Action[0]);
     }
 
     @Override

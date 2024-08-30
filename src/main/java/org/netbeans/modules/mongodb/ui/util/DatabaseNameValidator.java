@@ -17,7 +17,7 @@
  */
 package org.netbeans.modules.mongodb.ui.util;
 
-import com.mongodb.MongoClient;
+import com.mongodb.client.MongoClient;
 import java.util.ArrayList;
 import static java.util.Collections.emptyList;
 import java.util.List;

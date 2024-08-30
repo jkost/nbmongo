@@ -26,7 +26,7 @@ package org.netbeans.modules.mongodb.ui.explorer;
 import org.netbeans.modules.mongodb.properties.ConnectionNameProperty;
 import org.netbeans.modules.mongodb.properties.MongoClientURIProperty;
 import org.netbeans.modules.mongodb.resources.Images;
-import com.mongodb.MongoClient;
+import com.mongodb.client.MongoClient;
 import com.mongodb.MongoClientURI;
 import com.mongodb.MongoException;
 import com.mongodb.client.MongoDatabase;

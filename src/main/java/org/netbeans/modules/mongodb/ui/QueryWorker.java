@@ -52,7 +52,7 @@ public final class QueryWorker extends QueryResultWorker {
     protected QueryResult createQuery() throws Exception {
         FindIterable<BsonDocument> query = filter != null ? collection.find(filter) : collection.find();
         query = query.projection(projection).sort(sort);
-        long size = filter != null ? collection.count(filter) : collection.count();
+        long size = filter != null ? collection.countDocuments(filter) : collection.countDocuments();
         return new QueryResult.MongoCursorResult(query.iterator(), this, size);
     }
 }

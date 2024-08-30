@@ -187,7 +187,7 @@ public class BigDecimalPropertyEditor extends PropertyEditorSupport implements E
             BigDecimal value = (BigDecimal) getValue();
             BigDecimal stepSize = (BigDecimal) getStepSize();
             BigDecimal newValue = value.add(stepSize);
-            if ((getMaximum() != null) && (getMaximum().compareTo(newValue) < 0)) {
+            if ((getMaximum() != null) && (((BigDecimal)getMaximum()).compareTo(newValue) < 0)) {
                 return null;
             }
             return newValue;
@@ -199,7 +199,7 @@ public class BigDecimalPropertyEditor extends PropertyEditorSupport implements E
             BigDecimal value = (BigDecimal) getValue();
             BigDecimal stepSize = (BigDecimal) getStepSize();
             BigDecimal newValue = value.subtract(stepSize);
-            if ((getMinimum() != null) && (getMinimum().compareTo(newValue) > 0)) {
+            if ((getMinimum() != null) && (((BigDecimal)getMinimum()).compareTo(newValue) > 0)) {
                 return null;
             }
             return newValue;

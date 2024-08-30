@@ -23,7 +23,7 @@
  */
 package org.netbeans.modules.mongodb.ui.explorer;
 
-import com.mongodb.MongoClient;
+import com.mongodb.client.MongoClient;
 import com.mongodb.MongoSocketException;
 import java.util.Collections;
 import java.util.List;

@@ -17,16 +17,8 @@
  */
 package org.netbeans.modules.mongodb.bson;
 
-import java.io.StringWriter;
-import java.io.Writer;
-import org.bson.BsonBinary;
-import org.bson.BsonDbPointer;
-import org.bson.BsonRegularExpression;
-import org.bson.BsonTimestamp;
-import org.bson.BsonType;
-import org.bson.BsonValue;
+import org.bson.*;
 import org.bson.codecs.BsonDocumentCodec;
-import static org.bson.codecs.BsonValueCodecProvider.getClassForBsonType;
 import org.bson.codecs.Codec;
 import org.bson.codecs.DecoderContext;
 import org.bson.codecs.EncoderContext;
@@ -36,16 +28,19 @@ import org.bson.json.JsonWriter;
 import org.bson.json.JsonWriterSettings;
 import org.bson.types.ObjectId;
 
+import java.io.StringWriter;
+import java.io.Writer;
+
+import static org.bson.codecs.BsonValueCodecProvider.getClassForBsonType;
+
 /**
  *
  * @author Yann D'Isanto
  */
 public final class Bsons {
 
-    public static final JsonWriterSettings SHELL = new JsonWriterSettings(JsonMode.SHELL, false);
-    public static final JsonWriterSettings SHELL_PRETTY = new JsonWriterSettings(JsonMode.SHELL, "  ", "\n");
-    public static final JsonWriterSettings STRICT = new JsonWriterSettings(JsonMode.STRICT, false);
-    public static final JsonWriterSettings STRICT_PRETTY = new JsonWriterSettings(JsonMode.STRICT, "  ", "\n");
+    public static final JsonWriterSettings SHELL = JsonWriterSettings.builder().outputMode(JsonMode.SHELL).indent(false).build();
+    public static final JsonWriterSettings SHELL_PRETTY = JsonWriterSettings.builder().outputMode(JsonMode.SHELL).indentCharacters("  ").newLineCharacters("\n").build();
 
     public static String shell(BsonValue value) {
         return toJson(value, SHELL);
@@ -55,31 +50,23 @@ public final class Bsons {
         return toJson(value, SHELL_PRETTY);
     }
 
-    public static String strict(BsonValue value) {
-        return toJson(value, STRICT);
-    }
-
-    public static String strictAndPretty(BsonValue value) {
-        return toJson(value, STRICT_PRETTY);
-    }
-
     public static String toJson(BsonValue value, final JsonWriterSettings settings) {
-        if(value == null) {
+        if (value == null) {
             return null;
         }
-        if(value.isDocument()) {
+        if (value.isDocument()) {
             return value.asDocument().toJson(settings);
         }
         StringWriter writer = new StringWriter();
         getCodec(value).encode(
-                new BsonValueJsonWriter(writer, settings), 
-                value, 
+                new BsonValueJsonWriter(writer, settings),
+                value,
                 EncoderContext.builder().build()
         );
         return writer.toString();
     }
 
-    @SuppressWarnings("unchecked")    
+    @SuppressWarnings("unchecked")
     public static <T extends BsonValue> T fromJson(String json, BsonType type) {
         return (T) getCodec(type).decode(new JsonReader(json), DecoderContext.builder().build());
     }
@@ -93,7 +80,7 @@ public final class Bsons {
     public static Codec<? extends BsonValue> getCodec(BsonType type) {
         return documentCodec.getCodecRegistry().get(getClassForBsonType(type));
     }
-    
+
     private static final BsonDocumentCodec documentCodec = new BsonDocumentCodec();
 
     private Bsons() {
